@@ -1,0 +1,15 @@
+markdown:
+1.) create a markdown (.md extension) of your resume and note its file path.
+2.) install the markdown library via your command line / terminal:
+	- navigate to your project folder and type 'pip install markdown' (no quotation marks)
+
+weasyprint - a python library that converts html into a .pdf format
+
+	- if you go to your project folder and type 'pip install weasyprint' and try to run the 	import command in you Jupyter Notebook, you may get the following (or similar) error:
+
+	"OSError: cannot load library 'libgobject-2.0-0': dlopen(libgobject-2.0-0, 0x0002): 		tried: 'libgobject-2.0-0' (no such file), '/System/Volumes/Preboot/Cryptexes/			OSlibgobject-2.0-0' (no such file), '/usr/lib/libgobject-2.0-0' (no such file, not in 		dyld cache), 'libgobject-2.0-0' (no such file).  Additionally,ctypes.util.find_library() 	did not manage to locate a library called 'libgobject-2.0-0'"
+
+	- to handle this error:
+		1.) make sure you have 'Homebrew' installed with a simple 'brew --version' 			command. (if it is not installed, visit https://docs.brew.sh/Installation and 			follow the requirements)
+		2.) run the following command to install the required dependencies:
+			'brew install pygobject3'
