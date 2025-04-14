@@ -1,15 +1,16 @@
 markdown:
 1.) create a markdown (.md extension) of your resume and note its file path.
-2.) install the markdown library via your command line / terminal:
+2.) install the markdown library via your command line / Terminal:
 	- navigate to your project folder and type 'pip install markdown' (no quotation marks)
 
-weasyprint - a python library that converts html into a .pdf format
+wkhtmltopdf:
+Sadly, 'brew install' no longer works for this because wkhtmltopdf is no longer actively maintained at brew.
 
-	- if you go to your project folder and type 'pip install weasyprint' and try to run the 	import command in you Jupyter Notebook, you may get the following (or similar) error:
+Good news, though: all you have to do is manually install it with the following code inside your Terminal:
 
-	"OSError: cannot load library 'libgobject-2.0-0': dlopen(libgobject-2.0-0, 0x0002): 		tried: 'libgobject-2.0-0' (no such file), '/System/Volumes/Preboot/Cryptexes/			OSlibgobject-2.0-0' (no such file), '/usr/lib/libgobject-2.0-0' (no such file, not in 		dyld cache), 'libgobject-2.0-0' (no such file).  Additionally,ctypes.util.find_library() 	did not manage to locate a library called 'libgobject-2.0-0'"
+1.) "curl -L https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-2/wkhtmltox-0.12.6-2.macos-cocoa.pkg -O" -> this downloads the package installer
 
-	- to handle this error:
-		1.) make sure you have 'Homebrew' installed with a simple 'brew --version' 			command. (if it is not installed, visit https://docs.brew.sh/Installation and 			follow the requirements)
-		2.) run the following command to install the required dependencies:
-			'brew install pygobject3'
+2.) "sudo installer -pkg wkhtmltox-0.12.6-2.macos-cocoa.pkg -target /" -> installs the package files into your home directory
+
+pdfkit:
+1.) simple Terminal installation: "pip install pdfkit"
