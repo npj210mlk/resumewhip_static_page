@@ -9,17 +9,17 @@
 
 ## 🧠 Career Summary
 
-- **Data Engineering & Analytics:** 3 years of experience in developing scalable data solutions, enhancing reporting accuracy, and enabling data-driven decision-making.
-- **Project Management:** 7 years of experience leading cross-functional teams in Agile and Waterfall methodologies, specializing in technical project delivery and stakeholder engagement.
-- **Business Development:** 15 years of experience fostering relationships and driving growth through data-driven strategies in customer-facing environments.
+- **Data Engineering & Cyber Operations:** Over 3 years of experience in developing scalable data pipelines and optimizing analytics for stakeholder needs, with a strong emphasis on government and military applications.
+- **Project Management:** 7 years leading multi-disciplinary teams in Agile and Waterfall environments, focusing on delivering complex technical projects on time and within budget.
+- **Business Development:** 15 years of experience in technical business development, enhancing customer engagement and adoption through data-driven strategies.
 
 ---
 
 ## 🌟 Impact Summary
 
-- **Cloud Data Engineer, Spaulding Ridge:** Developed data pipelines for major sports leagues, improving data extraction efficiency by 98.9% and reporting accuracy by 54%.
-- **Project Manager, NobleHands:** Led 16+ projects with zero budget overages, achieving consistent Five-Star ratings on customer platforms.
-- **Junior Data Engineer, Apexon:** Successfully migrated large-scale banking data to cloud environments while serving as a subject matter expert and trainer, enhancing team capabilities.
+- **NobleHands:** Delivered 16+ projects with zero overages and perfect safety records, consistently earning Five-Star reviews from clients.
+- **Spaulding Ridge:** Developed data pipelines for high-profile clients, improving data extraction efficiency by 98.9% and enhancing reporting accuracy by 54%.
+- **Apexon:** Successfully migrated extensive banking datasets to cloud environments, acting as Subject Matter Expert for cross-functional team training and presentations.
 
 ---
 
@@ -27,25 +27,23 @@
 
 ### Cloud Data Engineer — *Spaulding Ridge (formerly Data Clymer)*  
 **Remote | 07/2022–06/2023**  
-- Designed and implemented data pipelines for the NFL's *Fan 360 Experience*, enabling real-time analytics for enhanced user engagement.
-- Collaborated with Sales and Marketing to align data solutions with business strategies, ensuring the seamless integration of analytics into operational workflows.
-- **Skills:** API Management, ETL, Agile, Data Analytics, Stakeholder Collaboration
+- Led the design and implementation of data pipelines for military applications, directly contributing to operational capabilities for U.S. Air Force clients.
+- Collaborated with cross-functional teams to gather software requirements and deliver tailored analytics solutions, improving user engagement and adoption rates.
+- Enhanced data accuracy and reporting capabilities through innovative ETL processes, supporting mission-critical projects.
 
 ---
 
 ### Project Manager — *NobleHands H & C*  
 **San Antonio, TX | 10/2017–01/2020, 07/2023–01/2025**  
-- Oversaw project delivery for multiple initiatives, achieving 100% safety compliance and maintaining high customer satisfaction levels.
-- Cultivated relationships with stakeholders to drive project alignment with business objectives and enhance service delivery.
-- **Skills:** Agile Project Management, Stakeholder Engagement, Conflict Resolution
+- Managed diverse projects focused on technical deliverables for government contracts, ensuring seamless integration of operations and communication with stakeholders.
+- Achieved 5-Star ratings by fostering strong customer relationships and exceeding service expectations through proactive project management.
 
 ---
 
 ### Junior Data Engineer — *Apexon (formerly Gathi Analytics)*  
 **Remote | 12/2020–03/2022**  
-- Led the migration of extensive banking datasets to cloud infrastructure, supporting operational efficiency and data accessibility.
-- Delivered training sessions to new hires, improving team performance and knowledge transfer.
-- **Skills:** Data Migration, Cross-Functional Collaboration, Agile (Scrum/Kanban)
+- Migrated large-scale datasets to cloud environments, improving operational efficiency for financial institutions while serving as a bridge between technical and non-technical stakeholders.
+- Trained team members and clients on data engineering best practices, enhancing overall project outcomes and stakeholder satisfaction.
 
 ---
 
