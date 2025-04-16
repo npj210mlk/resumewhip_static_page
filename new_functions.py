@@ -146,7 +146,7 @@ def process_resume(resume, job_desc_string):
         resume_string = file.read()
 
     # create prompt
-    prompt = create_prompt(resume_string, job_desc_string)
+    prompt = prompt_creator(resume_string, job_desc_string)
 
     # generate response with the my_sk we globally set with load_dotenv() earlier
     response_string = get_resume_response(prompt, my_sk)
@@ -179,7 +179,7 @@ def export_resume(new_resume):
         html_content = markdown(new_resume)
         
         # Convert HTML to PDF and save
-        HTML(string=html_content).write_pdf(output_pdf_file, stylesheets=['resumes/style.css'])
+        HTML(string=html_content).write_pdf(output_pdf_file)
 
         return f"Successfully exported resume to {output_pdf_file} 🎉"
     except Exception as e:
