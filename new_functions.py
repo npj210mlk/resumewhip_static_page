@@ -172,7 +172,7 @@ def export_resume(new_resume):
     """
     try:
         # save as PDF
-        output_pdf_file = "resumes/nick_joseph_resume.pdf"
+        output_pdf_file = "resumes/nick_joseph_pm_resume.pdf"
 
         
         # Convert Markdown to HTML
