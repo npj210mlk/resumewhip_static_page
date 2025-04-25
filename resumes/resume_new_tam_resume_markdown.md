@@ -1,52 +1,66 @@
-# Nicholas Joseph
+# Nicholas Joseph  
+**Technical Account Manager | Product & Data Strategist**  
+San Antonio, TX | Remote | Hybrid  
+nickpjoseph210@gmail.com | (210) 771-9853  
+[LinkedIn](https://www.linkedin.com/in/nickjosephsanantonio/) | [GitHub](https://github.com/npj210mlk)  
 
-**Product Manager**
+---
 
-San Antonio, TX | Remote | Hybrid | Local to San Antonio, TX  
-nickpjoseph210@gmail.com | (210) 771-9853 | [LinkedIn](https://www.linkedin.com/in/nickjosephsanantonio/) | [GitHub](https://github.com/npj210mlk)
+## Career Summary  
+Technical Account Manager with 7+ years of experience providing expert technical support and guidance to clients, ensuring optimal use of data-driven solutions. Proven ability to troubleshoot complex technical challenges, manage integrations, and enhance customer success through proactive engagement. Skilled in collaborating with cross-functional teams, translating technical concepts for diverse audiences, and driving product adoption.
 
-## Career Summary
+---
 
-Dynamic Product Manager with 7+ years of experience creating and scaling consumer products in Agile environments. Proven ability to translate complex data into user-friendly experiences, with a strong focus on enhancing product strategies through user insights. Background in data engineering and analytics, enabling data-driven decisions that improve user engagement and drive business growth.
+## Core Competencies  
+- Technical Account Management  
+- Stakeholder Communication & Presentation  
+- Cloud Platforms (GCP, AWS, Azure)  
+- Automation Tools & Integration (RESTful APIs)  
+- Data Strategy & Visualization  
+- Technical Problem-Solving  
+- Customer-Centric Engagement  
+- CI/CD Pipelines  
+- Agile Project Delivery  
+- Cross-Functional Collaboration  
 
-## Impact Summary
+---
 
-* **NobleHands:** Founded and managed a residential construction business, achieving 200% year-over-year growth by identifying and addressing customer needs.
-* **Spaulding Ridge:** Delivered data pipelines for the NFL's Fan 360 Experience, enhancing data efficiency by 98.9% and enabling better product insights and user experience.
-* **Apexon:** Established a mentorship program, reducing new employee turnover by over 30%, fostering collaboration and improving team dynamics.
+## Professional Experience  
 
-## Professional Experience
+### Cloud Data Engineer / Technical Liaison  
+**Spaulding Ridge** | Remote | 07/2022–06/2023  
+- Led technical initiatives for enterprise clients, achieving a 98.9% improvement in data access efficiency through GCP cloud migration.  
+- Acted as the Subject Matter Expert (SME) during client engagement, translating complex technical deliverables into actionable insights for stakeholders.  
+- Developed and delivered presentations for executive-level clients, guiding strategic decisions that enhanced software quality and operational efficiency.  
 
-**Cloud Data Engineer** | Spaulding Ridge | Remote | 07/2022-06/2023
+### Business Development / Project Manager  
+**NobleHands H & C** | San Antonio, TX | 10/2017–01/2020, 07/2023–Present  
+- Drove 200% Y.O.Y. revenue growth by identifying customer pain points and delivering tailored service solutions that enhanced operational efficiency.  
+- Fostered long-term client relationships by providing proactive technical support and ensuring seamless onboarding and service delivery.  
+- Streamlined contractor collaboration processes, improving project throughput and customer satisfaction through clear communication and expectation management.  
 
-* Led migration of Seattle Mariners' data systems to GCP, enhancing analytics for product decision-making and user engagement.
-* Collaborated with cross-functional teams, providing insights that influenced strategic initiatives and product development.
-* Developed training materials to facilitate data democratization, empowering users to leverage product capabilities effectively.
+### Junior Data Engineer / Sprint Review Lead  
+**Apexon** | Remote | 12/2020–03/2022  
+- Spearheaded sprint demonstrations, acting as the liaison between development and stakeholders, which improved project transparency and client engagement.  
+- Supported cloud migration efforts while ensuring compliance with regulatory data standards, enhancing the integrity of data-driven solutions.  
+- Co-founded a mentorship program that improved onboarding efficiency and reduced new-hire churn by over 30%, fostering a collaborative team environment.  
 
-**Project Manager/Owner** | NobleHands H & C | San Antonio, TX | 10/2017-01/2020, 07/2023-Present
+---
 
-* Founded and managed a residential construction business, focusing on customer satisfaction and service delivery, leading to 200% growth.
-* Resolved client conflicts through effective communication and active listening, ensuring mutually beneficial outcomes and enhancing customer loyalty.
+## Certifications & Education  
+- **Professional Scrum Master I** – scrum.org (2024)  
+- **Project Management Professional (in progress)** – Technical Institute of America (2024)  
+- **Data Science Certificate** – Codeup, San Antonio TX (2020)  
+- **B.S. Biology** – Concordia University, Austin TX  
 
-**Junior Data Engineer** | Apexon | Remote | 12/2020-03/2022
+---
 
-* Contributed to the migration of a federal bank's data systems, improving operational efficiency and facilitating user access to vital information.
-* Co-created the Gathi Garden Program, mentoring new hires and improving onboarding processes, which enhanced team collaboration and productivity.
-
-## Certifications & Education
-
-* Professional Scrum Master I | scrum.org, 12/2024
-* Project Management Professional (in progress) | Technical Institute of America, 2024
-* Data Science Certificate | Codeup, San Antonio TX | 2020
-* B.S. in Biology | Concordia University, Austin TX
-
-## Technical Skills
-
-**Programming Languages:** Python3, SQL, HTML, Spark  
+## Technical Skills  
+**Languages & Tools:** Python, SQL, JavaScript, HTML, Go, Spark  
 **Cloud Platforms:** GCP, Snowflake, Azure, AWS  
+**Automation Tools:** Functionize, Selenium  
 **Data Visualization:** Tableau, Looker  
-**Methodologies:** Agile (Scrum/Kanban), Scaled Agile (SAFe)  
-**Other:** Data Modeling, User Research & Usability Testing
+**Methodologies:** Agile (Scrum/Kanban), CI/CD  
 
 ---
 
