@@ -12,13 +12,11 @@ Detail-oriented Data Engineer with over 7 years of experience in bridging busine
 ---
 
 ## Core Competencies  
-- SQL & Database Management  
 - Data Engineering & Cloud Solutions (Snowflake, GCP)  
 - Data Visualization (Tableau)  
 - Python Programming  
 - Stakeholder Communication & Presentation  
-- Agile Methodologies (Scrum/Kanban)  
-- KPI & ROI Analysis  
+- Agile Methodologies (Scrum/Kanban)   
 - Technical Consulting & Solution Design  
 
 ---
@@ -27,11 +25,11 @@ Detail-oriented Data Engineer with over 7 years of experience in bridging busine
 
 ### Cloud Data Engineer / Technical Liaison  
 **Spaulding Ridge** | Remote | 07/2022–06/2023  
-- Led cloud migration initiatives for enterprise clients, achieving a 98.9% improvement in data access efficiency utilizing Snowflake and GCP.  
+- Led cloud migration initiatives for enterprise clients, achieving a 98.9% improvement in data access efficiency utilizing Snowflake, Azure, and GCP.  
 - Developed and delivered impactful presentations to executive stakeholders, translating engineering deliverables into actionable business insights.  
 - Collaborated with sales and marketing teams to create training materials and collateral that enhanced product adoption and stakeholder engagement.
 
-### Junior Data Engineer / Sprint Review Lead  
+### Junior Data Engineer   
 **Apexon** | Remote | 12/2020–03/2022  
 - Spearheaded sprint presentations for a federal banking client, effectively bridging communication between development teams and stakeholders.  
 - Supported cloud data migration efforts, ensuring compliance and alignment with regulatory standards while utilizing SQL for data management.  
@@ -53,8 +51,8 @@ Detail-oriented Data Engineer with over 7 years of experience in bridging busine
 ---
 
 ## Technical Skills  
-**Languages & Tools:** Python, SQL, Tableau, Snowflake, NoSQL, dbt  
-**Cloud Platforms:** GCP, AWS  
+**Languages & Tools:** Python, SQL, Tableau, Snowflake, NoSQL, dbt, Matillion  
+**Cloud Platforms:** GCP, AWS, Snowflake, Databricks 
 **Methodologies:** Agile (Scrum/Kanban)  
 **Other:** Data Modeling, Client-Facing Dashboards, Data Analysis  
 
