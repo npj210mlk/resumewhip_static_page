@@ -1,5 +1,5 @@
 # Nicholas Joseph  
-**Data Engineer | Product & Data Strategist**  
+**Data Engineer | Technical Account Manager | Product & Data Strategist**  
 San Antonio, TX | Remote | Hybrid  
 nickpjoseph210@gmail.com | (210) 771-9853  
 [LinkedIn](https://www.linkedin.com/in/nickjosephsanantonio/) | [GitHub](https://github.com/npj210mlk)  
@@ -7,17 +7,19 @@ nickpjoseph210@gmail.com | (210) 771-9853
 ---
 
 ## Career Summary  
-Detail-oriented Data Engineer with over 7 years of experience in bridging business needs with technical solutions. Demonstrated expertise in SQL, Python, and cloud platforms including Snowflake and GCP. Proven track record of enhancing data accessibility and efficiency, driving strategic decision-making through data visualization, and fostering collaboration among cross-functional teams.
+Data Engineer with over 7 years of experience specializing in cloud data architecture and ETL processes. Proven track record of assembling large datasets and designing efficient data pipelines that enhance data accessibility and integrity. Skilled in collaborating with cross-functional teams to translate complex data requirements into actionable insights. Adept at using Azure and Snowflake to deliver robust data solutions that drive business outcomes.
 
 ---
 
 ## Core Competencies  
-- Data Engineering & Cloud Solutions (Snowflake, GCP)  
-- Data Visualization (Tableau)  
-- Python Programming  
+- Data Engineering & ETL Pipeline Development  
+- Azure Cloud Solutions & Snowflake Expertise  
+- SQL & Data Modeling  
+- Data Warehouse Architecture & Integration  
 - Stakeholder Communication & Presentation  
-- Agile Methodologies (Scrum/Kanban)   
-- Technical Consulting & Solution Design  
+- Agile Project Delivery  
+- Client Relationship Management  
+- Data Visualization (Tableau, Looker)  
 
 ---
 
@@ -25,20 +27,15 @@ Detail-oriented Data Engineer with over 7 years of experience in bridging busine
 
 ### Cloud Data Engineer / Technical Liaison  
 **Spaulding Ridge** | Remote | 07/2022–06/2023  
-- Led cloud migration initiatives for enterprise clients, achieving a 98.9% improvement in data access efficiency utilizing Snowflake, Azure, and GCP.  
-- Developed and delivered impactful presentations to executive stakeholders, translating engineering deliverables into actionable business insights.  
-- Collaborated with sales and marketing teams to create training materials and collateral that enhanced product adoption and stakeholder engagement.
+- Designed and implemented ETL pipelines in Azure, improving data access efficiency by 98.9% for enterprise clients.  
+- Developed and maintained data warehouse architectures, ensuring optimal design and accuracy throughout data processing.  
+- Collaborated with sales and marketing teams to translate technical deliverables into business-friendly messaging, enhancing client understanding and satisfaction.  
 
-### Junior Data Engineer   
+### Junior Data Engineer / Sprint Review Lead  
 **Apexon** | Remote | 12/2020–03/2022  
-- Spearheaded sprint presentations for a federal banking client, effectively bridging communication between development teams and stakeholders.  
-- Supported cloud data migration efforts, ensuring compliance and alignment with regulatory standards while utilizing SQL for data management.  
-- Co-founded a mentorship program that improved onboarding efficiency by over 30%, fostering a collaborative work environment.
-
-### Business Development / Project Manager  
-**NobleHands H & C** | San Antonio, TX | 10/2017–01/2020, 07/2023–Present  
-- Identified customer friction points and delivered tailored data solutions, driving 200% Y.O.Y. revenue growth.  
-- Acted as the primary liaison for customer accounts, ensuring alignment with client goals and satisfaction through effective communication.
+- Led ETL processes and cloud data migration efforts, ensuring compliance with regulatory standards while optimizing data pipelines.  
+- Enhanced existing data models to support structured and semi-structured data, contributing to improved data integrity and integrity across projects.  
+- Facilitated sprint reviews and demos, effectively communicating project progress and technical details to stakeholders, resulting in a 30% increase in client engagement.  
 
 ---
 
@@ -51,10 +48,12 @@ Detail-oriented Data Engineer with over 7 years of experience in bridging busine
 ---
 
 ## Technical Skills  
-**Languages & Tools:** Python, SQL, Tableau, Snowflake, NoSQL, dbt, Matillion  
-**Cloud Platforms:** GCP, AWS, Snowflake, Databricks 
-**Methodologies:** Agile (Scrum/Kanban)  
-**Other:** Data Modeling, Client-Facing Dashboards, Data Analysis  
+**Languages & Tools:** Python, SQL, NoSQL, dbt, Matillion, HTML, Go, Spark  
+**Cloud Platforms:** Azure, Snowflake, GCP, AWS  
+**Data Visualization:** Tableau, Looker  
+**Methodologies:** Agile (Scrum/Kanban), SAFe  
+**Other:** Data Modeling, Client-Facing Dashboards, User Research, Data Analysis  
 
 ---
 
+#
