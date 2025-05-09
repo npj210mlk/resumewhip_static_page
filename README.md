@@ -1,86 +1,59 @@
-# Resume Optimizer: LLM-Powered Resume Tailoring with Python + ChatGPT
+# 🥊 Resume Optimizing: An AI Cage Match
 
-This project takes your resume and a job description, uses few-shot prompting with ChatGPT-4o-mini to tailor your resume to the job, and saves the result as a clean, professional PDF — along with suggestions to make it more Applicant Tracking System (ATS) friendly.
-
-Built in Jupyter Notebook for transparency and ease of use.
+Welcome to a head-to-head showdown between two powerful language models: OpenAI's `gpt-4o-mini` and Google's `gemini-2.0-flash`. This project explores how each engine handles the exact same resume-optimization prompt — and what that says about their training, output quality, and user-friendliness.
 
 ---
 
-## What It Does
+## 🚀 Why I Built This
 
-- Converts a resume from Markdown to HTML
-- Compares resume content to a job description
-- Uses the OpenAI API to:
-  - Suggest optimizations
-  - Rewrite your resume for stronger alignment
-  - Highlight improvements for ATS readability
-- Saves the optimized resume as a styled PDF
+I wanted to answer a simple question:
 
----
+> *If I give both engines the same detailed prompt, will they return the same quality response?*
 
-## Tech Stack
+Turns out — **not even close**.
 
-| Tool          | Purpose                          |
-|---------------|----------------------------------|
-| Python        | Core logic and processing        |
-| Jupyter       | Notebook-based development       |
-| `markdown`    | Converts Markdown to HTML        |
-| `WeasyPrint`  | Converts HTML to PDF             |
-| `dotenv`      | Secure API key management        |
-| OpenAI API    | Powers ChatGPT-4o-mini prompts   |
+This project started as a curiosity about large language models (LLMs), but it quickly turned into a deeper reflection on usability, structure, and real-world value for **job seekers trying to optimize their resumes**.
 
 ---
 
-## Example Workflow
+## 🧠 What I Learned
 
-1. Start with a resume in Markdown format (`resume.md`)
-2. Paste in a job description
-3. Run the prompt-based comparison and rewrite
-4. Save the result as a PDF
-5. Review suggestions for ATS improvement
+- **OpenAI's `gpt-4o-mini`** is incredibly strong right out of the box. With a well-written prompt, it delivers polished, keyword-rich resumes without much coaching.
+- **Google's `gemini-2.0-flash`** is also powerful — but more "literal." It benefits from more structured instructions and formatting hints to guide the output.
+- **For the average person**, ChatGPT is the easier tool to use. Most folks don't know they *need* to structure prompts to get useful AI results — and that's where ChatGPT shines.
 
 ---
 
-## Getting Started
+## 📷 Preview
 
-Step 1: Clone the repo and install dependencies (using bash):
+Here’s a sample screenshot from the Gemini notebook:
 
-git clone https://github.com/npj210mlk/resume-optimizer.git
-cd resume-optimizer
-
-pip install -r requirements.txt
-
-Step 2: Create a .env file with your OpenAI API Key:
-
-OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxx
-
-Step 3: Launch the Notebook
-
-jupyter notebook
+![Notebook Screenshot](jupyter_notebook_screenshot.png)
 
 ---
 
-## Project Structure
+## 🧰 Project Structure
 
-resume-optimizer/
-├── data/                  # Input resumes and job descriptions
-├── output/                # Final optimized PDFs
-├── styles/                # CSS for PDF styling
-├── resume_optimizer.ipynb # The main notebook
-├── requirements.txt
-└── README.md
+- `notebooks/openai_optimizer.ipynb` → Built with Gradio UI for OpenAI-based optimization
+- `notebooks/gemini_optimizer.ipynb` → Built with Flask UI for Gemini-based optimization
+- `assets/` → Includes example prompts and screenshots
+- `.env` → You’ll store your API keys here (not included for security)
 
 ---
 
-## Acknowledgements!!!
+## 📦 Dependencies
 
-This project was inspired by [Shaw Talebi's Resume Optimizer](https://github.com/ShawhinT/AI-Builders-Bootcamp-2). His content, approach, and fluid teaching style were beyond instrumental in this project's success.
+You'll need:
 
----
+- Python 3.x  
+- Jupyter Notebook or VS Code
+- `openai`  
+- `google.generativeai`  
+- `dotenv`  
+- `markdown`  
+- `weasyprint`  
+- `gradio` (for OpenAI UI)  
+- `flask` (for Gemini UI)
 
-## About the Author
-
-I'm Nick Joseph, a freelance Data & Prompt Engineer focused on building tools that connect human communication with AI's LLMs in meaningful ways.
-
-This project is both a technical exercise and a personal career tool - and it's open for collaboration!
-
+```bash
+pip install openai google-generativeai python-dotenv markdown weasyprint gradio flask
