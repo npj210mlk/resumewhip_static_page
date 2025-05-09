@@ -1,4 +1,6 @@
 # 🥊 Resume Optimizing: An AI Cage Match
+> (🔒 Safety Note: This notebook does not access your personal files or send data anywhere. All processing is done locally or in a secure temporary cloud environment (Colab/Binder). All code is listed in this repo.
+
 
 Welcome to a head-to-head showdown between two powerful language models: OpenAI's `gpt-4o-mini` and Google's `gemini-2.0-flash`. This project explores how each engine handles the exact same resume-optimization prompt — and what that says about their training, output quality, and user-friendliness.
 
