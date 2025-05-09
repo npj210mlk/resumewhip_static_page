@@ -1,16 +1,4 @@
-markdown:
-1.) create a markdown (.md extension) of your resume and note its file path.
-2.) install the markdown library via your command line / Terminal:
-	- navigate to your project folder and type 'pip install markdown' (no quotation marks)
-
-wkhtmltopdf:
-Sadly, 'brew install' no longer works for this because wkhtmltopdf is no longer actively maintained at brew.
-
-Good news, though: all you have to do is manually install it with the following code inside your Terminal:
-
-1.) "curl -L https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-2/wkhtmltox-0.12.6-2.macos-cocoa.pkg -O" -> this downloads the package installer
-
-2.) "sudo installer -pkg wkhtmltox-0.12.6-2.macos-cocoa.pkg -target /" -> installs the package files into your home directory
-
-pdfkit:
-1.) simple Terminal installation: "pip install pdfkit"
+Flask
+python-dotenv
+google-generativeai
+markdown

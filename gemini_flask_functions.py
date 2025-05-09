@@ -5,8 +5,9 @@ from dotenv import load_dotenv
 # since we're using Gemini
 import google.generativeai as genai
 
-# make printouts look nicer
-from IPython.display import display, Markdown
+# make printouts look nicer in Jupyter Notebooks - not needed here, but preserved for sake of clarity.
+# from IPython.display import display, Markdown
+
 from markdown import markdown
 
 load_dotenv()
@@ -88,7 +89,7 @@ def generate_tailoring_prompt(resume_text: str, jd_string: str) -> str:
     
 
     Resume:
-    {resume_string}
+    {resume_text}
 
     Job Description:
     {jd_string}
@@ -99,7 +100,7 @@ def get_gemini_response_with_function_calling(
     model: genai.GenerativeModel,
     prompt: str,
     function_schema: dict,
-    temperature: 0.7
+    temperature: float = 0.7
     # modified hint:
 ) -> genai.types.GenerateContentResponse:
     """
