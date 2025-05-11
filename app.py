@@ -187,16 +187,25 @@ def download_resume():
             os.unlink(temp_path)
             logger.info(f"Deleted temporary file: {temp_path}")
 
+# # The following codeblock was for development purposes only (to get the address),
+# # and has been commented out for deployment in Render (below)
+# if __name__ == '__main__':
+#     # Check if running in IPython/Jupyter
+#     try:
+#         get_ipython
+#         # If we're in IPython/Jupyter, don't use the auto-reloader
+#         print("Flask app is ready. Access it at http://127.0.0.1:5000/")
+#         #  No app.run() here
+#     except NameError:
+#         # Normal Python environment
+#         app.run(debug=True)  #  <----  ONLY ONE app.run()
+#     #  No app.run() here
 
 
-if __name__ == '__main__':
-    # Check if running in IPython/Jupyter
-    try:
-        get_ipython
-        # If we're in IPython/Jupyter, don't use the auto-reloader
-        print("Flask app is ready. Access it at http://127.0.0.1:5000/")
-        #  No app.run() here
-    except NameError:
-        # Normal Python environment
-        app.run(debug=True)  #  <----  ONLY ONE app.run()
-    #  No app.run() here
+# The following code block concerns the deployment of the app - we've chosen Render.
+# Per Render docs, we have to bind 0.0.0.0 on PORT - an evnironment variable Render assigns at runtime.
+if __name__ == "__main__":
+    # default the port locally to 5000
+    port = int(os.environ.get("PORT", 5000))
+    # bind all the network interfaces 
+    app.run(host = "0.0.0.0", port = port, debug = True)
