@@ -7,22 +7,6 @@ import tempfile
 import logging  # Import the logging module
 from gemini_flask_functions import *
 
-# import the functions from "gemini_flask_functions" python file:
-# Assuming this file is in the same directory.  If not, adjust the import.
-# try:
-#     from gemini_flask_functions import (
-#         configure_gemini_api,
-#         tailored_resume_function_schema,
-#         gemini_initialization_with_function_calling,
-#         generate_tailoring_prompt,
-#         get_gemini_response_with_function_calling,
-#     )
-# except ImportError as e:
-#     print(f"Error importing gemini_flask_functions: {e}")
-#     #  Consider exiting here if this is critical:
-#     #  import sys
-#     #  sys.exit(1)
-
 # Load environment variables
 load_dotenv()
 
@@ -43,15 +27,11 @@ os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     logger.error("We (well: NICK) messed up. Bozo didn't correctly load the GEMINI_API_KEY from the environment.")
-    #  Don't raise an exception here.  Handle it more gracefully in the routes.
-    # raise ValueError("GEMINI_API_KEY was not loaded from your environment.")
+    # ^^  Decided not to raise an exception here.  Looks  more gracefully in the routes.
+    #       raise ValueError("GEMINI_API_KEY was not loaded from your environment.")
 else:
     genai.configure(api_key=GEMINI_API_KEY)
     logger.info("Holy cow: it's working!!")
-
-
-# Global variable for the Gemini model
-# gemini_model = None
 
 # Set up the function schema:
 function_schema = {
@@ -226,6 +206,7 @@ def download_resume():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host = "0.0.0.0", port = port, debug = True)
+
 
 # The following code block concerns the deployment of the app - we've chosen Render.
 # Per Render docs, we have to bind 0.0.0.0 on PORT - an evnironment variable Render assigns at runtime.
