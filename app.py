@@ -168,7 +168,7 @@ def tailor_resume():
         if first_part.function_call and first_part.function_call.name == "tailor_resume":
             args = first_part.function_call.args
             tailored_resume = args.get("tailored_resume", "")
-            additional_suggestion = args.get("additional_suggestions", "")
+            additional_suggestions = args.get("additional_suggestions", "")
         elif first_part.text:
             tailored_resume = first_part.text
     
