@@ -1,8 +1,6 @@
 ## **Nicholas Joseph**
 **Tech-Savvy Sales Engineer | Data-Driven Solutions | Collaborative Leader**
 
-Email: [nickpjoseph210@gmail.com](mailto:nickpjoseph210@gmail.com) | Phone: (210) 771-9853 | LinkedIn: [nickjoseph](https://www.linkedin.com/in/nickjoseph) | [GitHub](https://github.com/npj210mlk)
-
 ### Summary
 
 Results-oriented Sales Engineer with a strong background in data engineering, project management, and business development. Proven ability to collaborate with technical sales teams, configure demonstration databases, and translate product needs from Go-To-Market (GTM) teams to Development. Adept at creating technical documentation, delivering impactful presentations, and driving data-driven solutions.
