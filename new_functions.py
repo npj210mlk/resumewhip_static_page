@@ -165,7 +165,7 @@ def process_resume(resume, job_desc_string):
     return new_resume, new_resume, suggestions
 
 # Steps 6 and 7 from scratchpad
-def export_resume(new_resume):
+def export_resume(new_resume, company_name):
     """
     Takes the markdown resume, converts it to PDF format, and saves it.
 
