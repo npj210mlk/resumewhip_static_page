@@ -181,7 +181,7 @@ def export_resume(new_resume, company_name):
     unique_id = str(uuid.uuid4())[:8] 
 
     # build out the filename w/ slugged name and unique_id
-    output_pdf_file = f"gpt_resumes/{company_slugged}{unique_id}_tailored_resume.pdf"
+    output_pdf_file = f"gpt_resumes/{company_slugged}{unique_id}_optimized_resume.pdf"
     
     try:
         # Convert Markdown to HTML
