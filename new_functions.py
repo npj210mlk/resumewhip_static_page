@@ -1,5 +1,7 @@
 # imports
 import os
+import uuid
+import re
 from dotenv import load_dotenv
 from openai import OpenAI
 from markdown import markdown
@@ -10,6 +12,9 @@ load_dotenv()
 
 # assign "my_sk" as global variable
 my_sk = os.getenv("MY_SK")
+
+# create the gpt_resumes folder
+os.makedirs("gpt_resumes", exist_ok = True)
 
 # prompt creator function - the lambda function from scratchpad
 
@@ -170,17 +175,20 @@ def export_resume(new_resume):
     Returns:
         str: A message indicating success or failure of the PDF export
     """
-    try:
-        # save as PDF
-        output_pdf_file = "resumes/nick_joseph_pm_resume.pdf"
 
-        
+    # slug company name
+    company_slugged = re.sub(r"[^a-zA-Z0-9_-]", "", company_name.lower())
+    unique_id = str(uuid.uuid4())[:8] 
+
+    # build out the filename w/ slugged name and unique_id
+    output_pdf_file = f"gpt_resumes/{company_slugged}{unique_id}_tailored_resume.pdf"
+    
+    try:
         # Convert Markdown to HTML
         html_content = markdown(new_resume)
-        
         # Convert HTML to PDF and save
         HTML(string=html_content).write_pdf(output_pdf_file)
-
-        return f"Successfully exported resume to {output_pdf_file} 🎉"
+        
+        return f"✅ Successfully exported and saved your resume to {output_pdf_file}"
     except Exception as e:
-        return f"Failed to export resume: {str(e)} 💔"
+        return f"❌ Failed to export resume: {str(e)}"
