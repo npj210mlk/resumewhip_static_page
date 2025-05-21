@@ -52,6 +52,16 @@ def parse_gemini_response(response):
                 # Fallback if function calling didn't work
                 tailored_resume = first_part.text
     
+    # output had markdown fences (e.g., "```markdown")
+    # if block below cleans up the output
+
+    if tailored_resume and tailored_resume.strip().startswith("```markdown") and tailored_resume.strip().endswith("```"):
+        # remove the "```markdown" at the beginning
+        tailored_resume = tailored_resume.strip()[len("```markdown"):].strip()
+        # remove ```fence from the end
+        tailored_resume = tailored_resume.rsplit("```", 1)[0].strip()
+
+    
     return tailored_resume, additional_suggestions
 
 # Configure Gemini API on app startup
@@ -63,25 +73,25 @@ except ValueError as e:
     print(f"Error during initialization: {e}")
     gemini_model = None
 
-@app.route('/', methods=['GET'])
+@app.route("/", methods=["GET"])
 def index():
     """Home page with form to upload resume and job description"""
-    return render_template('index.html')
+    return render_template("index.html")
 
-@app.route('/tailor-resume', methods=['POST'])
+@app.route("/tailor-resume", methods=["GET", "POST"])
 def tailor_resume():
     """Process the resume and job description to generate a tailored resume"""
     if not gemini_model:
         flash("API configuration error. Please check your environment variables.")
-        return redirect(url_for('index'))
+        return redirect(url_for("index"))
     
     # Get resume and job description from form
-    resume_text = request.form.get('resume_text')
-    jd_text = request.form.get('job_description')
+    resume_text = request.form.get("resume_text")
+    jd_text = request.form.get("job_description")
     
     if not resume_text or not jd_text:
         flash("Please provide both resume and job description.")
-        return redirect(url_for('index'))
+        return redirect(url_for("index"))
     
     try:
         # Generate tailored resume
@@ -96,13 +106,13 @@ def tailor_resume():
         
         if not tailored_resume:
             flash("Failed to generate tailored resume. Please try again.")
-            return redirect(url_for('index'))
+            return redirect(url_for("index"))
             
         # Convert Markdown to HTML for display
         tailored_resume_html = markdown(tailored_resume)
         
         return render_template(
-            'result.html', 
+            "result.html", 
             tailored_resume_html=tailored_resume_html,
             tailored_resume_md=tailored_resume,
             additional_suggestions=additional_suggestions
@@ -110,21 +120,21 @@ def tailor_resume():
         
     except Exception as e:
         flash(f"An error occurred: {str(e)}")
-        return redirect(url_for('index'))
+        return redirect(url_for("index"))
 
-@app.route('/download-resume', methods=['POST'])
+@app.route("/download-resume", methods=["POST"])
 def download_resume():
     """Download the tailored resume as a markdown file"""
-    tailored_resume = request.form.get('tailored_resume_md')
+    tailored_resume = request.form.get("tailored_resume_md")
     
     if not tailored_resume:
         flash("No resume data to download.")
-        return redirect(url_for('index'))
+        return redirect(url_for("index"))
     
     # Create a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.md') as temp:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as temp:
         temp_path = temp.name
-        temp.write(tailored_resume.encode('utf-8'))
+        temp.write(tailored_resume.encode("utf-8"))
     
     # Send the file to the user
     try:
@@ -138,7 +148,7 @@ def download_resume():
         # Clean up the temporary file after sending
         os.unlink(temp_path)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Check if running in IPython/Jupyter
     try:
         get_ipython

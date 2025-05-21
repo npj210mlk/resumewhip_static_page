@@ -1,7 +1,6 @@
 ## Nicholas Joseph
 **Product Manager | Servant Leader | Tech Enthusiast**
 
-Email: [nickpjoseph210@gmail.com](mailto:nickpjoseph210@gmail.com) | Phone: (210) 771-9853 | LinkedIn: [nickjoseph](https://www.linkedin.com/in/nickjoseph) | [GitHub](https://github.com/npj210mlk)
 
 ### Career Summary  
 Results-driven Product Manager with extensive experience in data engineering and project management. Proven track record of delivering innovative solutions in fast-paced environments, particularly within the B2B software and cybersecurity sectors. Adept at engaging customers, leading technical discovery, and translating complex technical concepts into business value. Strong collaborator with a focus on driving efficiencies and ensuring project success through robust stakeholder engagement.

@@ -11,7 +11,9 @@
   </form>
 
   <h3>📄 Resume Preview:</h3>
-  <div class="resume-preview">
+
+  <div class="resume-preview"> 
+    <!-- Tell Jinja to directly render tailored_resumer as  HTML (to not escape it) -->
     {{ tailored_resume_html | safe }}
   </div>
 

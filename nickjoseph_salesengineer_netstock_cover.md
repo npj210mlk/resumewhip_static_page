@@ -1,5 +1,4 @@
 ## **Nicholas Joseph**
-Email: [nickpjoseph210@gmail.com](mailto:nickpjoseph210@gmail.com) | Phone: (210) 771-9853 | LinkedIn: [nickjoseph](https://www.linkedin.com/in/nickjoseph) | [GitHub](https://github.com/npj210mlk)  
 
 Netstock Hiring Team  
 Attn: Lynne Barnes, Chief People Officer  
