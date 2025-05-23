@@ -1,26 +1,74 @@
-<!-- Show the tailored resume and any additional suggestions -->
 {% extends "layout.html" %}
-{% block title %}Tailored Resume{% endblock %}
+{% block title %}Gemini-Powered Resume Optimizer{% endblock %}
 
 {% block content %}
-  <h2>Your Tailored Resume</h2>
+  <h2>Your Tailored Resume & Suggestions</h2>
 
-  <form action="{{ url_for('download_resume') }}" method="POST">
-    <input type="hidden" name="tailored_resume_md" value="{{ tailored_resume_md }}">
-    <button type="submit">Download as Markdown</button>
-  </form>
+  <div style="display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 300px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; overflow-y: auto; max-height: 70vh; background-color: #f9f9f9;">
+      <h3>📄 Tailored Resume Preview:</h3>
+      <div class="resume-preview">
+        {{ tailored_resume_html | safe }}
+      </div>
+    </div>
 
-  <h3>📄 Resume Preview:</h3>
+    <div style="flex: 1; min-width: 300px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background-color: #f9f9f9;">
+      <h3>💡 Additional Suggestions:</h3>
+      <textarea id="additionalSuggestions" rows="15" style="width: 100%; border: 1px solid #ccc; padding: 10px; border-radius: 5px; resize: vertical;">{{ additional_suggestions }}</textarea>
 
-  <div class="resume-preview"> 
-    <!-- Tell Jinja to directly render tailored_resumer as  HTML (to not escape it) -->
-    {{ tailored_resume_html | safe }}
+      <textarea id="originalTailoredResume" style="display: none;">{{ tailored_resume_md }}</textarea>
+
+      <input type="hidden" id="companyName" value="{{ company_name }}">
+
+      <br><br>
+      <button type="button" id="saveResumeButton" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Save My Adjusted Resume</button>
+      <p id="downloadMessage" style="margin-top: 10px; color: green; display: none;">Downloading...</p>
+    </div>
   </div>
 
-  {% if additional_suggestions %}
-    <h3>💡 Suggestions to Make Your Resume Stronger:</h3>
-    <p>{{ additional_suggestions }}</p>
-  {% endif %}
+  <div style="margin-top: 30px;">
+    <a href="{{ url_for('index') }}" style="text-decoration: none; color: #007bff;">Start Over?</a>
+  </div>
 
-  <a href="{{ url_for('index') }}">Start Over?</a>
+  <script>
+    document.getElementById('saveResumeButton').addEventListener('click', function() {
+      // Get the original tailored resume (Markdown)
+      const originalResumeMD = document.getElementById('originalTailoredResume').value;
+      // Get the edited suggestions from the textarea
+      const editedSuggestions = document.getElementById('additionalSuggestions').value;
+      // Get the company name for the filename
+      const companyName = document.getElementById('companyName').value;
+
+      // Combine them. You can adjust this combining logic as you prefer.
+      // For now, it appends the suggestions under a new heading.
+      let finalResumeContent = originalResumeMD;
+      if (editedSuggestions.trim() !== "") { // Only add if there are suggestions
+          finalResumeContent += "\n\n### Editor's Adjustments\n\n" + editedSuggestions;
+      }
+
+      // Create a hidden form and submit it to the Flask route
+      const form = document.createElement('form');
+      form.setAttribute('method', 'post');
+      form.setAttribute('action', '{{ url_for("save_edited_resume") }}');
+      form.style.display = 'none'; // Hide the form from view
+
+      const contentInput = document.createElement('input');
+      contentInput.setAttribute('type', 'hidden');
+      contentInput.setAttribute('name', 'final_resume_content');
+      contentInput.setAttribute('value', finalResumeContent);
+      form.appendChild(contentInput);
+
+      const companyNameInput = document.createElement('input');
+      companyNameInput.setAttribute('type', 'hidden');
+      companyNameInput.setAttribute('name', 'company_name_for_filename');
+      companyNameInput.setAttribute('value', companyName);
+      form.appendChild(companyNameInput);
+
+      document.body.appendChild(form); // Add the form to the document body
+      form.submit(); // Submit the form
+
+      // Optionally show a download message
+      document.getElementById('downloadMessage').style.display = 'block';
+    });
+  </script>
 {% endblock %}

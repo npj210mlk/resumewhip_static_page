@@ -82,7 +82,7 @@ def generate_tailoring_prompt(resume_text: str, jd_string: str) -> str:
     You are a professional resume optimization expert.
     Optimize the resume I have provided you to align with the given job description following the guidelines below:
 
-    1. Make the resume one page, relevant, keyword optimized, action-driven.
+    1. Make the resume one page, relevant, keyword optimized, action-driven  and in reverse chronological order.
     2. Format it cleanly in **Markdown**.
     3. The primary goal of this optimization is to best position the resume against Application Tracking Systems.
     4. At the end, provide an "**Additional Suggestions**" section with suggestions improvements my resume where gaps exist.

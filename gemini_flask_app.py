@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 from markdown import markdown
 import tempfile
+import re # <-- regex library for slugging company name later
 
 # import the functions from 'gemini_flash_functions' python file:
 from gemini_flask_functions import (
@@ -16,6 +17,8 @@ from gemini_flask_functions import (
 
 # start Flask
 app = Flask(__name__)
+# add a secret key to make the flask app secure - this one is 24-bytes.
+app.secret_key = os.urandom(24) 
 
 # Load environment variables
 load_dotenv()
@@ -85,10 +88,11 @@ def tailor_resume():
         flash("API configuration error. Please check your environment variables.")
         return redirect(url_for("index"))
     
-    # Get resume and job description from form
+    # Get resume, company name, and job description from form
     resume_text = request.form.get("resume_text")
+    copmany_name = request.form.get("company_name")
     jd_text = request.form.get("job_description")
-    
+
     if not resume_text or not jd_text:
         flash("Please provide both resume and job description.")
         return redirect(url_for("index"))
@@ -113,9 +117,14 @@ def tailor_resume():
         
         return render_template(
             "result.html", 
+            # pass tailored_resume
             tailored_resume_html=tailored_resume_html,
             tailored_resume_md=tailored_resume,
+            # pass company name
+            company_name=company_name, 
+            # pass any additional suggestions
             additional_suggestions=additional_suggestions
+            
         )
         
     except Exception as e:
@@ -148,6 +157,48 @@ def download_resume():
         # Clean up the temporary file after sending
         os.unlink(temp_path)
 
+# save the edited / optimized resume
+@app.route("/save-edited-resume", methods=["POST"])
+def save_edited_resume():
+    """
+    Takes the edits you made based on the additional suggestions,
+    and allows you to save them to your machine.
+    """
+    final_resume_content = request.form.get("final_resume_content")
+    company_name = request.form.get("company_name_for_resume_tracking")
+
+    # return to home page if no resume content is found
+    if not final_resume_content:
+        flash("Sorry - no resume content to save.")
+        return redirect(url_for("index"))
+    
+    # generate a filename for the optimized resume
+    if company_name:
+        # slug it to clean it from spaces / characters
+        company_slugged = re.sub(r"[^a-zA-Z0-9_-]", "", company_name.lower().replace(" ", "_"))
+        download_filename = f"{company_sluggged}_tailored_resume.md"
+    else:
+        download_filename = "tailored_resume.md"
+    
+    # we need to create a temporary file here to make the Python available as a standard file
+    # that can be sent to the server
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as temp:
+        temp_path = temp.name
+        temp.write(final_resume_content.encode("utf-8"))
+    
+    try:
+        return send_file(
+            temp_path,
+            as_attachment=True,
+            download_name=download_filename,
+            # specify markdown as the text 
+            mimetype="text/markdown"
+        )
+    
+    finally:
+        # delete when done
+        os.unlink(temp_path)
+
 if __name__ == "__main__":
     # Check if running in IPython/Jupyter
     try:
@@ -159,4 +210,5 @@ if __name__ == "__main__":
         # Normal Python environment
         app.run(debug=True)
 
+# for local testing - erase for production
 app.run()
