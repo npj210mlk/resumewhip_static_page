@@ -202,5 +202,5 @@ if __name__ == "__main__":
         # Normal Python environment
         app.run(debug=True)
 
-# for local testing - erase for production
-app.run()
+# # for local testing - erase for production
+# app.run()
