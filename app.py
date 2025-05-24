@@ -105,7 +105,7 @@ def tailor_resume():
             return redirect(url_for("index"))
         
         # protect against 'None,' which was causing problems on certain Render launches
-        if additional_responses is None:
+        if additional_suggestions is None:
             additional_suggestions = " "
             
         # Convert Markdown to HTML for display
