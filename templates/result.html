@@ -19,7 +19,7 @@
       
         <h4 style="margin-top: 20px;">💡 Suggested Improvements:</h4>
         <ul style="padding-left: 20px;">
-          {% for suggestion in additional_suggestions.split('\n') %}
+          {% for suggestion in (additional_suggestions or "").split('\n') %}
             {% if suggestion.strip() %}
               <li>{{ suggestion }}</li>
             {% endif %}

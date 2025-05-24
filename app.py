@@ -103,6 +103,10 @@ def tailor_resume():
         if not tailored_resume:
             flash("Failed to generate tailored resume. Please try again.")
             return redirect(url_for("index"))
+        
+        # protect against 'None,' which was causing problems on certain Render launches
+        if additional_responses is None:
+            additional_suggestions = " "
             
         # Convert Markdown to HTML for display
         tailored_resume_html = markdown(tailored_resume)
