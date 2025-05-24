@@ -4,16 +4,7 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 from markdown import markdown
 import tempfile
-import re # <-- regex library for slugging company name later
-
-# import the functions from 'gemini_flash_functions' python file:
-# from gemini_flask_functions import (
-#     configure_gemini_api,
-#     tailored_resume_function_schema,
-#     gemini_initialization_with_function_calling,
-#     generate_tailoring_prompt,
-#     get_gemini_response_with_function_calling
-# )
+import re
 
 # start Flask
 app = Flask(__name__)
