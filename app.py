@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, flash, redirect, url_for, send_file # jsonify(?)
 import os
 from dotenv import load_dotenv
+from flask import Flask, render_template, request, flash, redirect, url_for, send_file # jsonify(?)
 import google.generativeai as genai
 from markdown import markdown
 import tempfile
-import re
+import re # regex for slugging company name
+from gemini_flask_functions import *
 
 # start Flask
 app = Flask(__name__)
@@ -81,7 +82,7 @@ def tailor_resume():
     
     # Get resume, company name, and job description from form
     resume_text = request.form.get("resume_text")
-    copmany_name = request.form.get("company_name")
+    company_name = request.form.get("company_name")
     jd_text = request.form.get("job_description")
 
     if not resume_text or not jd_text:
