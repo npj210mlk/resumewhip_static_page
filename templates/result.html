@@ -13,15 +13,25 @@
     </div>
 
     <div style="flex: 1; min-width: 300px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background-color: #f9f9f9;">
-      <h3>💡 Additional Suggestions:</h3>
-      <textarea id="additionalSuggestions" rows="15" style="width: 100%; border: 1px solid #ccc; padding: 10px; border-radius: 5px; resize: vertical;">{{ additional_suggestions }}</textarea>
-
-      <textarea id="originalTailoredResume" style="display: none;">{{ tailored_resume_md }}</textarea>
-
-      <input type="hidden" id="companyName" value="{{ company_name }}">
-
-      <br><br>
-      <button type="button" id="saveResumeButton" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Save My Adjusted Resume</button>
+      <form method="POST" action="{{ url_for('save_edited_resume') }}">
+        <h3>📝 Edit Your Tailored Resume (Markdown):</h3>
+        <textarea id="adjustedResumeEditor" name="final_resume_content" rows="20" style="width: 100%; border: 1px solid #ccc; padding: 10px; border-radius: 5px; resize: vertical;">{{ tailored_resume_md }}</textarea>
+      
+        <h4 style="margin-top: 20px;">💡 Suggested Improvements:</h4>
+        <ul style="padding-left: 20px;">
+          {% for suggestion in additional_suggestions.split('\n') %}
+            {% if suggestion.strip() %}
+              <li>{{ suggestion }}</li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      
+        <input type="hidden" name="company_name_for_resume_tracking" value="{{ company_name }}">
+      
+        <br><br>
+        <button type="submit" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Save My Adjusted Resume</button>
+      </form>
+      
       <p id="downloadMessage" style="margin-top: 10px; color: green; display: none;">Downloading...</p>
     </div>
   </div>
@@ -29,46 +39,5 @@
   <div style="margin-top: 30px;">
     <a href="{{ url_for('index') }}" style="text-decoration: none; color: #007bff;">Start Over?</a>
   </div>
-
-  <script>
-    document.getElementById('saveResumeButton').addEventListener('click', function() {
-      // Get the original tailored resume (Markdown)
-      const originalResumeMD = document.getElementById('originalTailoredResume').value;
-      // Get the edited suggestions from the textarea
-      const editedSuggestions = document.getElementById('additionalSuggestions').value;
-      // Get the company name for the filename
-      const companyName = document.getElementById('companyName').value;
-
-      // Combine them. You can adjust this combining logic as you prefer.
-      // For now, it appends the suggestions under a new heading.
-      let finalResumeContent = originalResumeMD;
-      if (editedSuggestions.trim() !== "") { // Only add if there are suggestions
-          finalResumeContent += "\n\n### Editor's Adjustments\n\n" + editedSuggestions;
-      }
-
-      // Create a hidden form and submit it to the Flask route
-      const form = document.createElement('form');
-      form.setAttribute('method', 'post');
-      form.setAttribute('action', '{{ url_for("save_edited_resume") }}');
-      form.style.display = 'none'; // Hide the form from view
-
-      const contentInput = document.createElement('input');
-      contentInput.setAttribute('type', 'hidden');
-      contentInput.setAttribute('name', 'final_resume_content');
-      contentInput.setAttribute('value', finalResumeContent);
-      form.appendChild(contentInput);
-
-      const companyNameInput = document.createElement('input');
-      companyNameInput.setAttribute('type', 'hidden');
-      companyNameInput.setAttribute('name', 'company_name_for_resume_tracking');
-      companyNameInput.setAttribute('value', companyName);
-      form.appendChild(companyNameInput);
-
-      document.body.appendChild(form); // Add the form to the document body
-      form.submit(); // Submit the form
-
-      // Optionally show a download message
-      document.getElementById('downloadMessage').style.display = 'block';
-    });
-  </script>
 {% endblock %}
+
