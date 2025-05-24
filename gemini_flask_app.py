@@ -7,13 +7,13 @@ import tempfile
 import re # <-- regex library for slugging company name later
 
 # import the functions from 'gemini_flash_functions' python file:
-from gemini_flask_functions import (
-    configure_gemini_api,
-    tailored_resume_function_schema,
-    gemini_initialization_with_function_calling,
-    generate_tailoring_prompt,
-    get_gemini_response_with_function_calling
-)
+# from gemini_flask_functions import (
+#     configure_gemini_api,
+#     tailored_resume_function_schema,
+#     gemini_initialization_with_function_calling,
+#     generate_tailoring_prompt,
+#     get_gemini_response_with_function_calling
+# )
 
 # start Flask
 app = Flask(__name__)
@@ -176,7 +176,7 @@ def save_edited_resume():
     if company_name:
         # slug it to clean it from spaces / characters
         company_slugged = re.sub(r"[^a-zA-Z0-9_-]", "", company_name.lower().replace(" ", "_"))
-        download_filename = f"{company_sluggged}_tailored_resume.md"
+        download_filename = f"{company_slugged}_tailored_resume.md"
     else:
         download_filename = "tailored_resume.md"
     
@@ -210,5 +210,5 @@ if __name__ == "__main__":
         # Normal Python environment
         app.run(debug=True)
 
-# for local testing - erase for production
-app.run()
+# # for local testing - erase for production
+# app.run()
