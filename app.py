@@ -6,6 +6,7 @@ from markdown import markdown
 import markdown2 # just in case, because we're trying to save with PDF files 
 import tempfile
 import re # regex for slugging company name
+from weasyprint import HTML
 from gemini_flask_functions import *
 
 # start Flask
