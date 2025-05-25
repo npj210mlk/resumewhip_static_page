@@ -15,16 +15,30 @@
     {% endif %}
   {% endwith %}
 
-  <form action="{{ url_for('tailor_resume') }}" method="POST">
-    <label for="resume_text">Your Resume (Markdown format):</label><br>
-    <textarea id="resume_text" name="resume_text" rows="10" cols="80" required></textarea><br><br>
-
-    <label for="company_name">Company Name:</label><br>
-    <input type="text" id="company_name" name="company_name" required placeholder="e.g., Google"><br><br>
-
-    <label for="job_description">Job Description:</label><br>
-    <textarea id="job_description" name="job_description" rows="15" cols="80" required></textarea><br><br>
-
-    <button type="submit">Work Your Resume Magic!</button>
+  <form id="resumeForm" method="POST" action="{{ url_for('tailor_resume') }}">
+    <div>
+      <label for="resume_text">📄 Your Resume (Markdown format):</label><br>
+      <textarea id="resume_text" name="resume_text" rows="15" style="width: 100%;"></textarea>
+    </div>
+  
+    <div style="margin-top: 20px;">
+      <label for="company_name">🏢 Company Name:</label><br>
+      <input type="text" id="company_name" name="company_name" style="width: 100%;">
+    </div>
+  
+    <div style="margin-top: 20px;">
+      <label for="job_description">💼 Job Description:</label><br>
+      <textarea id="job_description" name="job_description" rows="10" style="width: 100%;"></textarea>
+    </div>
+  
+    <div style="margin-top: 20px;">
+      <button type="submit" style="padding: 10px 20px;">Tailor My Resume</button>
+    </div>
   </form>
+  
+  <!-- 🕓 Loading message -->
+  <div id="loadingMessage" style="display: none; margin-top: 20px; font-weight: bold; color: #007bff;">
+    Hang on. We're workign on this. (I promise!)<span id="dots">...</span>
+  </div>
+  
 {% endblock %}
