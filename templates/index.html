@@ -38,7 +38,24 @@
   
   <!-- 🕓 Loading message -->
   <div id="loadingMessage" style="display: none; margin-top: 20px; font-weight: bold; color: #007bff;">
-    Hang on. We're workign on this. (I promise!)<span id="dots">...</span>
+    Hang on. We're working on this. (I promise!)<span id="dots">...</span>
   </div>
+  
+  <script>
+    const form = document.getElementById('resumeForm');
+    const loadingMessage = document.getElementById('loadingMessage');
+    const dots = document.getElementById('dots');
+  
+    form.addEventListener('submit', function () {
+      loadingMessage.style.display = 'block';
+  
+      // Animate the dots (...) as the resume is processed
+      let dotCount = 0;
+      setInterval(() => {
+        dotCount = (dotCount + 1) % 4;
+        dots.textContent = '.'.repeat(dotCount);
+      }, 500);
+    });
+  </script>
   
 {% endblock %}
