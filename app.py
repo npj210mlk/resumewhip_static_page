@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, flash, redirect, url_for, send_file # jsonify(?)
 import google.generativeai as genai
 from markdown import markdown
+import markdown2 # just in case, because we're trying to save with PDF files 
 import tempfile
 import re # regex for slugging company name
 from gemini_flask_functions import *
@@ -168,19 +169,23 @@ def save_edited_resume():
         flash("Sorry - no resume content to save.")
         return redirect(url_for("index"))
     
-    # generate a filename for the optimized resume
+    # generate a slugged (clean) filename for the optimized resume
     if company_name:
         # slug it to clean it from spaces / characters
         company_slugged = re.sub(r"[^a-zA-Z0-9_-]", "", company_name.lower().replace(" ", "_"))
         download_filename = f"{company_slugged}_tailored_resume.md"
     else:
-        download_filename = "tailored_resume.md"
+        download_filename = "tailored_resume.pdf"
     
+    # Convert the markdown to HTML
+    resume_html = markdown2.markdown(final_resume_content)
+
     # we need to create a temporary file here to make the Python available as a standard file
     # that can be sent to the server
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as temp:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
         temp_path = temp.name
-        temp.write(final_resume_content.encode("utf-8"))
+       # put weasyprint to work
+        HTML(string=resume_html).write._pdf(temp_path)
     
     try:
         return send_file(
@@ -188,7 +193,7 @@ def save_edited_resume():
             as_attachment=True,
             download_name=download_filename,
             # specify markdown as the text 
-            mimetype="text/markdown"
+            mimetype="application/pdf"
         )
     
     finally:

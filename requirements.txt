@@ -2,4 +2,6 @@ Flask
 python-dotenv
 google-generativeai
 markdown
+markdown2
+weasyprint
 gunicorn
