@@ -47,7 +47,9 @@ def parse_gemini_response(response):
                     additional_suggestions = arguments.get("additional_suggestions")
             elif first_part.text:
                 # Fallback if function calling didn't work
+                print("Problem with the Gemini API: this is a lame fallback response:", first_part.text)
                 tailored_resume = first_part.text
+                additional_suggestions = "Sadly, this means Gemini can't offer any suggestions."
     
     # output had markdown fences (e.g., "```markdown")
     # if block below cleans up the output

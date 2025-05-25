@@ -16,24 +16,30 @@
       <form method="POST" action="{{ url_for('save_edited_resume') }}">
         <h3>📝 Edit Your Tailored Resume (Markdown):</h3>
         <textarea id="adjustedResumeEditor" name="final_resume_content" rows="20" style="width: 100%; border: 1px solid #ccc; padding: 10px; border-radius: 5px; resize: vertical;">{{ tailored_resume_md }}</textarea>
-      
+    
         <h4 style="margin-top: 20px;">💡 Suggested Improvements:</h4>
-        <ul style="padding-left: 20px;">
-          {% for suggestion in (additional_suggestions or "").split('\n') %}
-            {% if suggestion.strip() %}
-              <li>{{ suggestion }}</li>
-            {% endif %}
-          {% endfor %}
-        </ul>
-      
+        {% if additional_suggestions %}
+          <ul style="padding-left: 20px;">
+            {% for suggestion in (additional_suggestions or "").split('\n') %}
+              {% if suggestion.strip() %}
+                <li>{{ suggestion }}</li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p style="color: firebrick;">Oofa. No specific suggestions returned. You can still edit your resume directly though...</p>
+        {% endif %}
+    
+        <!--  Including hidden input regardless of suggestions -->
         <input type="hidden" name="company_name_for_resume_tracking" value="{{ company_name }}">
-      
+    
         <br><br>
         <button type="submit" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Save My Adjusted Resume</button>
-      </form>
+      </form>   
       
-      <p id="downloadMessage" style="margin-top: 10px; color: green; display: none;">Downloading...</p>
     </div>
+    <!-- Download message (outside form) -->
+    <p id="downloadMessage" style="margin-top: 10px; color: green; display: none;">Downloading...</p>
   </div>
 
   <div style="margin-top: 30px;">
