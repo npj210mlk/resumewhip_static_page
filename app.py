@@ -188,7 +188,7 @@ def save_edited_resume():
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
         temp_path = temp.name
        # put weasyprint to work
-        HTML(string=resume_html).write._pdf(temp_path)
+        HTML(string=resume_html).write_pdf(temp_path)
     
     try:
         return send_file(

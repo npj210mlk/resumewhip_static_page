@@ -53,13 +53,16 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
     3. **Keyword Optimization**:
     - Integrate **keywords** and phrases from the job description naturally to optimize for Applicant Tracking Systems (ATS)
 
-    4. **Additional Suggestions*** *(if gaps exist)*:
+    4. **Project Inclusion**:
+    - Incorporate any of the relevant projects listed on the resume that would enhance its position within Applican Tracking Systems (ATS)
+    
+    5. **Additional Suggestions*** *(if gaps exist)*:
     - If the resume does not fully align with the job description, suggest:
         a.) **Additional technical or soft skills** that I could add to make my profile stronger.
         b.) **Certifications or courses** I have (or could pursue) that would bridge the gap(s).
         c.) **Project ideas or experiences** that would better align with the role.
 
-    5.) **Formatting**:
+    6.) **Formatting**:
     - Ouptut the tailored resume in **clean Markdown format**.
     - Include an **"Additional Suggestions"** section at the end with actionable improvement recommendations.
 
