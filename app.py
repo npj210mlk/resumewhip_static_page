@@ -176,7 +176,7 @@ def save_edited_resume():
     if company_name:
         # slug it to clean it from spaces / characters
         company_slugged = re.sub(r"[^a-zA-Z0-9_-]", "", company_name.lower().replace(" ", "_"))
-        download_filename = f"{company_slugged}_tailored_resume.md"
+        download_filename = f"{company_slugged}_tailored_resume.pdf"
     else:
         download_filename = "tailored_resume.pdf"
     
