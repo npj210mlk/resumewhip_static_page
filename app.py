@@ -101,6 +101,8 @@ def tailor_resume():
             prompt, 
             function_schema
         )
+
+        print("RAW GEMINI RESPONSE: ", response)
         
         tailored_resume, additional_suggestions = parse_gemini_response(response)
         
