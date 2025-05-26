@@ -161,8 +161,8 @@ def download_resume():
 @app.route("/save-edited-resume", methods=["POST"])
 def save_edited_resume():
     """
-    Takes the edits you made based on the additional suggestions,
-    and allows you to save them to your machine.
+    Takes the edits you made based on the Additional Suggestions,
+    and allows you to save them to your machine in a standardized .PDF format.
     """
     final_resume_content = request.form.get("final_resume_content")
     company_name = request.form.get("company_name_for_resume_tracking")
@@ -180,15 +180,42 @@ def save_edited_resume():
     else:
         download_filename = "tailored_resume.pdf"
     
-    # Convert the markdown to HTML
+    # convert the markdown to HTML
     resume_html = markdown2.markdown(final_resume_content)
 
+    # standardize and future-proof the PDF output using css
+    pdf_css = """
+        @page {
+            margin: 1in;
+            }
+        
+        body {
+            font-family: 'Times New Roman', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #222;
+            padding: 20px;
+            }
+
+        h1, h2, h3 {
+            font-weight: bold;
+            margin-bottom: 10px;
+            }
+        
+        p {
+            margin: 0 0 12px;
+            }
+        
+        ul {
+            padding_left: 20px;
+            }
+        """
     # we need to create a temporary file here to make the Python available as a standard file
     # that can be sent to the server
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
         temp_path = temp.name
        # put weasyprint to work
-        HTML(string=resume_html).write_pdf(temp_path)
+        HTML(string=resume_html).write_pdf(temp_path, stylesheets=[CSS(string=pdf_css)])
     
     try:
         return send_file(
