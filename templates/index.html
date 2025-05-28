@@ -8,53 +8,58 @@
   {% with messages = get_flashed_messages() %}
     {% if messages %}
       <ul class="flashes">
-      {% for message in messages %}
-        <li>{{ message }}</li>
-      {% endfor %}
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
       </ul>
     {% endif %}
   {% endwith %}
 
   {% if retry %}
-    <div style="color: firebrick; font-weight: bold; margin-bottom: 15px;">
-        Gemini didn't return anything. No worries, though. You can try again with the info you've already entered.
+    <div style="color: firebrick; font-weight: bold; margin-bottom: 10px;">
+      ⚠️ Gemini didn’t return a tailored resume. You can try again using the form below.
+    </div>
+    <div style="margin-bottom: 20px;">
+      <button onclick="document.getElementById('resumeForm').submit();" style="padding: 10px 15px; background-color: firebrick; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        🔁 Try Again
+      </button>
     </div>
   {% endif %}
 
   <form id="resumeForm" method="POST" action="{{ url_for('tailor_resume') }}">
     <div>
       <label for="resume_text">📄 Your Resume (Markdown format):</label><br>
-      <textarea id="resume_text" name="resume_text" rows="15" style="width: 100%;">{{ resume_text or ""}}</textarea>
+      <textarea id="resume_text" name="resume_text" rows="15" style="width: 100%;">{{ resume_text or "" }}</textarea>
     </div>
-  
+
     <div style="margin-top: 20px;">
       <label for="company_name">🏢 Company Name:</label><br>
       <input type="text" id="company_name" name="company_name" style="width: 100%;" value="{{ company_name or '' }}">
     </div>
-  
+
     <div style="margin-top: 20px;">
       <label for="job_description">💼 Job Description:</label><br>
-      <textarea id="job_description" name="job_description" rows="10" style="width: 100%;">{{ job_description or ""}}</textarea>
+      <textarea id="job_description" name="job_description" rows="10" style="width: 100%;">{{ job_description or "" }}</textarea>
     </div>
-  
+
     <div style="margin-top: 20px;">
       <button type="submit" style="padding: 10px 20px;">Tailor My Resume</button>
     </div>
   </form>
-  
+
   <!-- 🕓 Loading message -->
   <div id="loadingMessage" style="display: none; margin-top: 20px; font-weight: bold; color: #007bff;">
-    Hang on. We're working on this. (I promise!)<span id="dots">...</span>
+    Hang on. This thing's wheels are spinning - I promise!<span id="dots">...</span>
   </div>
-  
+
   <script>
     const form = document.getElementById('resumeForm');
     const loadingMessage = document.getElementById('loadingMessage');
     const dots = document.getElementById('dots');
-  
+
     form.addEventListener('submit', function () {
       loadingMessage.style.display = 'block';
-  
+
       // Animate the dots (...) as the resume is processed
       let dotCount = 0;
       setInterval(() => {
@@ -63,5 +68,4 @@
       }, 500);
     });
   </script>
-  
 {% endblock %}
