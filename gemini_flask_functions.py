@@ -87,7 +87,7 @@ def generate_tailoring_prompt(resume_text: str, jd_string: str) -> str:
     3. Include any relevant project information that would help position me above / distinguish me from others.
     4. The primary goal of this optimization is to best position the resume against Application Tracking Systems.
     5. At the end, provide an "**Additional Suggestions**" section with suggestions improvements my resume where gaps exist.
-    
+    6. You MUST call the tailor_resume function below with your final answer. Do NOT return plain text. Use the schema provided.
 
     Resume:
     {resume_text}
