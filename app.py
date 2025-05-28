@@ -49,18 +49,21 @@ def parse_gemini_response(response):
                 # Fallback if function calling didn't work
                 print("Problem with the Gemini API: this is a lame fallback response:", first_part.text)
                 tailored_resume = first_part.text
-                additional_suggestions = "Sadly, this means Gemini can't offer any suggestions."
+                additional_suggestions = "Gemini can't offer any suggestions."
     
     # output had markdown fences (e.g., "```markdown")
     # if block below cleans up the output
-
-    if tailored_resume and tailored_resume.strip().startswith("```markdown") and tailored_resume.strip().endswith("```"):
-        # remove the "```markdown" at the beginning
-        tailored_resume = tailored_resume.strip()[len("```markdown"):].strip()
-        # remove ```fence from the end
-        tailored_resume = tailored_resume.rsplit("```", 1)[0].strip()
-
+    if tailored_resume:
+        if tailored_resume.strip().startswith("```"):
+            # remove tik fence Gemini keeps sending at the beginning 
+            tailored_resume = re.sub(r"^```.*?\n", "", tailored_resume.strip())
+            # remove any tik fence at the end
+            tailored_resume = re.sub(r"```$", "", tailored_resume.strip())
     
+    # get SOMETHING back
+    if not additional_suggestions:
+        additional_suggestions = "Sorry. For some reason, Gemini's not giving any suggestions here. Must be your resume's PERFECT!"
+
     return tailored_resume, additional_suggestions
 
 # Configure Gemini API on app startup
@@ -106,14 +109,18 @@ def tailor_resume():
         
         tailored_resume, additional_suggestions = parse_gemini_response(response)
         
+        # go beyond original "None" return handling, let them try agian, and help with failure logging
         if not tailored_resume:
-            flash("Failed to generate tailored resume. Please try again.")
-            return redirect(url_for("index"))
-        
-        # protect against 'None,' which was causing problems on certain Render launches
-        if additional_suggestions is None:
-            additional_suggestions = " "
-            
+            flash("Gemini didn't give us a usable output. Maybe try again or just simplify the job description input?")
+            # give them option to try again
+            return render_template(
+                "index.html",
+                resume_text=resume_text,
+                company_name=company_name,
+                job_description=jd_text,
+                retry=True
+            )
+          
         # Convert Markdown to HTML for display
         tailored_resume_html = markdown(tailored_resume)
         
@@ -209,7 +216,7 @@ def save_edited_resume():
             }
         
         ul {
-            padding_left: 20px;
+            padding-left: 20px;
             }
         """
     # we need to create a temporary file here to make the Python available as a standard file

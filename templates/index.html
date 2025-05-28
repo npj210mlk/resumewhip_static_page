@@ -15,20 +15,26 @@
     {% endif %}
   {% endwith %}
 
+  {% if retry %}
+    <div style="color: firebrick; font-weight: bold; margin-bottom: 15px;">
+        Gemini didn't return anything. No worries, though. You can try again with the info you've already entered.
+    </div>
+  {% endif %}
+
   <form id="resumeForm" method="POST" action="{{ url_for('tailor_resume') }}">
     <div>
       <label for="resume_text">📄 Your Resume (Markdown format):</label><br>
-      <textarea id="resume_text" name="resume_text" rows="15" style="width: 100%;"></textarea>
+      <textarea id="resume_text" name="resume_text" rows="15" style="width: 100%;">{{ resume_text or ""}}</textarea>
     </div>
   
     <div style="margin-top: 20px;">
       <label for="company_name">🏢 Company Name:</label><br>
-      <input type="text" id="company_name" name="company_name" style="width: 100%;">
+      <input type="text" id="company_name" name="company_name" style="width: 100%;" value="{{ company_name or '' }}">
     </div>
   
     <div style="margin-top: 20px;">
       <label for="job_description">💼 Job Description:</label><br>
-      <textarea id="job_description" name="job_description" rows="10" style="width: 100%;"></textarea>
+      <textarea id="job_description" name="job_description" rows="10" style="width: 100%;">{{ job_description or ""}}</textarea>
     </div>
   
     <div style="margin-top: 20px;">
