@@ -11,42 +11,20 @@ from weasyprint import HTML
 # load dotenv
 load_dotenv()
 
-# assign "MY_SK" as global variable
-open_apikey = os.getenv("MY_SK")
+# assign "my_sk" as global variable
+my_sk = os.getenv("MY_SK")
 
 # ===== Resume Functions =====
 
 # create the gpt_resumes folder
 os.makedirs("gpt_resumes", exist_ok = True)
 
-# Sanitizer function to protect the prompts (thank you, Jacob, for pointing this out!)
-def sanitize_input(text: str) -> str:
-    """
-    This function is meant to prevent bad actors from corrupting prompts with potentially
-    malicious patterns. The problem is called 'prompt injecting,' and can be as problematic from prompts
-    as sql-injecting is for passwords.
-
-    Args:
-        text (str): the resume or job description, whatever the user input is
-    Returns:
-        str: a slugged / cleaned version of that input
-    """
-    # Strip Markdown/code block markers, quotes, and classic injection phrases
-    disallowed_patterns = ["```", "'''", '"""', "<script>", "</script>", "Ignore previous instructions", "Forget all prior directions"]
-    
-    for pattern in disallowed_patterns:
-        text = text.replace(pattern, "") #<- replace those disallowed patterns with ""
-
-    # remove double newlines / strip extra whitespace
-    text = text.strip()
-    
-    return text
-
 # prompt creator function - the lambda function from scratchpad
+
 # basically, Steps 1, 2, and 3 from scratchpad
 def prompt_creator(resume_string: str, job_desc_string: str) -> str:
     """
-    Using the prompt engineered in the scratchpad 'lambda' function, this function uses the power of ChatGPT's 4o-mini-mini engine to
+    Using the prompt engineered in the scratchpad 'lambda' function, this function uses the power of ChatGPT's 4o-mini engine to
     act as a professional resume optimizer to take my existing resume and:
         1.) Use action-verbs and job posting keywords to optimize it for Applicant Tracking Systems;
         2.) Provide us with feedback on any changes that can be made to strengthen the resume; and 
@@ -59,10 +37,6 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
     Returns:
         str: A formatted prompt string containing instructions for resume optimization
     """
-    # Protect the prompt engineering / LLM instructions
-    resume_string = sanitize_input(resume_string)
-    job_desc_string = sanitize_input(job_desc_string)
-
     return f"""
     ### Role: 
     You are a professional resume optimization expert, tailoring my resume to fit specific job descriptions. 
@@ -71,24 +45,19 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
 
     ### Guidelines:
     1. **Relevance**:
-    - Prioritize the particular skills and experiences I have with what is **most relevant to the 
-    job position**.
-    - De-emphasize or even completely remove irrelevant details to ensure a **concise** and **targeted** 
-    resume.
+    - Prioritize the particular skills and experiences I have with what is **most relevant to the job position**.
+    - De-emphasize or even completely remove irrelevant details to ensure a **concise** and **targeted** resume.
     - Limit work experience section to 2-3 most relevant roles
     - Limit bullet points under each role to 2-3 most relevant impacts
 
     2. **Action-Driven Results**:
-    - Choose **strong action verbs** and **quantifiable results** (eg: percentages, revenues, 
-    efficiency improvement, etc.)
+    - Choose **strong action verbs** and **quantifiable results** (eg: percentages, revenues, efficiency improvement, etc.)
 
     3. **Keyword Optimization**:
-    - Integrate **keywords** and phrases from the job description naturally to optimize for
-      Applicant Tracking Systems (ATS)
+    - Integrate **keywords** and phrases from the job description naturally to optimize for Applicant Tracking Systems (ATS)
 
     4. **Project Inclusion**:
-    - Incorporate any of the relevant projects listed on the resume that would enhance its position 
-    within Applicant Tracking Systems (ATS)
+    - Incorporate any of the relevant projects listed on the resume that would enhance its position within Applican Tracking Systems (ATS)
     
     5. **Additional Suggestions*** *(if gaps exist)*:
     - If the resume does not fully align with the job description, suggest:
@@ -97,9 +66,8 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
         c.) **Project ideas or experiences** that would better align with the role.
 
     6.) **Formatting**:
-    - Output the tailored resume in **clean Markdown format**.
-    - Include an **"Additional Suggestions"** section at the end with actionable 
-    improvement recommendations.
+    - Ouptut the tailored resume in **clean Markdown format**.
+    - Include an **"Additional Suggestions"** section at the end with actionable improvement recommendations.
 
     ---
 
@@ -125,24 +93,31 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
     """
 
 # Step 4 from scratchpad
-def get_resume_response(prompt: str, model: str = "gpt-4o-mini", temperature: float = 0.7) -> str:
+def get_resume_response(prompt: str, api_key: str, model: str = "gpt-4o-mini", temperature: float = 0.7) -> str:
     """
-    Now that we've got the resume optimized, we send it to OpenAI's API, where it sends us back the
-    optimized resume response. 
+    Now that we've got the resume optimized, we send it to OpenAI's API, where it sends us back the optimized
+    resume response. 
+
+    With this function, we:
+    1.) set up our OpenAI client;
+    2.) make an API call to OpenAI using the provided prompt; and 
+    3.) returns to us the generated resume response.
 
     Args:
         prompt (str): The formatted prompt containing the resume and job description
-        model ("gpt-4o-mini"): The OpenAI engine to use.
-        temperature (float, optional): Controls randomness in the response. Hard-set to 0.7, 
-        a popular temperature setting.
+        api_key (str): our OpenAI API key for call authentication
+        model ("gpt-4o-mini): The OpenAI engine to use. Here, we're hard-coding it to "gpt-4o-mini"
+        temperature (float, optional): Controls randomness in the response. Hard-set to 0.7, a popular temperature setting.
 
     Returns:
-        str: The AI-generated optimized resume
+        str: The AI-generated optimized resume, along with the suggestions we need to make it stronger
 
     Raises:
         OpenAIError: If there's an issue with the API call
     """
     # set up api client
+    open_apikey = os.environ.get("openapi_apikey")
+    
     client = OpenAI(api_key = open_apikey)
 
     # make the call and set response variable to hold the all info we get back
@@ -177,15 +152,15 @@ def process_resume(resume, job_desc_string):
             - str: The same optimized resume (for editing)
             - str: Suggestions for improving the resume
     """
-    # read and sanitize resume
+    # read resume
     with open(resume, "r", encoding="utf-8") as file:
-        resume_string = sanitize_input(file.read())
+        resume_string = file.read()
 
     # create prompt
     prompt = prompt_creator(resume_string, job_desc_string)
 
     # generate response with the my_sk we globally set with load_dotenv() earlier
-    response_string = get_resume_response(prompt)
+    response_string = get_resume_response(prompt, my_sk)
     response_list = response_string.split("## Additional Suggestions")
     
     # extract new resume and suggestions for improvement
@@ -265,43 +240,32 @@ def cover_letter_prompt_creator(resume_string: str, jd_string: str) ->str:
     Returns:
         str: A formatted prompt string containing instructions for resume optimization
     """
-    # Again: protect from injections
-    resume_string = sanitize_input(resume_string)
-    jd_string = sanitize_input(jd_string)
-
     return f"""
     ### Role: 
-    -  You are a professional cover letter writer, and your goal is to create a unique cover 
-    letter that showcases how the job experience in my resume can exceed the needs listed 
-    in a specific job description.
-    
-    - Your need to dazzle recruiters with a conversational yet professional tone that sets my 
-    candidacy apart from others applying for that same role.
+    You are a professional cover letter writer, and your goal is to create a unique cover letter that showcases 
+    how the job experience in my resume can exceed the needs listed in a specific job description.
+    Your goal is to dazzle recruiters with a conversational yet professional tone that sets my candidacy apart from others
+    applying for that same role.
 
     ### Guidelines:
     1. **Relevance**:
-    - Prioritize the particular skills and experiences I have with what is **most relevant to the 
-    job position**.
-    - De-emphasize or even completely remove irrelevant details to ensure a **concise** but 
-    **descriptive** cover letter.
+    - Prioritize the particular skills and experiences I have with what is **most relevant to the job position**.
+    - De-emphasize or even completely remove irrelevant details to ensure a **concise** but **descriptive** cover letter.
     - Limit integrating actual work experience and job needs paragraphs to my 2-3 most relevant roles
     - Select only the core competencies and listed projects most relevant to the job description
 
     2. **Action-Driven Results**:
-    - Choose **strong action verbs** and **quantifiable results** (eg: percentages, revenues, 
-    efficiency improvement, etc.)
+    - Choose **strong action verbs** and **quantifiable results** (eg: percentages, revenues, efficiency improvement, etc.)
 
     3. **Keyword Optimization**:
-    - Integrate **keywords** and phrases from the job description naturally to optimize for 
-    Applicant Tracking Systems (ATS)
+    - Integrate **keywords** and phrases from the job description naturally to optimize for Applicant Tracking Systems (ATS)
 
     4. **Tone**:
     - Please keep the **tone** of the cover letter **professional** **without sounding like a robot**. 
-    - The **objective** is to **exhibit competence** in the duties listed, but also to sound 
-    like I'm talking to a cohort.
+    - The **objective** is to **exhibit competance** in the duties listed, but also to sound like I'm talking to a cohort.
 
     5. **Formatting**:
-    - Output the tailored cover letter in a **clean Markdown format** for ease of editing.
+    - Ouptut the tailored cover letter in a **clean Markdown format** for ease of editing.
 
     ---
 
@@ -321,7 +285,7 @@ def cover_letter_prompt_creator(resume_string: str, jd_string: str) ->str:
     - Uses confident language and is no longer than **one page**.
     """
 
-def get_cover_response(prompt: str, model: str = "gpt-4o-mini", temperature: float = 0.7) -> str:
+def get_cover_response(prompt: str, api_key: str, model: str = "gpt-4o-mini", temperature: float = 0.7) -> str:
     """
     Now that we've got the cover letter set up for optimization, we send it to OpenAI's API, 
     which sends back the optimized cover letter response. 
@@ -344,6 +308,8 @@ def get_cover_response(prompt: str, model: str = "gpt-4o-mini", temperature: flo
         OpenAIError: If there's an issue with the API call
     """
     # set up api client
+    open_apikey = os.environ.get("openapi_apikey")
+    
     client = OpenAI(api_key = open_apikey)
 
     # make the call and set response variable to hold the all info we get back
