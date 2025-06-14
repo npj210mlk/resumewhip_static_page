@@ -5,3 +5,4 @@ markdown
 markdown2
 weasyprint
 gunicorn
+webdriver-manager
