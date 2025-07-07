@@ -95,6 +95,8 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
         a.) **Additional technical or soft skills** that I could add to make my profile stronger.
         b.) **Certifications or courses** I have (or could pursue) that would bridge the gap(s).
         c.) **Project ideas or experiences** that would better align with the role.
+        d.) **Compare intent** of job description with selected Summary and provide ideas to better tailor the Summary.
+        e.) **Score** predicted match between resume and job description.
 
     6.) **Formatting**:
     - Output the tailored resume in **clean Markdown format**.
