@@ -417,11 +417,12 @@ def is_posting_recent(posting_date_str, days = 60):
     legitimately stays open for longer than that.
     """
     try:
-        date_posted = datetime.strptime(date_posted_str, "%Y-%m-%d")
+        date_posted = datetime.strptime(posting_date_str, "%Y-%m-%d")
         return (datetime.now() - date_posted) <= timedelta(days = days)
     
     # let user know if it's a missing date or a date not in the '%Y-%m-%d'format
-    except ValueError: 
+    except Exception as e: 
+        print(f"Date parsing field has failed: {e}")
         return False
     
 # Does it look like someone just threw the job up using AI or a template?
