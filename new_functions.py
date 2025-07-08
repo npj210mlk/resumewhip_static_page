@@ -8,6 +8,9 @@ from openai import OpenAI
 from markdown import markdown
 from weasyprint import HTML
 
+# import for Job Validator
+from datetime import datetime, timedelta
+
 # load dotenv
 load_dotenv()
 
@@ -402,3 +405,50 @@ def save_cover_letter(response_string: str, company_name: str, output_dir: str =
         print(f"Error converting to PDF with Weasyprint: {e}")
         print("Please ensure Weasyprint is correctly installed and its dependencies (like Cairo) are met.")
         return None, output_markdown_file # Return None for PDF if it failed
+
+# Job Validator
+
+# Is posting within the last 60 days?
+def is_posting_recent(posting_date_str, days = 60):
+    """
+    This function checks the job posting date using datetime. 
+    It takes the job's posting date and subtracts the number of days from today's date.
+    A time limit of 60 days was set because in today's job market, there's no way a job
+    legitimately stays open for longer than that.
+    """
+    try:
+        date_posted = datetime.strptime(date_posted_str, "%Y-%m-%d")
+        return (datetime.now() - date_posted) <= timedelta(days = days)
+    
+    # let user know if it's a missing date or a date not in the '%Y-%m-%d'format
+    except ValueError: 
+        return False
+    
+# Does it look like someone just threw the job up using AI or a template?
+generic_phrases = [
+    "fast-paced environment", "team player", "self-starter",
+    "excellent communication skills", "wears many hats", "wear many hats",
+    "competitive salary", "generous benefits package", "dynamic team", 
+    "strong work ethic", "attention to detail"
+]
+
+def template_detector(job_description):
+    """
+    This function checks the job description for any of the generic phrases above and counts them.
+    If there's more than 4, a flag will mark suspicion of some kind of template or AI use.
+    """
+    job_lower = job_description.lower()
+    score = sum(phrase in job_lower for phrase in generic_phrases)
+    return score >= 4
+
+# Is the job being mentioned on any of the company's social media posts?
+def mentioned_on_socials(company, job_title):
+    """
+    Function to search common phrases on X and LinkedIn indicating a fresh job post.
+    Nobody hashtags anything older than the 60-day limit we set on the posting earlier.
+    """
+    query = f"{company} {job_title} #NowHiring OR #WeAreHiring OR #JobAlert OR #ApplyNow"
+    return {
+        "x": f"https://x.com/search?q={query.replace(' ', '%20')}&src=typed_query",
+        "linkedin": f"https://linkedin.com/search/results/content/?keywords={query.replace(' ', '%20')}"
+    }
