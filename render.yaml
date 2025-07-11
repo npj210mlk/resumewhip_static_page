@@ -4,6 +4,6 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python app.py   # or whatever file launches Gradio
+    startCommand: python app.py   
     autoDeploy: true
 
