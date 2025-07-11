@@ -1,6 +1,5 @@
 gradio
 openai
-flask
 python-dotenv
 markdown
 weasyprint
