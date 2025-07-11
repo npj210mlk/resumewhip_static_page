@@ -1,8 +1,6 @@
-Flask
+gradio
+openai
+flask
 python-dotenv
-google-generativeai
 markdown
-markdown2
 weasyprint
-gunicorn
-webdriver-manager

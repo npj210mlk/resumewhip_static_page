@@ -1,254 +1,351 @@
-import os
-from dotenv import load_dotenv
-from flask import Flask, render_template, request, flash, redirect, url_for, send_file # jsonify(?)
-import google.generativeai as genai
-from markdown import markdown
-import markdown2 # just in case, because we're trying to save with PDF files 
-import tempfile
-import re # regex for slugging company name
-from weasyprint import HTML, CSS
-from gemini_flask_functions import *
+# imports
+import gradio as gr
 
-# start Flask
-app = Flask(__name__)
-# add a secret key to make the flask app secure - this one is 24-bytes.
-app.secret_key = os.urandom(24) 
+# import functions, a file created in the job folder that houses the functions Gradio needs to do its job
+from new_functions import *
 
-# Load environment variables
-load_dotenv()
+# construct and functionalize the Gradio UI
+with gr.Blocks() as app:
+    # Header
+    gr.Markdown("Your One-Stop Resume and Cover Letter Optimizer")
+    gr.Markdown("""
+    1. Drop your Markdown resume below.  
+    2. Enter the company name.  
+    3. Paste the job description.  
+    4. Generate both your tailored resume **and** a compelling cover letter in Markdown & PDF format.
+    """)
 
-# call the api
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY was not loaded from your environment.")
-genai.configure(api_key=GEMINI_API_KEY)
+    # Inputs
+    with gr.Row():
+        resume_input = gr.File(label="Drop Your Markdown Resume Here")
+        company_input = gr.Textbox(label="The Company with Whom You're Applying", placeholder="e.g., Data Clymer")
+        job_input = gr.Textbox(label="Paste In the Job Description Here", lines=10, interactive=True)
 
-def parse_gemini_response(response):
-    """
-    Parse the Gemini API response to extract the tailored resume and suggestions.
-    This is an adaptation of the handle_gemini_response function that returns values
-    instead of writing to a file.
-    """
-    tailored_resume = None
-    additional_suggestions = None
-    
-    if response.candidates:
-        first_candidate = response.candidates[0]
+    with gr.Tab("Resume Optimizer"):
+        run_resume = gr.Button("✨ Optimize Resume")
+        resume_md = gr.Markdown(label="Optimized Resume (Markdown View)")
+        resume_edit = gr.Textbox(label="Edit Your Resume Below", lines=10, interactive=True)
+        suggestions = gr.Markdown(label="Suggestions")
+        export_resume_btn = gr.Button("⬇ Export Resume as PDF")
+        export_resume_result = gr.Markdown()
 
-        if first_candidate.content and first_candidate.content.parts:
-            first_part = first_candidate.content.parts[0]
+    with gr.Tab("Cover Letter Generator"):
+        run_cover = gr.Button("📝 Generate Cover Letter")
+        cover_output = gr.Textbox(label="Generated Cover Letter (Markdown)", lines=15, interactive=True)
+        export_cover_btn = gr.Button("⬇ Export Cover Letter as PDF")
+        export_cover_result = gr.Markdown()
+        
+    with gr.Tab("Job Validator"):
+        gr.Markdown("Validate whether a job post is recent, specific, and visible on social platforms.")
 
-            if first_part.function_call:
-                function_call = first_part.function_call
+        with gr.Row():
+            jd_date = gr.Textbox(label="Job Posting Date (YYYY-MM-DD)", placeholder="e.g., 2025-06-01")
+            jd_company = gr.Textbox(label="Company Name", placeholder="e.g., IEM, LLC")
 
-                if function_call.name == "tailor_resume":
-                    arguments = function_call.args
-                    tailored_resume = arguments.get("tailored_resume")
-                    additional_suggestions = arguments.get("additional_suggestions")
-            elif first_part.text:
-                # Fallback if function calling didn't work
-                print("Problem with the Gemini API: this is a lame fallback response:", first_part.text)
-                tailored_resume = first_part.text
-                additional_suggestions = "Gemini can't offer any suggestions."
-    
-    # output had markdown fences (e.g., "```markdown")
-    # if block below cleans up the output
-    if tailored_resume:
-        if tailored_resume.strip().startswith("```"):
-            # remove tik fence Gemini keeps sending at the beginning 
-            tailored_resume = re.sub(r"^```.*?\n", "", tailored_resume.strip())
-            # remove any tik fence at the end
-            tailored_resume = re.sub(r"```$", "", tailored_resume.strip())
-    
-    # get SOMETHING back
-    if not additional_suggestions:
-        additional_suggestions = "Sorry. For some reason, Gemini's not giving any suggestions here. Must be your resume's PERFECT!"
+        jd_title = gr.Textbox(label="Job Title", placeholder="e.g., Senior Data Engineer")
+        jd_desc = gr.Textbox(label="Paste Full Job Description", lines=10)
 
-    return tailored_resume, additional_suggestions
+        jd_validate_btn = gr.Button("✅ Run Job Validation")
+        jd_validation_result = gr.Markdown()
 
-# Configure Gemini API on app startup
-try:
-    configure_gemini_api()
-    function_schema = tailored_resume_function_schema()
-    gemini_model = gemini_initialization_with_function_calling(function_schema)
-except ValueError as e:
-    print(f"Error during initialization: {e}")
-    gemini_model = None
+        # Validation click logic
+        def validate_job(posting_date, company, job_title, job_description):
+            recent = is_posting_recent(posting_date)
+            template_flag = template_detector(job_description)
+            social_links = mentioned_on_socials(company, job_title)
 
-@app.route("/", methods=["GET"])
-def index():
-    """Home page with form to upload resume and job description"""
-    return render_template("index.html")
+            report = f"### 🕒 Posting Date Check:\n"
+            report += "✅ Job appears to be recent.\n" if recent else "⚠️ Job may be outdated (posted over 60 days ago).\n"
 
-@app.route("/tailor-resume", methods=["GET", "POST"])
-def tailor_resume():
-    """Process the resume and job description to generate a tailored resume"""
-    if not gemini_model:
-        flash("API configuration error. Please check your environment variables.")
-        return redirect(url_for("index"))
-    
-    # Get resume, company name, and job description from form
-    resume_text = request.form.get("resume_text")
-    company_name = request.form.get("company_name")
-    jd_text = request.form.get("job_description")
+            report += f"\n### 🤖 Template Language Detection:\n"
+            report += "⚠️ This job description uses generic/template language.\n" if template_flag else "✅ Description looks specific.\n"
 
-    if not resume_text or not jd_text:
-        flash("Please provide both resume and job description.")
-        return redirect(url_for("index"))
-    
-    try:
-        # Generate tailored resume
-        prompt = generate_tailoring_prompt(resume_text, jd_text)
-        response = get_gemini_response_with_function_calling(
-            gemini_model, 
-            prompt, 
-            function_schema
+            report += f"\n### 🔍 Social Media Mentions:\n"
+            report += f"- [Search on X](<{social_links['x']}>)\n"
+            report += f"- [Search on LinkedIn](<{social_links['linkedin']}>)\n"
+
+            return report
+
+        jd_validate_btn.click(
+            fn=validate_job,
+            inputs=[jd_date, jd_company, jd_title, jd_desc],
+            outputs=jd_validation_result
         )
 
-        print("RAW GEMINI RESPONSE: ", response)
+    # Resume events
+    run_resume.click(fn=process_resume, inputs=[resume_input, job_input], outputs=[resume_md, resume_edit, suggestions])
+    export_resume_btn.click(fn=export_resume, inputs=[resume_edit, company_input], outputs=[export_resume_result])
+
+    # Cover letter events
+    def generate_cover_letter(resume_file, job_desc):
+        with open(resume_file.name, "r", encoding="utf-8") as f:
+            resume_txt = f.read()
+        prompt = cover_letter_prompt_creator(resume_txt, job_desc)
+        return get_cover_response(prompt)
+
+    def export_cover_handler(cover_text, company):
+        pdf, md = save_cover_letter(cover_text, company)
+        return f"✅ PDF saved at: `{pdf}`" if pdf else "❌ Failed to export."
+
+    run_cover.click(fn=generate_cover_letter, inputs=[resume_input, job_input], outputs=[cover_output])
+    export_cover_btn.click(fn=export_cover_handler, inputs=[cover_output, company_input], outputs=[export_cover_result])
+
+# Launch
+app.launch(server_name="0.0.0.0", server_port=8080)
+
+
+# >>>> FOR FLASK LAUNCH <<<<<<
+# import os
+# from dotenv import load_dotenv
+# from flask import Flask, render_template, request, flash, redirect, url_for, send_file # jsonify(?)
+# import google.generativeai as genai
+# from markdown import markdown
+# import markdown2 # just in case, because we're trying to save with PDF files 
+# import tempfile
+# import re # regex for slugging company name
+# from weasyprint import HTML, CSS
+# from gemini_flask_functions import *
+
+# # start Flask
+# app = Flask(__name__)
+# # add a secret key to make the flask app secure - this one is 24-bytes.
+# app.secret_key = os.urandom(24) 
+
+# # Load environment variables
+# load_dotenv()
+
+# # call the api
+# GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+# if not GEMINI_API_KEY:
+#     raise ValueError("GEMINI_API_KEY was not loaded from your environment.")
+# genai.configure(api_key=GEMINI_API_KEY)
+
+# def parse_gemini_response(response):
+#     """
+#     Parse the Gemini API response to extract the tailored resume and suggestions.
+#     This is an adaptation of the handle_gemini_response function that returns values
+#     instead of writing to a file.
+#     """
+#     tailored_resume = None
+#     additional_suggestions = None
+    
+#     if response.candidates:
+#         first_candidate = response.candidates[0]
+
+#         if first_candidate.content and first_candidate.content.parts:
+#             first_part = first_candidate.content.parts[0]
+
+#             if first_part.function_call:
+#                 function_call = first_part.function_call
+
+#                 if function_call.name == "tailor_resume":
+#                     arguments = function_call.args
+#                     tailored_resume = arguments.get("tailored_resume")
+#                     additional_suggestions = arguments.get("additional_suggestions")
+#             elif first_part.text:
+#                 # Fallback if function calling didn't work
+#                 print("Problem with the Gemini API: this is a lame fallback response:", first_part.text)
+#                 tailored_resume = first_part.text
+#                 additional_suggestions = "Gemini can't offer any suggestions."
+    
+#     # output had markdown fences (e.g., "```markdown")
+#     # if block below cleans up the output
+#     if tailored_resume:
+#         if tailored_resume.strip().startswith("```"):
+#             # remove tik fence Gemini keeps sending at the beginning 
+#             tailored_resume = re.sub(r"^```.*?\n", "", tailored_resume.strip())
+#             # remove any tik fence at the end
+#             tailored_resume = re.sub(r"```$", "", tailored_resume.strip())
+    
+#     # get SOMETHING back
+#     if not additional_suggestions:
+#         additional_suggestions = "Sorry. For some reason, Gemini's not giving any suggestions here. Must be your resume's PERFECT!"
+
+#     return tailored_resume, additional_suggestions
+
+# # Configure Gemini API on app startup
+# try:
+#     configure_gemini_api()
+#     function_schema = tailored_resume_function_schema()
+#     gemini_model = gemini_initialization_with_function_calling(function_schema)
+# except ValueError as e:
+#     print(f"Error during initialization: {e}")
+#     gemini_model = None
+
+# @app.route("/", methods=["GET"])
+# def index():
+#     """Home page with form to upload resume and job description"""
+#     return render_template("index.html")
+
+# @app.route("/tailor-resume", methods=["GET", "POST"])
+# def tailor_resume():
+#     """Process the resume and job description to generate a tailored resume"""
+#     if not gemini_model:
+#         flash("API configuration error. Please check your environment variables.")
+#         return redirect(url_for("index"))
+    
+#     # Get resume, company name, and job description from form
+#     resume_text = request.form.get("resume_text")
+#     company_name = request.form.get("company_name")
+#     jd_text = request.form.get("job_description")
+
+#     if not resume_text or not jd_text:
+#         flash("Please provide both resume and job description.")
+#         return redirect(url_for("index"))
+    
+#     try:
+#         # Generate tailored resume
+#         prompt = generate_tailoring_prompt(resume_text, jd_text)
+#         response = get_gemini_response_with_function_calling(
+#             gemini_model, 
+#             prompt, 
+#             function_schema
+#         )
+
+#         print("RAW GEMINI RESPONSE: ", response)
         
-        tailored_resume, additional_suggestions = parse_gemini_response(response)
+#         tailored_resume, additional_suggestions = parse_gemini_response(response)
         
-        # go beyond original "None" return handling, let them try agian, and help with failure logging
-        if not tailored_resume:
-            flash("Gemini didn't give us a usable output. Maybe try again or just simplify the job description input?")
-            # give them option to try again
-            return render_template(
-                "index.html",
-                resume_text=resume_text,
-                company_name=company_name,
-                job_description=jd_text,
-                retry=True
-            )
+#         # go beyond original "None" return handling, let them try agian, and help with failure logging
+#         if not tailored_resume:
+#             flash("Gemini didn't give us a usable output. Maybe try again or just simplify the job description input?")
+#             # give them option to try again
+#             return render_template(
+#                 "index.html",
+#                 resume_text=resume_text,
+#                 company_name=company_name,
+#                 job_description=jd_text,
+#                 retry=True
+#             )
           
-        # Convert Markdown to HTML for display
-        tailored_resume_html = markdown(tailored_resume)
+#         # Convert Markdown to HTML for display
+#         tailored_resume_html = markdown(tailored_resume)
         
-        return render_template(
-            "result.html", 
-            # pass tailored_resume
-            tailored_resume_html=tailored_resume_html,
-            tailored_resume_md=tailored_resume,
-            # pass company name
-            company_name=company_name, 
-            # pass any additional suggestions
-            additional_suggestions=additional_suggestions
+#         return render_template(
+#             "result.html", 
+#             # pass tailored_resume
+#             tailored_resume_html=tailored_resume_html,
+#             tailored_resume_md=tailored_resume,
+#             # pass company name
+#             company_name=company_name, 
+#             # pass any additional suggestions
+#             additional_suggestions=additional_suggestions
             
-        )
+#         )
         
-    except Exception as e:
-        flash(f"An error occurred: {str(e)}")
-        return redirect(url_for("index"))
+#     except Exception as e:
+#         flash(f"An error occurred: {str(e)}")
+#         return redirect(url_for("index"))
 
-@app.route("/download-resume", methods=["POST"])
-def download_resume():
-    """Download the tailored resume as a markdown file"""
-    tailored_resume = request.form.get("tailored_resume_md")
+# @app.route("/download-resume", methods=["POST"])
+# def download_resume():
+#     """Download the tailored resume as a markdown file"""
+#     tailored_resume = request.form.get("tailored_resume_md")
     
-    if not tailored_resume:
-        flash("No resume data to download.")
-        return redirect(url_for("index"))
+#     if not tailored_resume:
+#         flash("No resume data to download.")
+#         return redirect(url_for("index"))
     
-    # Create a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as temp:
-        temp_path = temp.name
-        temp.write(tailored_resume.encode("utf-8"))
+#     # Create a temporary file
+#     with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as temp:
+#         temp_path = temp.name
+#         temp.write(tailored_resume.encode("utf-8"))
     
-    # Send the file to the user
-    try:
-        return send_file(
-            temp_path,
-            as_attachment=True,
-            download_name="tailored_resume.md",
-            mimetype="text/markdown"
-        )
-    finally:
-        # Clean up the temporary file after sending
-        os.unlink(temp_path)
+#     # Send the file to the user
+#     try:
+#         return send_file(
+#             temp_path,
+#             as_attachment=True,
+#             download_name="tailored_resume.md",
+#             mimetype="text/markdown"
+#         )
+#     finally:
+#         # Clean up the temporary file after sending
+#         os.unlink(temp_path)
 
-# save the edited / optimized resume
-@app.route("/save-edited-resume", methods=["POST"])
-def save_edited_resume():
-    """
-    Takes the edits you made based on the Additional Suggestions,
-    and allows you to save them to your machine in a standardized .PDF format.
-    """
-    final_resume_content = request.form.get("final_resume_content")
-    company_name = request.form.get("company_name_for_resume_tracking")
+# # save the edited / optimized resume
+# @app.route("/save-edited-resume", methods=["POST"])
+# def save_edited_resume():
+#     """
+#     Takes the edits you made based on the Additional Suggestions,
+#     and allows you to save them to your machine in a standardized .PDF format.
+#     """
+#     final_resume_content = request.form.get("final_resume_content")
+#     company_name = request.form.get("company_name_for_resume_tracking")
 
-    # return to home page if no resume content is found
-    if not final_resume_content:
-        flash("Sorry - no resume content to save.")
-        return redirect(url_for("index"))
+#     # return to home page if no resume content is found
+#     if not final_resume_content:
+#         flash("Sorry - no resume content to save.")
+#         return redirect(url_for("index"))
     
-    # generate a slugged (clean) filename for the optimized resume
-    if company_name:
-        # slug it to clean it from spaces / characters
-        company_slugged = re.sub(r"[^a-zA-Z0-9_-]", "", company_name.lower().replace(" ", "_"))
-        download_filename = f"{company_slugged}_tailored_resume.pdf"
-    else:
-        download_filename = "tailored_resume.pdf"
+#     # generate a slugged (clean) filename for the optimized resume
+#     if company_name:
+#         # slug it to clean it from spaces / characters
+#         company_slugged = re.sub(r"[^a-zA-Z0-9_-]", "", company_name.lower().replace(" ", "_"))
+#         download_filename = f"{company_slugged}_tailored_resume.pdf"
+#     else:
+#         download_filename = "tailored_resume.pdf"
     
-    # convert the markdown to HTML
-    resume_html = markdown2.markdown(final_resume_content)
+#     # convert the markdown to HTML
+#     resume_html = markdown2.markdown(final_resume_content)
 
-    # standardize and future-proof the PDF output using css
-    pdf_css = """
-        @page {
-            margin: 1in;
-            }
+#     # standardize and future-proof the PDF output using css
+#     pdf_css = """
+#         @page {
+#             margin: 1in;
+#             }
         
-        body {
-            font-family: 'Times New Roman', sans-serif;
-            font-size: 11pt;
-            line-height: 1.5;
-            color: #222;
-            padding: 20px;
-            }
+#         body {
+#             font-family: 'Times New Roman', sans-serif;
+#             font-size: 11pt;
+#             line-height: 1.5;
+#             color: #222;
+#             padding: 20px;
+#             }
 
-        h1, h2, h3 {
-            font-weight: bold;
-            margin-bottom: 10px;
-            }
+#         h1, h2, h3 {
+#             font-weight: bold;
+#             margin-bottom: 10px;
+#             }
         
-        p {
-            margin: 0 0 12px;
-            }
+#         p {
+#             margin: 0 0 12px;
+#             }
         
-        ul {
-            padding-left: 20px;
-            }
-        """
-    # we need to create a temporary file here to make the Python available as a standard file
-    # that can be sent to the server
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
-        temp_path = temp.name
-       # put weasyprint to work
-        HTML(string=resume_html).write_pdf(temp_path, stylesheets=[CSS(string=pdf_css)])
+#         ul {
+#             padding-left: 20px;
+#             }
+#         """
+#     # we need to create a temporary file here to make the Python available as a standard file
+#     # that can be sent to the server
+#     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
+#         temp_path = temp.name
+#        # put weasyprint to work
+#         HTML(string=resume_html).write_pdf(temp_path, stylesheets=[CSS(string=pdf_css)])
     
-    try:
-        return send_file(
-            temp_path,
-            as_attachment=True,
-            download_name=download_filename,
-            # specify markdown as the text 
-            mimetype="application/pdf"
-        )
+#     try:
+#         return send_file(
+#             temp_path,
+#             as_attachment=True,
+#             download_name=download_filename,
+#             # specify markdown as the text 
+#             mimetype="application/pdf"
+#         )
     
-    finally:
-        # delete when done
-        os.unlink(temp_path)
+#     finally:
+#         # delete when done
+#         os.unlink(temp_path)
 
-if __name__ == "__main__":
-    # Check if running in IPython/Jupyter
-    try:
-        get_ipython
-        # If we're in IPython/Jupyter, don't use the auto-reloader
-        print("Flask app is ready. Access it at http://127.0.0.1:5000/")
-        print("To run the app, use: app.run()")
-    except NameError:
-        # Normal Python environment
-        app.run(debug=True)
+# if __name__ == "__main__":
+#     # Check if running in IPython/Jupyter
+#     try:
+#         get_ipython
+#         # If we're in IPython/Jupyter, don't use the auto-reloader
+#         print("Flask app is ready. Access it at http://127.0.0.1:5000/")
+#         print("To run the app, use: app.run()")
+#     except NameError:
+#         # Normal Python environment
+#         app.run(debug=True)
 
-# # for local testing - erase for production
-# app.run()
+# # # for local testing - erase for production
+# # app.run()
