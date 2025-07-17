@@ -1,12 +1,14 @@
-
 # imports for both Resume and Cover Letter Optimizers
 import os
 import uuid
 import re
+import requests
 from dotenv import load_dotenv
 from openai import OpenAI
 from markdown import markdown
 from weasyprint import HTML
+from bs4 import BeautifulSoup
+from urllib.parse import quote
 
 # import for Job Validator
 from datetime import datetime, timedelta
@@ -74,15 +76,16 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
     
     ### Guidelines:
     1. **Relevance**:
-        - Prioritize the particular skills and experiences I have with what is **most relevant to the job position**.
+        - Prioritize the particular skills and experiences I have with what is **most relevant to the job title for which I am applying.**.
         - De-emphasize or even completely remove irrelevant details to ensure a **concise** and **targeted** resume.
-        - Limit work experience section to 2-3 most relevant roles
-        - Limit bullet points under each role to 2-3 most relevant impacts
-        - Select only the core competencies most relevant to the job description
+        - Limit work experience section to 2-3 most relevant roles.
+        - Limit bullet points under each role to 2-3 most relevant impacts.
+        - Select only the core competencies most relevant to the job description.
     
     2. **Action-Driven Results**:
         - Choose **strong action verbs** and **quantifiable results** (eg: percentages, revenues, efficiency improvement, etc.)
         - Please frame the results to prove I will add considerable value to their team.
+        - Tailor **Experience** section so that it emphasizes and meets the obligations of the advertised role.
 
     3. **Summary Selection**:
         - Please tailor the best best Summary format for the job description and Recruiter expectations.
@@ -453,3 +456,47 @@ def mentioned_on_socials(company, job_title):
         "x": f"https://x.com/search?q={query.replace(' ', '%20')}&src=typed_query",
         "linkedin": f"https://linkedin.com/search/results/content/?keywords={query.replace(' ', '%20')}"
     }
+
+def source_link_meta_date(url):
+    try:
+        resp = requests.get(url, timeout=5)
+        soup = BeautifulSoup(resp.text, "html.parser")
+
+        for tag in ["datePublished", "article:published_time", "og:published_time"]:
+            meta = soup.find("meta", {"property": tag}) or soup.find("meta", {"name": tag})
+            if meta and meta.get("content"):
+                return meta["content"]
+    except Exception as e:
+        return None
+    return None
+
+def detect_urgency_language(text):
+    urgency_keywords = [
+        "hiring now", "immediate opening", "urgent need", "start immediately",
+        "apply today", "fast hire", "join our team", "#nowhiring", "we’re hiring"
+    ]
+    return any(keyword in text.lower() for keyword in urgency_keywords)
+
+def detect_job_board_source(url):
+    if not url:
+        return "❓ No URL provided"
+    boards = ["greenhouse.io", "lever.co", "workable.com", "smartrecruiters.com", "breezy.hr", "jobs.jobvite.com"]
+    for board in boards:
+        if board in url:
+            return f"✅ Reputable board: {board}"
+    return "⚠️ Unknown or direct post"
+
+def career_page_search_url(company, job_title):
+    query = quote(f"{company} {job_title} site:{company}.com")
+    return f"https://www.google.com/search?q={query}"
+
+def detect_urgency_language(text):
+    urgency_keywords = [
+        "hiring now", "immediate opening", "urgent need", "start immediately",
+        "apply today", "fast hire", "join our team", "#nowhiring", "we’re hiring"
+    ]
+    text_lower = text.lower()
+    return any(keyword in text_lower for keyword in urgency_keywords)
+
+
+
