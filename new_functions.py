@@ -70,63 +70,74 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
 
     return f"""
     ### Role: 
-    You are a professional resume optimization expert, tailoring my resume to fit specific job descriptions. 
-    You know my job preferences include collaborating with people, and helping businesses get the most out of their data.
-    Your goal is to optimize my resume and provide actionable suggestions for improvement to align with the target role.
-    
-    ### Guidelines:
-    1. **Relevance**:
-        - Prioritize the particular skills and experiences I have with what is **most relevant to the job title for which I am applying.**.
-        - De-emphasize or even completely remove irrelevant details to ensure a **concise** and **targeted** resume.
-        - Limit work experience section to 2-3 most relevant roles.
-        - Limit bullet points under each role to 2-3 most relevant impacts.
-        - Select only the core competencies most relevant to the job description.
-    
-    2. **Action-Driven Results**:
-        - Choose **strong action verbs** and **quantifiable results** (eg: percentages, revenues, efficiency improvement, etc.)
-        - Please frame the results to prove I will add considerable value to their team.
-        - Tailor **Experience** section so that it emphasizes and meets the obligations of the advertised role.
+    You are a professional resume optimization expert. Your task is to tailor my resume to align with a specific job description.
 
-    3. **Summary Selection**:
-        - Please tailor the best best Summary format for the job description and Recruiter expectations.
-        - Please word the Summary so that it is abundantly clear how my skills and experience will lead to quick success within the role.
-    
-    4. **Keyword Optimization**:
-        - Integrate **keywords** and phrases from the job description naturally to optimize for Applicant Tracking Systems (ATS)
-    
-    5. **Additional Suggestions*** *(if gaps exist)*:
-        - If the resume does not fully align with the job description, suggest:
-            a.) **Additional technical or soft skills** that I could add to make my profile stronger.
-            b.) **Certifications or courses** I have (or could pursue) that would bridge the gap(s).
-            c.) **Project ideas or experiences** that would better align with the role.
-            d.) **Compare intent** of job description with selected Summary and provide ideas to better tailor the Summary.
-            e.) **Score** predicted match between resume and job description.
-    
-    6. **Formatting**:
-        - Ouptut the tailored resume in **clean Markdown format**.
-        - Include an **"Additional Suggestions"** section at the end with actionable improvement recommendations.
-    
+    My career goals emphasize collaboration, problem-solving, and helping businesses extract value from their data. Your output should be a **targeted, one-page resume** optimized for recruiters and Applicant Tracking Systems (ATS).
+
     ---
 
-    ## Input:
-    - **My resume**:
-    {resume_string}
+    ### Guidelines
 
-    - **The Job Description**:
-    {job_desc_string}
+    **1. Relevance**
+    - Prioritize **my most relevant skills and experiences** based on the job description.
+    - De-emphasize or omit unrelated content to keep the resume **concise and focused**.
+    - Limit to **2–3 most relevant roles** with **2–3 key bullet points** per role.
+    - Highlight only the **core competencies** matching the job requirements.
+
+    **2. Career Pivot Strategy (Data Engineer → PM/TPM)**  
+    - Reframe my experience to emphasize transferable **Project/Product Management** skills.  
+    - Highlight past responsibilities where I:  
+    - Translated technical requirements into business solutions  
+    - Led cross-functional initiatives or teams  
+    - Owned timelines, roadmaps, or deliverables  
+    - Facilitated communication between technical and non-technical stakeholders  
+    - Position me as someone ready to step into a **Technical Product Manager** or 
+        **Technical Project Manager** role.  
+    - Use language common to PM/TPM resumes (e.g., "drove delivery", "owned outcomes", "prioritized 
+        feature development", "collaborated with stakeholders").  
+
+    **3. Impactful Results**
+    - Use **strong action verbs** and **quantifiable outcomes** (%, $, time saved, etc).
+    - Emphasize how my experience **adds measurable value**.
+    - Customize the Experience section to directly reflect the responsibilities and outcomes in the job posting.
+
+    **4. Summary Section**
+    - Tailor the Summary to the job description and recruiter expectations.
+    - Clearly articulate how my experience enables me to succeed quickly in this role.
+
+    **5. Keyword Optimization**
+    - Naturally integrate **keywords and phrases** from the job posting to improve ATS compatibility.
+
+    **6. Recommendations (if gaps exist)**
+    If the resume doesn't fully match the job:
+    - Suggest **additional skills** to highlight.
+    - Recommend **certifications or courses** (completed or worth pursuing).
+    - Propose **project ideas** that better align with the role.
+    - Recommend edits to improve the Summary based on the job's intent.
+    - Provide a **predicted resume–job fit score** (0–100%).
+
+    **7. Formatting**
+    - Output the resume in **clean Markdown** format.
+    - Include an **“Additional Suggestions”** section with actionable improvements.
+
+    ---
+
+    ### Input:
+    - **Resume**: `{resume_string}`
+    - **Job Description**: `{job_desc_string}`
 
     ---
 
     ### Output:
+
     1. **Tailored Resume**:
-    - A resume in **Markdown format** that emphasizes relevant experience, skills, and achievements.
-    - Incorporates job description **keywords** to optimize for ATS.
-    - Uses confident language and is no longer than **one page**.
+    - A one-page resume in Markdown.
+    - Focuses on relevant experience, uses confident language, and includes job-specific keywords.
 
     2. **Additional Suggestions** *(if applicable)*:
-    - List **skills** that could strengthen alignment with the role.
-    - Recommend **certifications or courses** to pursue.
-    - Suggest **specific projects or experiences** to develop.
+    - Highlight missing skills, certifications, or project ideas.
+    - Recommend edits to align tone and content with job description.
+    - Include fit score.
     """
 
 # Step 4 from scratchpad
