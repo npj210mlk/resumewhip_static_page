@@ -179,7 +179,7 @@ def get_resume_response(prompt: str, model: str = "gpt-4o-mini", temperature: fl
     return response.choices[0].message.content
 
 # Step 5 (more or less) from scratchpad
-def process_resume(resume, job_desc_string):
+def process_resume(resume_file, job_desc_string):
     """
     Compares the resume file against the job description to create an optimized version.
 
@@ -193,23 +193,52 @@ def process_resume(resume, job_desc_string):
             - str: The same optimized resume (for editing)
             - str: Suggestions for improving the resume
     """
-    # read and sanitize resume
-    with open(resume, "r", encoding="utf-8") as file:
-        resume_string = sanitize_input(file.read())
+    try:
+        # Read resume file
+        with open(resume_file.name, "r", encoding="utf-8") as f:
+            resume_md = f.read()
 
-    # create prompt
-    prompt = prompt_creator(resume_string, job_desc_string)
+        # Create prompt from inputs
+        prompt = prompt_creator(resume_md, job_desc_string)
 
-    # generate response with the my_sk we globally set with load_dotenv() earlier
-    response_string = get_resume_response(prompt)
-    response_list = response_string.split("## Additional Suggestions")
-    
-    # extract new resume and suggestions for improvement
-    new_resume = response_list[0]
-    suggestions = "## Additional Suggestions \n\n" +response_list[1]
+        # Get AI response from LLM
+        response = get_resume_response(prompt)
 
-    # the three resumes: the optimized resume, a version of that we can edit, and suggestions for improving it
-    return new_resume, new_resume, suggestions
+        # ----------- Extract Sections -----------
+        # Default values in case parsing fails
+        optimized_resume = "⚠️ Resume not properly generated."
+        suggestions = "No additional suggestions returned."
+
+        # Use regex to extract both sections
+        match = re.search(
+            r"(?:#+\s*Tailored Resume.*?)(?P<resume>.*?)"
+            r"(?:#+\s*Additional Suggestions.*?)(?P<suggestions>.*)",
+            response,
+            re.DOTALL | re.IGNORECASE,
+        )
+
+        if match:
+            optimized_resume = match.group("resume").strip()
+            suggestions = match.group("suggestions").strip()
+        else:
+            # Fallback split method, if regex fails
+            parts = response.split("## Additional Suggestions")
+            optimized_resume = parts[0].strip()
+            if len(parts) > 1:
+                suggestions = parts[1].strip()
+
+        # Prepend headers
+        optimized_resume = "## Tailored Resume\n\n" + optimized_resume
+        suggestions = "## Additional Suggestions\n\n" + suggestions
+
+        return [optimized_resume, optimized_resume, suggestions]
+
+    except Exception as e:
+        return [
+            "⚠️ An error occurred while processing your resume.",
+            "",
+            f"## Additional Suggestions\n\nError details:\n```\n{e}\n```"
+        ]
 
 # Steps 6 and 7 from scratchpad
 def export_resume(new_resume, company_name):
