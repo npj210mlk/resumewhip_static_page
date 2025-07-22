@@ -197,8 +197,8 @@ def process_resume(resume_file, job_desc_string):
         # Read resume content based on the particular file type
         resume_txt = " "
         if resume_file.name.lower().endswith(".pdf"):
-            with pdfplumber.ope(resume_file.name) as pdf:
-                for page in padf.pages:
+            with pdfplumber.open(resume_file.name) as pdf:
+                for page in pdf.pages:
                     text = page.extract_text()
                     if text: 
                         resume_txt += text + "/n"
