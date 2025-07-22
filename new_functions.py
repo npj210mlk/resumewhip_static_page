@@ -3,6 +3,7 @@ import os
 import uuid
 import re
 import requests
+import pdfplumber
 from dotenv import load_dotenv
 from openai import OpenAI
 from markdown import markdown
@@ -84,17 +85,16 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
     - Limit to **2–3 most relevant roles** with **2–3 key bullet points** per role.
     - Highlight only the **core competencies** matching the job requirements.
 
-    **2. Career Pivot Strategy (Data Engineer → PM/TPM)**  
-    - Reframe my experience to emphasize transferable **Project/Product Management** skills.  
+    **2. Career Pivot Strategy (Data Engineer → Sales / Pre-Sales Engineering)**  
+    - Reframe my experience to emphasize transferable **Sales Engineering** skills.  
     - Highlight past responsibilities where I:  
     - Translated technical requirements into business solutions  
-    - Led cross-functional initiatives or teams  
-    - Owned timelines, roadmaps, or deliverables  
-    - Facilitated communication between technical and non-technical stakeholders  
-    - Position me as someone ready to step into a **Technical Product Manager** or 
-        **Technical Project Manager** role.  
-    - Use language common to PM/TPM resumes (e.g., "drove delivery", "owned outcomes", "prioritized 
-        feature development", "collaborated with stakeholders").  
+    - Led face-to-face product demonstrations outlining product capabilities    
+    - Owned presentation notes, reports back to Sales Management, or deliverables  
+    - Facilitated communication between technical and non-technical stakeholders through active listening 
+    - Position me as someone ready to step into a **Sales Engineer** or **Presales Engineer** role.  
+    - Use language common to Sales Engineerng  resumes (e.g., "technical discovery", "customize solutions",
+       "building relationships", "translate requirements", "owning the technical win").  
 
     **3. Impactful Results**
     - Use **strong action verbs** and **quantifiable outcomes** (%, $, time saved, etc).
@@ -184,7 +184,7 @@ def process_resume(resume_file, job_desc_string):
     Compares the resume file against the job description to create an optimized version.
 
     Args:
-        resume (file): A file object containing the resume in markdown format
+        resume_file (file): A file object containing the resume in either pdf or markdown format (.pdf or .md)
         job_desc_string (str): The job description text to optimize the resume against
 
     Returns:
@@ -194,12 +194,27 @@ def process_resume(resume_file, job_desc_string):
             - str: Suggestions for improving the resume
     """
     try:
-        # Read resume file
-        with open(resume_file.name, "r", encoding="utf-8") as f:
-            resume_md = f.read()
+        # Read resume content based on the particular file type
+        resume_txt = " "
+        if resume_file.name.lower().endswith(".pdf"):
+            with pdfplumber.ope(resume_file.name) as pdf:
+                for page in padf.pages:
+                    text = page.extract_text()
+                    if text: 
+                        resume_txt += text + "/n"
+        elif resume_file.name.lower().endswith(".md"):
+            with open(resume_file.name, "r", encoding="utf-8") as f:
+                resume_txt = f.read()
+
+        else: 
+            return [
+                "⚠️ Unsupported file type. Please upload a .pdf or .md resume.",
+                "",
+                "## Additional Suggestions\n\nOnly PDF and Markdown formats are supported at this time."
+            ]
 
         # Create prompt from inputs
-        prompt = prompt_creator(resume_md, job_desc_string)
+        prompt = prompt_creator(resume_txt, job_desc_string)
 
         # Get AI response from LLM
         response = get_resume_response(prompt)
