@@ -84,7 +84,7 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
     - De-emphasize or omit unrelated content to keep the resume **concise and focused**.
     - Limit to **2–3 most relevant roles** with **2–3 key bullet points** per role.
     - Highlight only the **core competencies** matching the job requirements.
-
+    
     **2. Career Pivot Strategy (Data Engineer → Sales / Pre-Sales Engineering)**  
     - Reframe my experience to emphasize transferable **Sales Engineering** skills.  
     - Highlight past responsibilities where I:  
@@ -93,8 +93,8 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
     - Owned presentation notes, reports back to Sales Management, or deliverables  
     - Facilitated communication between technical and non-technical stakeholders through active listening 
     - Position me as someone ready to step into a **Sales Engineer** or **Presales Engineer** role.  
-    - Use language common to Sales Engineerng  resumes (e.g., "technical discovery", "customize solutions",
-       "building relationships", "translate requirements", "owning the technical win").  
+    - Use language common to Sales Engineering  resumes (e.g., "technical discovery", "customize solutions",
+       "building relationships", "translate requirements", "owning the technical win").
 
     **3. Impactful Results**
     - Use **strong action verbs** and **quantifiable outcomes** (%, $, time saved, etc).
