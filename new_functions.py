@@ -4,6 +4,7 @@ import uuid
 import re
 import requests
 import pdfplumber
+import logging
 from dotenv import load_dotenv
 from openai import OpenAI
 from markdown import markdown
@@ -14,11 +15,19 @@ from urllib.parse import quote
 # import for Job Validator
 from datetime import datetime, timedelta
 
+# set up basic logging
+logging.basicConfig(level=logging.INFO, format = "%(asctime)s - %(levelname)s - %(message)s")
+
 # load dotenv
 load_dotenv()
 
 # assign "MY_SK" as global variable
 open_apikey = os.getenv("MY_SK")
+
+if not open_apikey:
+    logging.error("No API key for OpenAI called 'MY_SK' found. Please re-verify in your .env file ")
+else:
+    logging.info("OpenAI API key was successfully loaded from your .env file.")
 
 # ===== Resume Functions =====
 
@@ -160,31 +169,43 @@ def get_resume_response(prompt: str, model: str = "gpt-4o-mini", temperature: fl
     """
     # set up api client
     client = OpenAI(api_key = open_apikey)
+    if not open_apikey:
+        logging.error("API key is missing / not found. Cannot complete OpenAI call.")
+        return "Error: OpenAI API key is missing."
 
     # make the call and set response variable to hold the all info we get back
-    response = client.chat.completions.create(
-    model = model,
+    try:
+        response = client.chat.completions.create(
+            model = model,
     
     # set our roles up - think of casting a play: "Today, the role of the Expert Resume Writer will be played by the system."
-    messages = [
-        {"role" : "system", "content" : "Expert Resume Writer"},
-        {"role" : "user", "content" : prompt}
-    ],
+            messages = [
+                {"role" : "system", "content" : "Expert Resume Writer"},
+                {"role" : "user", "content" : prompt}
+            ],
     
     # give it some creative license with our default 0.7 rating
-    temperature = temperature
-)
+            temperature = temperature
+        )       
 
     # extract and return our response
-    return response.choices[0].message.content
+        return response.choices[0].message.content
+
+    except Exception as e:
+        logging.error(f"Call to OpenAI failed: {e}")
+        return f"Error: OpenAI API call failed. Details: {e}"
+    
+# Added Resume Functions
+os.makedirs("gpt_resumes", exist_ok = True)
+os.makedirs("gpt_cover_letters", exist_ok = True)
 
 # Step 5 (more or less) from scratchpad
-def process_resume(resume_file, job_desc_string):
+def process_resume(resume_file_path, job_desc_string):
     """
     Compares the resume file against the job description to create an optimized version.
 
     Args:
-        resume_file (file): A file object containing the resume in either pdf or markdown format (.pdf or .md)
+        resume_file_path: A file_path object containing the resume in either pdf or markdown format (.pdf or .md)
         job_desc_string (str): The job description text to optimize the resume against
 
     Returns:
@@ -196,59 +217,65 @@ def process_resume(resume_file, job_desc_string):
     try:
         # Read resume content based on the particular file type
         resume_txt = " "
-        if resume_file.name.lower().endswith(".pdf"):
-            with pdfplumber.open(resume_file.name) as pdf:
+        if resume_file_path.lower().endswith(".pdf"):
+            with pdfplumber.open(resume_file.path) as pdf:
                 for page in pdf.pages:
                     text = page.extract_text()
                     if text: 
-                        resume_txt += text + "/n"
-        elif resume_file.name.lower().endswith(".md"):
-            with open(resume_file.name, "r", encoding="utf-8") as f:
+                        resume_txt += text + "\n"
+        elif resume_file_path.lower().endswith(".md"):
+            with open(resume_file_path, "r", encoding="utf-8") as f:
                 resume_txt = f.read()
-
         else: 
             return [
                 "⚠️ Unsupported file type. Please upload a .pdf or .md resume.",
                 "",
                 "## Additional Suggestions\n\nOnly PDF and Markdown formats are supported at this time."
+            ] 
+        if not resume_txt.strip():
+            return [
+                "⚠️ Either that resume file is empty, or we couldn't read it.",
+                " ",
+                "## Additional Suggestions\n\nThat resume file you gave us seems to be empty. Please check it again for content."
             ]
-
         # Create prompt from inputs
         prompt = prompt_creator(resume_txt, job_desc_string)
-
         # Get AI response from LLM
         response = get_resume_response(prompt)
-
+        # Check API call for errors
+        if response.startswith("Error:"):
+            return [response, " ", "## Additional Suggestions\n\nPlease see error message above."]
         # ----------- Extract Sections -----------
         # Default values in case parsing fails
         optimized_resume = "⚠️ Resume not properly generated."
         suggestions = "No additional suggestions returned."
-
-        # Use regex to extract both sections
+        # Use regex to extract both sections and handle various heading formats
         match = re.search(
-            r"(?:#+\s*Tailored Resume.*?)(?P<resume>.*?)"
-            r"(?:#+\s*Additional Suggestions.*?)(?P<suggestions>.*)",
+            r"^\s*#+ Tailored Resume\s*$(?P<resume>.*?)\s*^\s*#+ Additional Suggestions\s*$(?P<suggestions>.*)",
             response,
-            re.DOTALL | re.IGNORECASE,
+            re.DOTALL | re.IGNORECASE | re.MULTILINE,
         )
-
         if match:
             optimized_resume = match.group("resume").strip()
             suggestions = match.group("suggestions").strip()
         else:
             # Fallback split method, if regex fails
-            parts = response.split("## Additional Suggestions")
+            parts = re.split(r"^\s*#+ Additional Suggestions\s*$", response, flags=re.DOTALL | re.IGNORECASE | re.MULTILINE)
             optimized_resume = parts[0].strip()
             if len(parts) > 1:
                 suggestions = parts[1].strip()
-
         # Prepend headers
         optimized_resume = "## Tailored Resume\n\n" + optimized_resume
         suggestions = "## Additional Suggestions\n\n" + suggestions
-
         return [optimized_resume, optimized_resume, suggestions]
-
+    except FileNotFoundError:
+        return [
+            "⚠️ An error occurred: no file was found.",
+            " ",
+            "## Additional Suggestions\n\nPlease make sure that resume file path you provided is correct."
+        ]
     except Exception as e:
+        logging.error(f"An unexpected error occurred in the 'process_resume' function: {e}")
         return [
             "⚠️ An error occurred while processing your resume.",
             "",
@@ -474,12 +501,12 @@ def is_posting_recent(posting_date_str, days = 60):
     legitimately stays open for longer than that.
     """
     try:
-        date_posted = datetime.strptime(posting_date_str, "%Y-%m-%d")
+        date_posted = datetime.fromisoformat(posting_date_str)
         return (datetime.now() - date_posted) <= timedelta(days = days)
     
     # let user know if it's a missing date or a date not in the '%Y-%m-%d'format
     except Exception as e: 
-        print(f"Date parsing field has failed: {e}")
+        print(f"Date parsing field has failed for '{posting_state_str}': {e}. Returning 'False.'")
         return False
     
 # Does it look like someone just threw the job up using AI or a template?
@@ -543,14 +570,6 @@ def detect_job_board_source(url):
 def career_page_search_url(company, job_title):
     query = quote(f"{company} {job_title} site:{company}.com")
     return f"https://www.google.com/search?q={query}"
-
-def detect_urgency_language(text):
-    urgency_keywords = [
-        "hiring now", "immediate opening", "urgent need", "start immediately",
-        "apply today", "fast hire", "join our team", "#nowhiring", "we’re hiring"
-    ]
-    text_lower = text.lower()
-    return any(keyword in text_lower for keyword in urgency_keywords)
 
 
 
