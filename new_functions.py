@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.INFO, format = "%(asctime)s - %(levelname)s - 
 load_dotenv()
 
 # assign "MY_SK" as global variable
-open_apikey = os.getenv("MY_SK")
+open_apikey = os.getenv("OPENAI_API_KEY")
 
 if not open_apikey:
     logging.error("No API key for OpenAI called 'MY_SK' found. Please re-verify in your .env file ")
