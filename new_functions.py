@@ -330,55 +330,54 @@ def cover_letter_prompt_creator(resume_string: str, jd_string: str) ->str:
     jd_string = sanitize_input(jd_string)
 
     return f"""
-    ### Role: 
-    -  You are a professional cover letter writer, and your goal is to create a unique cover 
-    letter that showcases how the job experience in my resume can exceed the needs listed 
-    in a specific job description.
-    
-    - Your need to dazzle recruiters with a conversational yet professional tone that sets my 
-    candidacy apart from others applying for that same role.
+    ### Role
+    You are a professional cover letter writer tasked with creating a compelling, one-page cover letter that clearly shows 
+    how my background and experience meet — or exceed — the requirements of a specific job description.
 
-    ### Guidelines:
-    1. **Relevance**:
-    - Prioritize the particular skills and experiences I have with what is **most relevant to the 
-    job position**.
-    - De-emphasize or even completely remove irrelevant details to ensure a **concise** but 
-    **descriptive** cover letter.
-    - Limit integrating actual work experience and job needs paragraphs to my 2-3 most relevant roles
-    - Select only the core competencies and listed projects most relevant to the job description
+    The tone should be professional yet conversational — confident without arrogance, polished but human. 
 
-    2. **Action-Driven Results**:
-    - Choose **strong action verbs** and **quantifiable results** (eg: percentages, revenues, 
-    efficiency improvement, etc.)
-
-    3. **Keyword Optimization**:
-    - Integrate **keywords** and phrases from the job description naturally to optimize for 
-    Applicant Tracking Systems (ATS)
-
-    4. **Tone**:
-    - Please keep the **tone** of the cover letter **professional** **without sounding like a robot**. 
-    - The **objective** is to **exhibit competence** in the duties listed, but also to sound 
-    like I'm talking to a cohort.
-
-    5. **Formatting**:
-    - Output the tailored cover letter in a **clean Markdown format** for ease of editing.
+    Your goal is to help me stand out by aligning the most relevant parts of my resume with the needs of the role.
 
     ---
 
-    ## Input:
-    - **My resume**:
+    ### Guidelines
+
+    1. **Relevance**
+    - Highlight the 2–3 most relevant roles or experiences that directly support the job description.
+    - Cut any content that doesn't contribute to a concise, tailored message.
+    - Prioritize transferable skills, project outcomes, and business impact over duties.
+
+    2. **Action & Results**
+    - Use strong action verbs and quantify results when possible (e.g., % growth, time saved, revenue impact).
+
+    3. **ATS Alignment**
+    - Naturally weave in job description keywords and phrasing to optimize for applicant tracking systems (ATS).
+
+    4. **Tone**
+    - Aim for confident, plainspoken language — not overly formal or robotic.
+    - Speak directly to the reader, like a capable peer making their case.
+
+    5. **Formatting**
+    - Return the full cover letter in **clean Markdown format** with appropriate paragraph spacing for readability.
+
+    ---
+
+    ### Input
+
+    **My Resume:**
     {resume_string}
 
-    - **The Job Description**:
-    {jd_string}
+    **Job Description:**
+    {job_desc_string}
 
     ---
 
-    ### Output:
-    **Tailored Cover Letter**:
-    - A cover letter in **Markdown format** that emphasizes relevant experience, skills, and achievements.
-    - Incorporates job description **keywords** to optimize for ATS.
-    - Uses confident language and is no longer than **one page**.
+    ### Output
+
+    A complete, one-page **Markdown-formatted cover letter** that:
+    - Emphasizes the most relevant experience, skills, and accomplishments;
+    - Reflects the language and priorities of the job description;
+    - Shows confidence, competence, and personality without fluff.
     """
 
 def get_cover_response(prompt: str, model: str = "gpt-4o-mini", temperature: float = 0.7) -> str:
