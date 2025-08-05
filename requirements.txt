@@ -3,3 +3,5 @@ openai
 python-dotenv
 markdown
 weasyprint
+pdfplumber
+
