@@ -218,7 +218,7 @@ def process_resume(resume_file_path, job_desc_string):
         # Read resume content based on the particular file type
         resume_txt = " "
         if resume_file_path.lower().endswith(".pdf"):
-            with pdfplumber.open(resume_file.path) as pdf:
+            with pdfplumber.open(resume_file_path) as pdf:
                 for page in pdf.pages:
                     text = page.extract_text()
                     if text: 
@@ -395,7 +395,7 @@ def cover_letter_prompt_creator(resume_string: str, jd_string: str) ->str:
     {resume_string}
 
     **Job Description:**
-    {job_desc_string}
+    {jd_string}
 
     ---
 
