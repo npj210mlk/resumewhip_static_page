@@ -8,7 +8,7 @@ import logging
 from dotenv import load_dotenv
 from openai import OpenAI
 from markdown import markdown
-from weasyprint import HTML
+from weasyprint import HTML, CSS
 from bs4 import BeautifulSoup
 from urllib.parse import quote
 
