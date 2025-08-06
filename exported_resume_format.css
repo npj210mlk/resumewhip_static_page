@@ -1,0 +1,37 @@
+/* resume_styles.css */
+@page {
+    size: A4;
+    margin: 1in;
+  }
+  
+  body {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #333;
+  }
+  
+  h1, h2, h3 {
+    color: #1a1a1a;
+    margin-top: 1.2em;
+    margin-bottom: 0.5em;
+  }
+  
+  ul {
+    margin-top: 0;
+    margin-bottom: 0.5em;
+    padding-left: 1.2em;
+  }
+  
+  li {
+    margin-bottom: 0.3em;
+  }
+  
+  p {
+    margin: 0.3em 0;
+  }
+  
+  strong {
+    color: #000;
+  }
+  
