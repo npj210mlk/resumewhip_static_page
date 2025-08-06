@@ -304,8 +304,13 @@ def export_resume(new_resume, company_name):
     try:
         # Convert Markdown to HTML
         html_content = markdown(new_resume)
+
+        # Apply CSS style to standardize PDF output
+        css_path = "exported_resume_format.css"
+        css = CSS(filename = css_path)
+
         # Convert HTML to PDF and save
-        HTML(string=html_content).write_pdf(output_pdf_file)
+        HTML(string=html_content).write_pdf(output_pdf_file, stylesheets = [css])
         
         return f"✅ Successfully exported and saved your resume to {output_pdf_file}"
     except Exception as e:
