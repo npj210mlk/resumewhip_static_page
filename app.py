@@ -1,76 +1,153 @@
-# imports
+# import "gradio" for UI
 import gradio as gr
+import io
+import pdfplumber
+
+#import "requests" to simplify HTTP requests
+import requests
 
 # import functions, a file created in the job folder that houses the functions Gradio needs to do its job
-from new_functions import *
+from new_functions import (
+    sanitize_input,
+    prompt_creator,
+    get_resume_response,
+    process_resume,
+    export_resume,
+    cover_letter_prompt_creator,
+    get_cover_response,
+    save_cover_letter,
+    is_posting_recent,
+    template_detector,
+    mentioned_on_socials,
+    source_link_meta_date,
+    detect_urgency_language,
+    detect_job_board_source,
+    career_page_search_url
+)
 
-# construct and functionalize the Gradio UI
-with gr.Blocks() as app:
+# import BeautifulSoup to check for published jobdate is in posting's metadata - checking for link's age here.
+from bs4 import BeautifulSoup
+
+with gr.Blocks(css="""
+    .section-header {
+        text-align: center;
+        color: #1e90ff;
+        font-size: 2.5em;
+        font-family: 'Segoe UI', sans-serif;
+        font-weight: bold;
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+    .subtext {
+        text-align: center;
+        font-size: 1.1em;
+        color: #555;
+        margin-bottom: 30px;
+    }
+    .gr-button {
+        font-weight: bold;
+        font-size: 1.1em;
+        padding: 0.75em 1.5em;
+        border-radius: 12px;
+    }
+""") as app:
+
     # Header
-    gr.Markdown("Your One-Stop Resume and Cover Letter Optimizer")
+    gr.Markdown("<div class='section-header'>🥇 Welcome To atsbeater.com - Where We Help Your Resume Crush the ATS Overlords!</div>")
     gr.Markdown("""
-    1. Drop your Markdown resume below.  
-    2. Enter the company name.  
-    3. Paste the job description.  
-    4. Generate both your tailored resume **and** a compelling cover letter in Markdown & PDF format.
+        <div class='subtext'>
+            Simply click or drag / drop your main resume, enter company name, paste in the provided job description, and BOOM: a keyword-optimized resume and cover letter is ready for your review and export.  
+            Or, afraid that might be a ghost job there just to collect your data? Check out the Job Validator tab - we'll help you see if the job posting is real or sus.
+        </div>
     """)
 
     # Inputs
-    with gr.Row():
-        resume_input = gr.File(label="Drop Your Markdown Resume Here")
-        company_input = gr.Textbox(label="The Company with Whom You're Applying", placeholder="e.g., Data Clymer")
-        job_input = gr.Textbox(label="Paste In the Job Description Here", lines=10, interactive=True)
 
-    with gr.Tab("Resume Optimizer"):
+    with gr.Row():
+        resume_input = gr.File(label="📄 Upload Main Resume (either .pdf or .md)", file_types = [".pdf", ".md"])
+        company_input = gr.Textbox(label="🏢 Company To Whom You're Sending This Thing", placeholder="e.g., Target, Amazon, etc.")
+        job_input = gr.Textbox(label="📝 Job Description", lines=8, placeholder="Paste full job description here")
+
+    gr.Markdown("<div class='section-header'>🧰 Tools!</div>")
+
+    with gr.Tab("✨ Resume Optimizer"):
+        gr.Markdown("<div class='section-header'>🤓 Resume Optimizer</div>")
         run_resume = gr.Button("✨ Optimize Resume")
-        resume_md = gr.Markdown(label="Optimized Resume (Markdown View)")
-        resume_edit = gr.Textbox(label="Edit Your Resume Below", lines=10, interactive=True)
-        suggestions = gr.Markdown(label="Suggestions")
+        resume_md = gr.Markdown(label="Optimized Resume (Markdown)")
+        resume_edit = gr.Textbox(label="✏️ Edit Your Resume Below", lines=10, interactive=True)
+        suggestions = gr.Markdown(label="🔍 Suggestions")
         export_resume_btn = gr.Button("⬇ Export Resume as PDF")
         export_resume_result = gr.Markdown()
 
-    with gr.Tab("Cover Letter Generator"):
-        run_cover = gr.Button("📝 Generate Cover Letter")
-        cover_output = gr.Textbox(label="Generated Cover Letter (Markdown)", lines=15, interactive=True)
+    with gr.Tab("📬 Cover Letter Generator"):
+        gr.Markdown("<div class='section-header'>👋 Cover Letter Generator</div>")
+        run_cover = gr.Button("📝 Click Here To Write Your Cover Letter")
+        cover_output = gr.Textbox(label="Generated Cover Letter - Please Proofread and Check for <<cough cough>> Accuracy. 'I cured Polio!' No, you didn't.", lines=15, interactive=True)
         export_cover_btn = gr.Button("⬇ Export Cover Letter as PDF")
         export_cover_result = gr.Markdown()
         
-    with gr.Tab("Job Validator"):
-        gr.Markdown("Validate whether a job post is recent, specific, and visible on social platforms.")
+    with gr.Tab("🔍 Job Validator"):
+        gr.Markdown("<div class='section-header'>🕵️‍♂️ Job Validation Tool</div>")
+        gr.Markdown("<div class='subtext'>Is this a real job, or just an attempt to mine your data? Check how recent, relevant, and visible a job post is on socials.</div>")
 
         with gr.Row():
-            jd_date = gr.Textbox(label="Job Posting Date (YYYY-MM-DD)", placeholder="e.g., 2025-06-01")
-            jd_company = gr.Textbox(label="Company Name", placeholder="e.g., IEM, LLC")
-
-        jd_title = gr.Textbox(label="Job Title", placeholder="e.g., Senior Data Engineer")
-        jd_desc = gr.Textbox(label="Paste Full Job Description", lines=10)
+            job_url = gr.Textbox(label="🔗 Optional: Job Posting URL", placeholder="https://jobs.greenhouse.io/...")
+            jd_date = gr.Textbox(label="📅 Job Posting Date (Format: YYYY-MM-DD)", placeholder="e.g., 2025-06-01, or your best guess.")
+            job_title = gr.Textbox(label="🔖 Job Title", placeholder="e.g., Technical Support Analyst")
 
         jd_validate_btn = gr.Button("✅ Run Job Validation")
         jd_validation_result = gr.Markdown()
 
-        # Validation click logic
-        def validate_job(posting_date, company, job_title, job_description):
+        def source_link_meta_date(url):
+            try:
+                resp = requests.get(url, timeout=5)
+                soup = BeautifulSoup(resp.text, "html.parser")
+
+                # Look for known meta tags
+                for tag in ["datePublished", "article:published_time", "og:published_time"]:
+                    meta = soup.find("meta", {"property": tag}) or soup.find("meta", {"name": tag})
+                    if meta and meta.get("content"):
+                        return meta["content"]
+            except Exception as e:
+                return None
+            return None
+
+        def validate_job(posting_date, company, job_title, job_description, job_url):
+            # handle user error / lack of info
+            if not company or not job_description:
+                return "Please enter at least the company name and job description."
+                
+            # Existing checks
             recent = is_posting_recent(posting_date)
             template_flag = template_detector(job_description)
-            social_links = mentioned_on_socials(company, job_title)
+            urgency_flag = detect_urgency_language(job_description)
 
-            report = f"### 🕒 Posting Date Check:\n"
-            report += "✅ Job appears to be recent.\n" if recent else "⚠️ Job may be outdated (posted over 60 days ago).\n"
+            # New ones
+            meta_date = source_link_meta_date(job_url)
+            board_check = detect_job_board_source(job_url)
+            career_search = career_page_search_url(company, job_title)
 
-            report += f"\n### 🤖 Template Language Detection:\n"
-            report += "⚠️ This job description uses generic/template language.\n" if template_flag else "✅ Description looks specific.\n"
+            report = f"### 🕒 Posting Date:\n"
+            report += "✅ User-entered date is recent enough so that candidates are still being considered.\n" if recent else "⚠️ Possibly outdated - plenty of time to have filled this position.\n"
+            report += f"📅 Meta date from page: `{meta_date}`\n" if meta_date else "Sadly, though, we couldn't find any exact publishing metadata from the page.\n"
 
-            report += f"\n### 🔍 Social Media Mentions:\n"
-            report += f"- [Search on X](<{social_links['x']}>)\n"
-            report += f"- [Search on LinkedIn](<{social_links['linkedin']}>)\n"
+            report += f"\n### 🤖 Template Detection:\n"
+            report += "⚠️ Generic language detected - looks like a template was used.\n" if template_flag else "✅ Description looks specific enough to look like it was written by an actual person.\n"
+
+            report += f"\n### 🚨 Urgency Signal:\n"
+            report += "✅ Urgency signals found in description - genuine need for this position is expressed.\n" if urgency_flag else "⚠️ No urgency keywords found, so they're either taking their time or just harvesting candidates.\n"
+
+            report += f"\n### 🌐 Job Source:\n{board_check}\n"
+
+            report += f"\n### 🧭 Career Site Check:\nTry searching: [Google Career Match]({career_search})"
 
             return report
-
-        jd_validate_btn.click(
-            fn=validate_job,
-            inputs=[jd_date, jd_company, jd_title, jd_desc],
-            outputs=jd_validation_result
-        )
+    
+    jd_validate_btn.click(
+        fn=validate_job,
+        inputs=[jd_date, company_input, job_title, job_input, job_url],
+        outputs=jd_validation_result
+    )
 
     # Resume events
     run_resume.click(fn=process_resume, inputs=[resume_input, job_input], outputs=[resume_md, resume_edit, suggestions])
@@ -78,10 +155,44 @@ with gr.Blocks() as app:
 
     # Cover letter events
     def generate_cover_letter(resume_file, job_desc):
-        with open(resume_file.name, "r", encoding="utf-8") as f:
-            resume_txt = f.read()
-        prompt = cover_letter_prompt_creator(resume_txt, job_desc)
-        return get_cover_response(prompt)
+        # exception handling
+        if resume_file is None or job_desc.strip() == "":
+            return "⚠️ Sorry, but we need a resume and job description before we can generate a cover letter worth anything."
+        try: 
+            # look for the file extension
+            if resume_file.name.lower().endswith(".pdf"):
+                resume_txt = " "
+                with pdfplumber.open(resume_file) as pdf:
+                    for page in pdf.pages:
+                        text = page.extract_text()
+                        if text:
+                            resume_txt += text + "/n"
+            elif resume_file.name.lower().endswith(".md"):
+                with open(resume_file.name, "r", encoding = "utf-8") as f: 
+                    resume_txt = f.read()
+                    
+            # if resume_file.name.lower().endswith(".pdf"):
+            #     resume_txt = " "
+            #     with pdfplumber.open(resume_file.name) as pdf:
+            #         for page in pdf.pages:
+            #             text = page.extract_text()
+            #             if text:
+            #                 resume_txt += text + "/n"
+            # elif resume_file.name.lower().endswith(".md"):
+            #     resume_txt = resume_file.read().decode("utf-8")
+
+            else:
+                return "💀 Unsupported file type. Please upload a resume with either a '.pdf' or '.md' extension."
+
+            # print chunk of resume for user to see resume was loaded
+            print("✅ Resume text that was loaded (first 300 chars): \n", resume_txt[:300])
+            
+            prompt = cover_letter_prompt_creator(resume_txt, job_desc)
+            
+            return get_cover_response(prompt)
+
+        except Exception as e:
+            return f"😐 Ruh-roh. There was an error reading your resume: {e}"
 
     def export_cover_handler(cover_text, company):
         pdf, md = save_cover_letter(cover_text, company)
@@ -91,261 +202,4 @@ with gr.Blocks() as app:
     export_cover_btn.click(fn=export_cover_handler, inputs=[cover_output, company_input], outputs=[export_cover_result])
 
 # Launch
-app.launch(server_name="0.0.0.0", server_port=8080)
-
-
-# >>>> FOR FLASK LAUNCH <<<<<<
-# import os
-# from dotenv import load_dotenv
-# from flask import Flask, render_template, request, flash, redirect, url_for, send_file # jsonify(?)
-# import google.generativeai as genai
-# from markdown import markdown
-# import markdown2 # just in case, because we're trying to save with PDF files 
-# import tempfile
-# import re # regex for slugging company name
-# from weasyprint import HTML, CSS
-# from gemini_flask_functions import *
-
-# # start Flask
-# app = Flask(__name__)
-# # add a secret key to make the flask app secure - this one is 24-bytes.
-# app.secret_key = os.urandom(24) 
-
-# # Load environment variables
-# load_dotenv()
-
-# # call the api
-# GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-# if not GEMINI_API_KEY:
-#     raise ValueError("GEMINI_API_KEY was not loaded from your environment.")
-# genai.configure(api_key=GEMINI_API_KEY)
-
-# def parse_gemini_response(response):
-#     """
-#     Parse the Gemini API response to extract the tailored resume and suggestions.
-#     This is an adaptation of the handle_gemini_response function that returns values
-#     instead of writing to a file.
-#     """
-#     tailored_resume = None
-#     additional_suggestions = None
-    
-#     if response.candidates:
-#         first_candidate = response.candidates[0]
-
-#         if first_candidate.content and first_candidate.content.parts:
-#             first_part = first_candidate.content.parts[0]
-
-#             if first_part.function_call:
-#                 function_call = first_part.function_call
-
-#                 if function_call.name == "tailor_resume":
-#                     arguments = function_call.args
-#                     tailored_resume = arguments.get("tailored_resume")
-#                     additional_suggestions = arguments.get("additional_suggestions")
-#             elif first_part.text:
-#                 # Fallback if function calling didn't work
-#                 print("Problem with the Gemini API: this is a lame fallback response:", first_part.text)
-#                 tailored_resume = first_part.text
-#                 additional_suggestions = "Gemini can't offer any suggestions."
-    
-#     # output had markdown fences (e.g., "```markdown")
-#     # if block below cleans up the output
-#     if tailored_resume:
-#         if tailored_resume.strip().startswith("```"):
-#             # remove tik fence Gemini keeps sending at the beginning 
-#             tailored_resume = re.sub(r"^```.*?\n", "", tailored_resume.strip())
-#             # remove any tik fence at the end
-#             tailored_resume = re.sub(r"```$", "", tailored_resume.strip())
-    
-#     # get SOMETHING back
-#     if not additional_suggestions:
-#         additional_suggestions = "Sorry. For some reason, Gemini's not giving any suggestions here. Must be your resume's PERFECT!"
-
-#     return tailored_resume, additional_suggestions
-
-# # Configure Gemini API on app startup
-# try:
-#     configure_gemini_api()
-#     function_schema = tailored_resume_function_schema()
-#     gemini_model = gemini_initialization_with_function_calling(function_schema)
-# except ValueError as e:
-#     print(f"Error during initialization: {e}")
-#     gemini_model = None
-
-# @app.route("/", methods=["GET"])
-# def index():
-#     """Home page with form to upload resume and job description"""
-#     return render_template("index.html")
-
-# @app.route("/tailor-resume", methods=["GET", "POST"])
-# def tailor_resume():
-#     """Process the resume and job description to generate a tailored resume"""
-#     if not gemini_model:
-#         flash("API configuration error. Please check your environment variables.")
-#         return redirect(url_for("index"))
-    
-#     # Get resume, company name, and job description from form
-#     resume_text = request.form.get("resume_text")
-#     company_name = request.form.get("company_name")
-#     jd_text = request.form.get("job_description")
-
-#     if not resume_text or not jd_text:
-#         flash("Please provide both resume and job description.")
-#         return redirect(url_for("index"))
-    
-#     try:
-#         # Generate tailored resume
-#         prompt = generate_tailoring_prompt(resume_text, jd_text)
-#         response = get_gemini_response_with_function_calling(
-#             gemini_model, 
-#             prompt, 
-#             function_schema
-#         )
-
-#         print("RAW GEMINI RESPONSE: ", response)
-        
-#         tailored_resume, additional_suggestions = parse_gemini_response(response)
-        
-#         # go beyond original "None" return handling, let them try agian, and help with failure logging
-#         if not tailored_resume:
-#             flash("Gemini didn't give us a usable output. Maybe try again or just simplify the job description input?")
-#             # give them option to try again
-#             return render_template(
-#                 "index.html",
-#                 resume_text=resume_text,
-#                 company_name=company_name,
-#                 job_description=jd_text,
-#                 retry=True
-#             )
-          
-#         # Convert Markdown to HTML for display
-#         tailored_resume_html = markdown(tailored_resume)
-        
-#         return render_template(
-#             "result.html", 
-#             # pass tailored_resume
-#             tailored_resume_html=tailored_resume_html,
-#             tailored_resume_md=tailored_resume,
-#             # pass company name
-#             company_name=company_name, 
-#             # pass any additional suggestions
-#             additional_suggestions=additional_suggestions
-            
-#         )
-        
-#     except Exception as e:
-#         flash(f"An error occurred: {str(e)}")
-#         return redirect(url_for("index"))
-
-# @app.route("/download-resume", methods=["POST"])
-# def download_resume():
-#     """Download the tailored resume as a markdown file"""
-#     tailored_resume = request.form.get("tailored_resume_md")
-    
-#     if not tailored_resume:
-#         flash("No resume data to download.")
-#         return redirect(url_for("index"))
-    
-#     # Create a temporary file
-#     with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as temp:
-#         temp_path = temp.name
-#         temp.write(tailored_resume.encode("utf-8"))
-    
-#     # Send the file to the user
-#     try:
-#         return send_file(
-#             temp_path,
-#             as_attachment=True,
-#             download_name="tailored_resume.md",
-#             mimetype="text/markdown"
-#         )
-#     finally:
-#         # Clean up the temporary file after sending
-#         os.unlink(temp_path)
-
-# # save the edited / optimized resume
-# @app.route("/save-edited-resume", methods=["POST"])
-# def save_edited_resume():
-#     """
-#     Takes the edits you made based on the Additional Suggestions,
-#     and allows you to save them to your machine in a standardized .PDF format.
-#     """
-#     final_resume_content = request.form.get("final_resume_content")
-#     company_name = request.form.get("company_name_for_resume_tracking")
-
-#     # return to home page if no resume content is found
-#     if not final_resume_content:
-#         flash("Sorry - no resume content to save.")
-#         return redirect(url_for("index"))
-    
-#     # generate a slugged (clean) filename for the optimized resume
-#     if company_name:
-#         # slug it to clean it from spaces / characters
-#         company_slugged = re.sub(r"[^a-zA-Z0-9_-]", "", company_name.lower().replace(" ", "_"))
-#         download_filename = f"{company_slugged}_tailored_resume.pdf"
-#     else:
-#         download_filename = "tailored_resume.pdf"
-    
-#     # convert the markdown to HTML
-#     resume_html = markdown2.markdown(final_resume_content)
-
-#     # standardize and future-proof the PDF output using css
-#     pdf_css = """
-#         @page {
-#             margin: 1in;
-#             }
-        
-#         body {
-#             font-family: 'Times New Roman', sans-serif;
-#             font-size: 11pt;
-#             line-height: 1.5;
-#             color: #222;
-#             padding: 20px;
-#             }
-
-#         h1, h2, h3 {
-#             font-weight: bold;
-#             margin-bottom: 10px;
-#             }
-        
-#         p {
-#             margin: 0 0 12px;
-#             }
-        
-#         ul {
-#             padding-left: 20px;
-#             }
-#         """
-#     # we need to create a temporary file here to make the Python available as a standard file
-#     # that can be sent to the server
-#     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
-#         temp_path = temp.name
-#        # put weasyprint to work
-#         HTML(string=resume_html).write_pdf(temp_path, stylesheets=[CSS(string=pdf_css)])
-    
-#     try:
-#         return send_file(
-#             temp_path,
-#             as_attachment=True,
-#             download_name=download_filename,
-#             # specify markdown as the text 
-#             mimetype="application/pdf"
-#         )
-    
-#     finally:
-#         # delete when done
-#         os.unlink(temp_path)
-
-# if __name__ == "__main__":
-#     # Check if running in IPython/Jupyter
-#     try:
-#         get_ipython
-#         # If we're in IPython/Jupyter, don't use the auto-reloader
-#         print("Flask app is ready. Access it at http://127.0.0.1:5000/")
-#         print("To run the app, use: app.run()")
-#     except NameError:
-#         # Normal Python environment
-#         app.run(debug=True)
-
-# # # for local testing - erase for production
-# # app.run()
+app.launch(server_name="0.0.0.0", server_port=8080, share = True)
