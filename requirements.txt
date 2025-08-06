@@ -1,7 +1,7 @@
-gradio
-openai
+requests
+pdfplumber
 python-dotenv
+openai
 markdown
 weasyprint
-pdfplumber
-
+beautifulsoup4
