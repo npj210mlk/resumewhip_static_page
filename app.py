@@ -64,7 +64,7 @@ with gr.Blocks(css="""
     # Inputs
 
     with gr.Row():
-        resume_input = gr.File(label="📄 Upload Main Resume (either .pdf or .md)", file_types = [".pdf", ".md"])
+        resume_input = gr.File(label="📄 Upload Your Main Resume Here (In Either .pdf or .md Format)", file_types = [".pdf", ".md"])
         company_input = gr.Textbox(label="🏢 Company To Whom You're Sending This Thing", placeholder="e.g., Target, Amazon, etc.")
         job_input = gr.Textbox(label="📝 Job Description", lines=8, placeholder="Paste full job description here")
 
@@ -72,7 +72,7 @@ with gr.Blocks(css="""
 
     with gr.Tab("✨ Resume Optimizer"):
         gr.Markdown("<div class='section-header'>🤓 Resume Optimizer</div>")
-        run_resume = gr.Button("✨ Optimize Resume (See Editing Box Below)")
+        run_resume = gr.Button("✨ Click To Preview Optimized Resume (Editing Box Below Preview)")
         resume_md = gr.Markdown(label="Optimized Resume (Markdown)")
         resume_edit = gr.Textbox(label="✏️ Edit Your Resume Below", lines=10, interactive=True)
         suggestions = gr.Markdown(label="🔍 Suggestions")
@@ -83,7 +83,7 @@ with gr.Blocks(css="""
 
     with gr.Tab("📬 Cover Letter Generator"):
         gr.Markdown("<div class='section-header'>👋 Cover Letter Generator</div>")
-        run_cover = gr.Button("📝 Click Here To Write Your Cover Letter - And Edit In the Space Provided")
+        run_cover = gr.Button("📝 Click Here To Preview Your Cover Letter - And Edit In the Space Provided")
         cover_output = gr.Textbox(label="Generated Cover Letter - Please Proofread, and Check for <<cough cough>> Accuracy. 'I cured Polio!' No, you didn't.", lines=15, interactive=True)
         export_cover_btn = gr.Button("⬇ Download Your Optimized Cover Letter As PDF (In Blue, To Right)")
         # to export cover letter to user
