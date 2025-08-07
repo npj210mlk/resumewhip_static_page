@@ -311,10 +311,15 @@ def export_resume(new_resume, company_name):
 
         # Convert HTML to PDF and save
         HTML(string=html_content).write_pdf(output_pdf_file, stylesheets = [css])
+
+        # for WebApp
+        return output_pdf_file
         
-        return f"✅ Successfully exported and saved your resume to {output_pdf_file}"
+        # for personal dev work
+        # return f"✅ Successfully exported and saved your resume to {output_pdf_file}"
     except Exception as e:
-        return f"❌ Failed to export resume: {str(e)}"
+        print(f"❌ Failed to export resume: {str(e)}")
+        return None
     
 # ===== Cover Letter Functions ====
 
