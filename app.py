@@ -26,7 +26,7 @@ from new_functions import (
 )
 
 # import BeautifulSoup to check for published jobdate is in posting's metadata - checking for link's age here.
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup 
 
 with gr.Blocks(css="""
     .section-header {
@@ -77,14 +77,19 @@ with gr.Blocks(css="""
         resume_edit = gr.Textbox(label="✏️ Edit Your Resume Below", lines=10, interactive=True)
         suggestions = gr.Markdown(label="🔍 Suggestions")
         export_resume_btn = gr.Button("⬇ Export Resume as PDF")
-        export_resume_result = gr.Markdown()
+        # for personal testing
+        # export_resume_result = gr.Markdown()
+        export_resume_result = gr.File(label = "📄 Download Your Optimized Resume PDF")
 
     with gr.Tab("📬 Cover Letter Generator"):
         gr.Markdown("<div class='section-header'>👋 Cover Letter Generator</div>")
         run_cover = gr.Button("📝 Click Here To Write Your Cover Letter")
         cover_output = gr.Textbox(label="Generated Cover Letter - Please Proofread and Check for <<cough cough>> Accuracy. 'I cured Polio!' No, you didn't.", lines=15, interactive=True)
         export_cover_btn = gr.Button("⬇ Export Cover Letter as PDF")
-        export_cover_result = gr.Markdown()
+        # to export cover letter to user
+        export_cover_result = gr.File(label = "📄 Download Your Cover Letter PDF")
+        # for personal testing
+        # export_cover_result = gr.Markdown()
         
     with gr.Tab("🔍 Job Validator"):
         gr.Markdown("<div class='section-header'>🕵️‍♂️ Job Validation Tool</div>")
@@ -196,7 +201,10 @@ with gr.Blocks(css="""
 
     def export_cover_handler(cover_text, company):
         pdf, md = save_cover_letter(cover_text, company)
-        return f"✅ PDF saved at: `{pdf}`" if pdf else "❌ Failed to export."
+        # for webapp
+        return pdf
+        # for personal
+        # return f"✅ PDF saved at: `{pdf}`" if pdf else "❌ Failed to export."
 
     run_cover.click(fn=generate_cover_letter, inputs=[resume_input, job_input], outputs=[cover_output])
     export_cover_btn.click(fn=export_cover_handler, inputs=[cover_output, company_input], outputs=[export_cover_result])
