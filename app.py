@@ -72,20 +72,20 @@ with gr.Blocks(css="""
 
     with gr.Tab("✨ Resume Optimizer"):
         gr.Markdown("<div class='section-header'>🤓 Resume Optimizer</div>")
-        run_resume = gr.Button("✨ Optimize Resume")
+        run_resume = gr.Button("✨ Optimize Resume (See Editing Box Below)")
         resume_md = gr.Markdown(label="Optimized Resume (Markdown)")
         resume_edit = gr.Textbox(label="✏️ Edit Your Resume Below", lines=10, interactive=True)
         suggestions = gr.Markdown(label="🔍 Suggestions")
-        export_resume_btn = gr.Button("⬇ Export Resume as PDF")
+        export_resume_btn = gr.Button("⬇ Download Your Optimized Resume As PDF (In Blue, To Right)")
         # for personal testing
         # export_resume_result = gr.Markdown()
         export_resume_result = gr.File(label = "📄 Download Your Optimized Resume PDF")
 
     with gr.Tab("📬 Cover Letter Generator"):
         gr.Markdown("<div class='section-header'>👋 Cover Letter Generator</div>")
-        run_cover = gr.Button("📝 Click Here To Write Your Cover Letter")
-        cover_output = gr.Textbox(label="Generated Cover Letter - Please Proofread and Check for <<cough cough>> Accuracy. 'I cured Polio!' No, you didn't.", lines=15, interactive=True)
-        export_cover_btn = gr.Button("⬇ Export Cover Letter as PDF")
+        run_cover = gr.Button("📝 Click Here To Write Your Cover Letter - And Edit In the Space Provided")
+        cover_output = gr.Textbox(label="Generated Cover Letter - Please Proofread, and Check for <<cough cough>> Accuracy. 'I cured Polio!' No, you didn't.", lines=15, interactive=True)
+        export_cover_btn = gr.Button("⬇ Download Your Optimized Cover Letter As PDF (In Blue, To Right)")
         # to export cover letter to user
         export_cover_result = gr.File(label = "📄 Download Your Cover Letter PDF")
         # for personal testing
