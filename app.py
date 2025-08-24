@@ -33,15 +33,7 @@ with gr.Blocks() as app:
     with gr.Row():
         # --- Sidebar ---
         with gr.Column(scale=1):
-            gr.Markdown("### 💖 Support ResuMagic")
-
-            # Buy Me a Coffee button
-            gr.HTML(
-                """<a href="https://www.buymeacoffee.com/yourname" target="_blank">
-                   <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" 
-                        alt="Buy Me A Coffee" style="height:40px;width:180px;">
-                   </a>"""
-            )
+            gr.Markdown("### 💖💸 Show Us Some Love! 💸💖")
 
             # PayPal donate button
             gr.HTML(
@@ -55,16 +47,36 @@ with gr.Blocks() as app:
                    </form>"""
             )
 
-            gr.Markdown("### 📝 Markdown Tips")
+             # Buy Me a Coffee button
+            gr.HTML(
+                """<a href="https://www.buymeacoffee.com/yourname" target="_blank">
+                   <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" 
+                        alt="Send Us A Coffee" style="height:40px;width:180px;">
+                   </a>"""
+            )
+
+            gr.Markdown("### 📝 Quick Markdown Tips You Can Copy / Paste Into the Markdown Resume Section for Adjusting Your Exported Resume Format")
             gr.Code(
                 """
-# Heading 1
-## Heading 2
-- Bullet point
-1. Numbered list
-**Bold text**
-_Italic text_
-[Link Text](https://example.com)
+For Font Size:
+# = Biggest  
+## = Little Smaller
+### = Smaller Still
+
+For Lists:
+- = Bullet Point
+1. = Numbered List
+
+For Formatting:
+<b>text</b> = Bolds Text
+<i>text</i> = Italicizes Text
+<u>text</u> = Underlines Text
+
+For Linking Your Website:
+[Website](actual_link_to_website)
+
+Forced Page Break (Copy This Entire Line)
+<div style="page-break-after: always; break-after: page;"></div>
                 """,
                 language="markdown"
             )
@@ -72,8 +84,7 @@ _Italic text_
             gr.Markdown("### 📬 Contact Me")
             gr.HTML(
                 """<p>Have feedback or suggestions? Reach out anytime:</p>
-                   <p>📧 <a href="mailto:your_email@example.com">your_email@example.com</a></p>
-                   <p>💼 <a href="https://www.linkedin.com/in/your-linkedin" target="_blank">Connect on LinkedIn</a></p>
+                   <p>📧 <a href="mailto:support@freeresumebooster.com">support@freeresumebooster.com</a></p>
                 """
             )
 
