@@ -29,11 +29,33 @@ from new_functions import (
 from bs4 import BeautifulSoup 
 
 # ----- New and Improved app.py -----
-with gr.Blocks() as app:
+with gr.Blocks(css="""
+#     .section-header {
+#         text-align: center;
+#         color: #1e90ff;
+#         font-size: 2.5em;
+#         font-family: 'Segoe UI', sans-serif;
+#         font-weight: bold;
+#         margin-top: 20px;
+#         margin-bottom: 10px;
+#     }
+#     .subtext {
+#         text-align: center;
+#         font-size: 1.1em;
+#         color: #555;
+#         margin-bottom: 30px;
+#     }
+#     .gr-button {
+#         font-weight: bold;
+#         font-size: 1.1em;
+#         padding: 0.75em 1.5em;
+#         border-radius: 12px;
+#     }
+# """) as app:
     with gr.Row():
         # --- Sidebar ---
         with gr.Column(scale=1):
-            gr.Markdown("### 💖💸 Show Us Some Love! 💸💖")
+            gr.Markdown("### 💖💸 We Take Donations (but Only If We Helped)! 💸💖")
 
             # PayPal donate button
             gr.HTML(
@@ -46,7 +68,6 @@ with gr.Blocks() as app:
                    <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
                    </form>"""
             )
-
              # Buy Me a Coffee button
             gr.HTML(
                 """<a href="https://www.buymeacoffee.com/yourname" target="_blank">
@@ -55,7 +76,7 @@ with gr.Blocks() as app:
                    </a>"""
             )
 
-            gr.Markdown("### 📝 Quick Markdown Tips You Can Copy / Paste Into the Markdown Resume Section for Adjusting Your Exported Resume Format")
+            gr.Markdown("### 📝 Quick Markdown You Can Copy / Paste Into the Markdown Resume Section for Adjusting Your Exported Resume Format")
             gr.Code(
                 """
 For Font Size:
@@ -73,7 +94,7 @@ For Formatting:
 <u>text</u> = Underlines Text
 
 For Linking Your Website:
-[Website](actual_link_to_website)
+[Website](actual_website_link)
 
 Forced Page Break (Copy This Entire Line)
 <div style="page-break-after: always; break-after: page;"></div>
