@@ -1,12 +1,8 @@
-# import "gradio" for UI
+# Round 3
 import gradio as gr
 import io
 import pdfplumber
-
-#import "requests" to simplify HTTP requests
 import requests
-
-# import functions, a file created in the job folder that houses the functions Gradio needs to do its job
 from new_functions import (
     sanitize_input,
     prompt_creator,
@@ -24,8 +20,6 @@ from new_functions import (
     detect_job_board_source,
     career_page_search_url
 )
-
-# import BeautifulSoup to check for published jobdate is in posting's metadata - checking for link's age here.
 from bs4 import BeautifulSoup 
 
 # ----- New and Improved app.py -----
@@ -55,7 +49,7 @@ with gr.Blocks(css="""
     with gr.Row():
         # --- Sidebar ---
         with gr.Column(scale=1):
-            gr.Markdown("### 💖💸 We Take Donations (but Only If We Helped)! 💸💖")
+            gr.Markdown("### 💖💸 We Accept Donations (but Only If We Helped)! 💸💖")
 
             # PayPal donate button
             gr.HTML(
@@ -79,30 +73,30 @@ with gr.Blocks(css="""
             gr.Markdown("### 📝 Quick Markdown You Can Copy / Paste Into the Markdown Resume Section for Adjusting Your Exported Resume Format")
             gr.Code(
                 """
-For Font Size:
+For Text Size:
 # = Biggest  
 ## = Little Smaller
 ### = Smaller Still
+
+For Text Formatting:
+<b>text</b> = Bolds Text
+<i>text</i> = Italicizes Text
+<u>text</u> = Underlines Text
 
 For Lists:
 - = Bullet Point
 1. = Numbered List
 
-For Formatting:
-<b>text</b> = Bolds Text
-<i>text</i> = Italicizes Text
-<u>text</u> = Underlines Text
-
 For Linking Your Website:
 [Website](actual_website_link)
 
-Forced Page Break (Copy This Entire Line)
+To Force A Page Break (Copy This Entire Line)
 <div style="page-break-after: always; break-after: page;"></div>
                 """,
                 language="markdown"
             )
 
-            gr.Markdown("### 📬 Contact Me")
+            gr.Markdown("### 📬 Contact Us")
             gr.HTML(
                 """<p>Have feedback or suggestions? Reach out anytime:</p>
                    <p>📧 <a href="mailto:support@freeresumebooster.com">support@freeresumebooster.com</a></p>
@@ -195,8 +189,228 @@ Forced Page Break (Copy This Entire Line)
             run_cover.click(fn=generate_cover_letter, inputs=[resume_input, job_input], outputs=[cover_output])
             export_cover_btn.click(fn=export_cover_handler, inputs=[cover_output, company_input], outputs=[export_cover_result])
 
+        # --- Social Share Column (Right Side) ---
+        with gr.Column(scale=1):
+            gr.Markdown("### 🌍 Share Us On")
+            gr.HTML(
+                """
+                <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=https://freeresumebooster.com" target="_blank">
+                        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/facebook.svg" alt="Facebook" style="width:32px; height:32px;">
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?url=https://freeresumebooster.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
+                        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg" alt="X" style="width:32px; height:32px;">
+                    </a>
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://freeresumebooster.com" target="_blank">
+                        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" alt="LinkedIn" style="width:32px; height:32px;">
+                    </a>
+                </div>
+                """
+            )
+
 # Launch
 app.launch(server_name="0.0.0.0", server_port=8080)
+
+
+# # import "gradio" for UI
+# import gradio as gr
+# import io
+# import pdfplumber
+
+# #import "requests" to simplify HTTP requests
+# import requests
+
+# # import functions, a file created in the job folder that houses the functions Gradio needs to do its job
+# from new_functions import (
+#     sanitize_input,
+#     prompt_creator,
+#     get_resume_response,
+#     process_resume,
+#     export_resume,
+#     cover_letter_prompt_creator,
+#     get_cover_response,
+#     save_cover_letter,
+#     is_posting_recent,
+#     template_detector,
+#     mentioned_on_socials,
+#     source_link_meta_date,
+#     detect_urgency_language,
+#     detect_job_board_source,
+#     career_page_search_url
+# )
+
+# # import BeautifulSoup to check for published jobdate is in posting's metadata - checking for link's age here.
+# from bs4 import BeautifulSoup 
+
+# # ----- New and Improved app.py -----
+# with gr.Blocks(css="""
+# #     .section-header {
+# #         text-align: center;
+# #         color: #1e90ff;
+# #         font-size: 2.5em;
+# #         font-family: 'Segoe UI', sans-serif;
+# #         font-weight: bold;
+# #         margin-top: 20px;
+# #         margin-bottom: 10px;
+# #     }
+# #     .subtext {
+# #         text-align: center;
+# #         font-size: 1.1em;
+# #         color: #555;
+# #         margin-bottom: 30px;
+# #     }
+# #     .gr-button {
+# #         font-weight: bold;
+# #         font-size: 1.1em;
+# #         padding: 0.75em 1.5em;
+# #         border-radius: 12px;
+# #     }
+# # """) as app:
+#     with gr.Row():
+#         # --- Sidebar ---
+#         with gr.Column(scale=1):
+#             gr.Markdown("### 💖💸 We Accept Donations (but Only If We Helped)! 💸💖")
+
+#             # PayPal donate button
+#             gr.HTML(
+#                 """<form action="https://www.paypal.com/donate" method="post" target="_blank">
+#                    <input type="hidden" name="business" value="YOUR_PAYPAL_EMAIL_OR_ID" />
+#                    <input type="hidden" name="currency_code" value="USD" />
+#                    <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" 
+#                           border="0" name="submit" title="PayPal - The safer, easier way to pay online!" 
+#                           alt="Donate with PayPal button" />
+#                    <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
+#                    </form>"""
+#             )
+#              # Buy Me a Coffee button
+#             gr.HTML(
+#                 """<a href="https://www.buymeacoffee.com/yourname" target="_blank">
+#                    <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" 
+#                         alt="Send Us A Coffee" style="height:40px;width:180px;">
+#                    </a>"""
+#             )
+
+#             gr.Markdown("### 📝 Quick Markdown You Can Copy / Paste Into the Markdown Resume Section for Adjusting Your Exported Resume Format")
+#             gr.Code(
+#                 """
+# For Text Size:
+# # = Biggest  
+# ## = Little Smaller
+# ### = Smaller Still
+
+# For Text Formatting:
+# <b>text</b> = Bolds Text
+# <i>text</i> = Italicizes Text
+# <u>text</u> = Underlines Text
+
+# For Lists:
+# - = Bullet Point
+# 1. = Numbered List
+
+# For Linking Your Website:
+# [Website](actual_website_link)
+
+# To Force A Page Break (Copy This Entire Line)
+# <div style="page-break-after: always; break-after: page;"></div>
+#                 """,
+#                 language="markdown"
+#             )
+
+#             gr.Markdown("### 📬 Contact Us")
+#             gr.HTML(
+#                 """<p>Have feedback or suggestions? Reach out anytime:</p>
+#                    <p>📧 <a href="mailto:support@freeresumebooster.com">support@freeresumebooster.com</a></p>
+#                 """
+#             )
+
+#         # --- Main App ---
+#         with gr.Column(scale=3):
+#             # Header
+#             gr.Markdown("## Your One-Stop Resume and Cover Letter Optimizer")
+#             gr.Markdown("""
+#             1. Drop your Markdown resume below.  
+#             2. Enter the company name.  
+#             3. Paste the job description.  
+#             4. Generate both your tailored resume **and** a compelling cover letter in Markdown & PDF format.
+#             """)
+
+#             # Inputs
+#             with gr.Row():
+#                 resume_input = gr.File(label="Drop Your Markdown Resume Here")
+#                 company_input = gr.Textbox(label="The Company with Whom You're Applying", placeholder="e.g., Data Clymer")
+#                 job_input = gr.Textbox(label="Paste In the Job Description Here", lines=10, interactive=True)
+
+#             with gr.Tab("Resume Optimizer"):
+#                 run_resume = gr.Button("✨ Optimize Resume")
+#                 resume_md = gr.Markdown(label="Optimized Resume (Markdown View)")
+#                 resume_edit = gr.Textbox(label="Edit Your Resume Below", lines=10, interactive=True)
+#                 suggestions = gr.Markdown(label="Suggestions")
+#                 export_resume_btn = gr.Button("⬇ Download Your Optimized Resume As PDF (In Blue, To Right)")
+#                 export_resume_result = gr.Markdown()
+
+#             with gr.Tab("Cover Letter Generator"):
+#                 run_cover = gr.Button("📝 Generate Cover Letter")
+#                 cover_output = gr.Textbox(label="Generated Cover Letter (Markdown)", lines=15, interactive=True)
+#                 export_cover_btn = gr.Button("⬇ Download Your Optimized Cover Letter As PDF (In Blue, To Right)")
+#                 export_cover_result = gr.Markdown()
+
+#             with gr.Tab("Job Validator"):
+#                 gr.Markdown("Validate whether a job post is recent, specific, and visible on social platforms.")
+
+#                 with gr.Row():
+#                     jd_date = gr.Textbox(label="Job Posting Date (YYYY-MM-DD)", placeholder="e.g., 2025-06-01")
+#                     jd_company = gr.Textbox(label="Company Name", placeholder="e.g., IEM, LLC")
+
+#                 jd_title = gr.Textbox(label="Job Title", placeholder="e.g., Senior Data Engineer")
+#                 jd_desc = gr.Textbox(label="Paste Full Job Description", lines=10)
+
+#                 jd_validate_btn = gr.Button("✅ Run Job Validation")
+#                 jd_validation_result = gr.Markdown()
+
+#                 # Validation click logic
+#                 def validate_job(posting_date, company, job_title, job_description):
+#                     recent = is_posting_recent(posting_date)
+#                     template_flag = template_detector(job_description)
+#                     social_links = mentioned_on_socials(company, job_title)
+
+#                     report = f"### 🕒 Posting Date Check:\n"
+#                     report += "✅ Job appears to be recent.\n" if recent else "⚠️ Job may be outdated (posted over 60 days ago).\n"
+
+#                     report += f"\n### 🤖 Template Language Detection:\n"
+#                     report += "⚠️ This job description uses generic/template language.\n" if template_flag else "✅ Description looks specific.\n"
+
+#                     report += f"\n### 🔍 Social Media Mentions:\n"
+#                     report += f"- [Search on X](<{social_links['x']}>)\n"
+#                     report += f"- [Search on LinkedIn](<{social_links['linkedin']}>)\n"
+
+#                     return report
+
+#                 jd_validate_btn.click(
+#                     fn=validate_job,
+#                     inputs=[jd_date, jd_company, jd_title, jd_desc],
+#                     outputs=jd_validation_result
+#                 )
+
+#             # Resume events
+#             run_resume.click(fn=process_resume, inputs=[resume_input, job_input], outputs=[resume_md, resume_edit, suggestions])
+#             export_resume_btn.click(fn=export_resume, inputs=[resume_edit, company_input], outputs=[export_resume_result])
+
+#             # Cover letter events
+#             def generate_cover_letter(resume_file, job_desc):
+#                 with open(resume_file.name, "r", encoding="utf-8") as f:
+#                     resume_txt = f.read()
+#                 prompt = cover_letter_prompt_creator(resume_txt, job_desc)
+#                 return get_cover_response(prompt)
+
+#             def export_cover_handler(cover_text, company):
+#                 pdf, md = save_cover_letter(cover_text, company)
+#                 return f"✅ PDF saved at: `{pdf}`" if pdf else "❌ Failed to export."
+
+#             run_cover.click(fn=generate_cover_letter, inputs=[resume_input, job_input], outputs=[cover_output])
+#             export_cover_btn.click(fn=export_cover_handler, inputs=[cover_output, company_input], outputs=[export_cover_result])
+
+# # Launch
+# app.launch(server_name="0.0.0.0", server_port=8080)
 
 
 # ----- Old app.py ----
