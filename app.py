@@ -129,7 +129,7 @@ To Force A Page Break (Copy This Entire Line)
             gr.Markdown("### 🌍 If You Like Us, Share Us!")
             gr.HTML(
                 """
-                <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+                <div style="display:flex; flex-direction:row; gap:15px; justify-content:center;">
                     <a href="https://www.facebook.com/sharer/sharer.php?u=https://freeresumebooster.com" target="_blank">
                         <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/facebook.svg" alt="Facebook" style="width:32px; height:32px;">
                     </a>
@@ -146,16 +146,16 @@ To Force A Page Break (Copy This Entire Line)
         # --- Main App ---
         with gr.Column(scale=5):
             # Header
-            gr.Markdown("<div class='section-header'>🥇 Welcome To Freeresumebooster.com!!</div>")
+            gr.Markdown("<div class='big-header'>🥇 Welcome To Freeresumebooster.com!!</div>")
             gr.Markdown("Your <b><i>free resume-optimizing app</i></b> focused on beating those stupid ATS filters to land you actual interviews!")    
-            gr.Markdown("""### 🦮 <u>Quick Guide: How This Works</u>:
+            gr.Markdown("""<center>### 🦮 <u>Quick Guide: How This Works</u>:
                         1.) Create A Main Resume - list every single skill and experience you have;  
                         2.) Follow the Prompts To Load the Info the Tools Need;  
                         3.) Choose the Tool You Want;  
                         4.) Proofread / Edit the Results Using the Markdown Cheat Sheet;  
                         5.) When You're Satisfied, Download What You Want;  
                         6.) Apply; and  
-                        7.) Land That Dream Job! 
+                        7.) Land That Dream Job!</center> 
                         """)
 
             # Inputs
@@ -164,7 +164,7 @@ To Force A Page Break (Copy This Entire Line)
                 company_input = gr.Textbox(label="🏢 The Company with Whom You're Applying", placeholder="e.g., Data Clymer")
                 job_input = gr.Textbox(label="🔬 Paste FULL Job Description Here", lines=10, interactive=True)
             
-            gr.Markdown("<div class='section-header'>🧰 Your Free Resume Booster Tools!</div>")
+            gr.Markdown("<div class='sub-header'>🧰 Your Free Resume Booster Tools!</div>")
 
             with gr.Tab("Resume Optimizer"):
                 gr.Markdown("<div class='section-header'>🤓 Resume Optimizer</div>" )
