@@ -49,28 +49,7 @@ with gr.Blocks(css="""
     with gr.Row():
         # --- Sidebar ---
         with gr.Column(scale=1):
-            gr.Markdown("### 🦮 Quick Guide: How This Works")
-            gr.Markdown("""
-                        1.) Create / Add To  Your Main Resume & Save It To Your Computer
-                            - Fill it with every single skill and experience you have
-                            - This serves as the source material for both the Resume Optimizer 
-                                and Cover Letter Generator);
-                        2.) Drag / Drop Or Upload It Into the 'Put Your Main Resume Here' Box;
-                        3.) Enter the Name of the Company To Which You're Applying
-                            - When you download your resume / cover letter, it will download as 
-                                this company name plus a randomly generated number
-                            - This is to help you keep track of the resumes you send
-                        4.) Paste In the Entire Job Description
-                            - The AI parses for keyword matches between your resume and the job description
-                        5.) After A Few Seconds, Your Sample Resume Will Appear
-                        6.) Below That Is the Exact Same Resume, but You Can Edit It Here
-                            - 'Additional Suggestions' are provided to help bolster your resume's against ATS machines
-                        7.) Once You're Happy with the Resume, Download It AND REVIEW(!)
-                            - If you don't like the format, use the Markdown Formatting Cheat Sheet Provided ⤵️
-                        8.) You May Have To 'Rinse and Repeat' Until You're Happy with the Format
-                            - But once you are, download it, save it where you want, and use that sucker to 
-                                land your dream job!
-                        """)
+
             # gr.Markdown("### 💖💸 We Accept Donations (but Only If We Helped)! 💸💖")
 
             # # PayPal donate button
@@ -93,8 +72,8 @@ with gr.Blocks(css="""
             # )
 
             gr.Markdown("### 📝 Markdown CheatSheet If You Don't Like Your Exported Resume Format")
-            gr.Code(
-                """
+            gr.Code("""
+                
 For Text Size:
 # = Biggest  
 ## = Little Smaller
@@ -126,20 +105,62 @@ To Force A Page Break (Copy This Entire Line)
                    <p>📧 <a href="mailto:support@freeresumebooster.com">support@freeresumebooster.com</a></p>
                 """
             )
+            gr.Markdown("### 🛡️ Your Data Is Neither Stored, Shared, Nor Sold. Ever. At Any Time.")
+            gr.Markdown("### 💖💸 We Love Donations (and Coffee), but Only If We've Helped! 💸💖")
+            # PayPal donate button
+            gr.HTML(
+                """<form action="https://www.paypal.com/donate" method="post" target="_blank">
+                   <input type="hidden" name="business" value="YOUR_PAYPAL_EMAIL_OR_ID" />
+                   <input type="hidden" name="currency_code" value="USD" />
+                   <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" 
+                          border="0" name="submit" title="PayPal - The safer, easier way to pay online!" 
+                          alt="Donate with PayPal button" />
+                   <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
+                   </form>"""
+            )
+             # Buy Me a Coffee button
+            gr.HTML(
+                """<a href="https://www.buymeacoffee.com/yourname" target="_blank">
+                   <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" 
+                        alt="Send Us A Coffee" style="height:40px;width:180px;">
+                   </a>"""
+            )
+            
+            gr.Markdown("### 🌍 If You Like Us, Share Us!")
+            gr.HTML(
+                """
+                <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=https://freeresumebooster.com" target="_blank">
+                        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/facebook.svg" alt="Facebook" style="width:32px; height:32px;">
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?url=https://freeresumebooster.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
+                        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg" alt="X" style="width:32px; height:32px;">
+                    </a>
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://freeresumebooster.com" target="_blank">
+                        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" alt="LinkedIn" style="width:32px; height:32px;">
+                    </a>
+                </div>
+                """
+            )
 
         # --- Main App ---
         with gr.Column(scale=5):
             # Header
             gr.Markdown("<div class='section-header'>🥇 Welcome To Freeresumebooster.com!!</div>")
-            gr.Markdown("""
-            Your <b><i>free resume-optimizing app</i></b> focused on whooping ATS systems to land that job you want!  
-            We never save your data, and we ain't in the business of selling it or sharing it - 
-                        once you close the app, it's gone! 
-            """)
+            gr.Markdown("Your <b><i>free resume-optimizing app</i></b> focused on beating those stupid ATS filters to land you actual interviews!")    
+            gr.Markdown("""### 🦮 <u>Quick Guide: How This Works</u>:
+                        1.) Create A Main Resume - list every single skill and experience you have;  
+                        2.) Follow the Prompts To Load the Info the Tools Need;  
+                        3.) Choose the Tool You Want;  
+                        4.) Proofread / Edit the Results Using the Markdown Cheat Sheet;  
+                        5.) When You're Satisfied, Download What You Want;  
+                        6.) Apply; and  
+                        7.) Land That Dream Job! 
+                        """)
 
             # Inputs
             with gr.Row():
-                resume_input = gr.File(label="📝 Put Your Main  Resume Here")
+                resume_input = gr.File(label="📝 Put Your Main Resume Here")
                 company_input = gr.Textbox(label="🏢 The Company with Whom You're Applying", placeholder="e.g., Data Clymer")
                 job_input = gr.Textbox(label="🔬 Paste FULL Job Description Here", lines=10, interactive=True)
             
@@ -215,45 +236,45 @@ To Force A Page Break (Copy This Entire Line)
             run_cover.click(fn=generate_cover_letter, inputs=[resume_input, job_input], outputs=[cover_output])
             export_cover_btn.click(fn=export_cover_handler, inputs=[cover_output, company_input], outputs=[export_cover_result])
 
-        # --- Social Share Column (Right Side) ---
-        with gr.Column(scale=1):
-            gr.Markdown("### 💖💸 If You Think We're Worthy, We Accept Donations (and Coffee)! 💸💖")
-
-            # PayPal donate button
-            gr.HTML(
-                """<form action="https://www.paypal.com/donate" method="post" target="_blank">
-                   <input type="hidden" name="business" value="YOUR_PAYPAL_EMAIL_OR_ID" />
-                   <input type="hidden" name="currency_code" value="USD" />
-                   <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" 
-                          border="0" name="submit" title="PayPal - The safer, easier way to pay online!" 
-                          alt="Donate with PayPal button" />
-                   <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
-                   </form>"""
-            )
-             # Buy Me a Coffee button
-            gr.HTML(
-                """<a href="https://www.buymeacoffee.com/yourname" target="_blank">
-                   <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" 
-                        alt="Send Us A Coffee" style="height:40px;width:180px;">
-                   </a>"""
-            )
+        # # --- Social Share Column (Right Side) ---
+        # with gr.Column(scale=1):
+        #     gr.Markdown("### 🛡️ Your Data Is Neither Stored, Shared, Nor Sold. Ever. At Any Time.")
+        #     gr.Markdown("### 💖💸 We Love Donations (and Coffee), but Only If We've Helped! 💸💖")
+        #     # PayPal donate button
+        #     gr.HTML(
+        #         """<form action="https://www.paypal.com/donate" method="post" target="_blank">
+        #            <input type="hidden" name="business" value="YOUR_PAYPAL_EMAIL_OR_ID" />
+        #            <input type="hidden" name="currency_code" value="USD" />
+        #            <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" 
+        #                   border="0" name="submit" title="PayPal - The safer, easier way to pay online!" 
+        #                   alt="Donate with PayPal button" />
+        #            <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
+        #            </form>"""
+        #     )
+        #      # Buy Me a Coffee button
+        #     gr.HTML(
+        #         """<a href="https://www.buymeacoffee.com/yourname" target="_blank">
+        #            <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" 
+        #                 alt="Send Us A Coffee" style="height:40px;width:180px;">
+        #            </a>"""
+        #     )
             
-            gr.Markdown("### 🌍 If You Like Us, Share Us!")
-            gr.HTML(
-                """
-                <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
-                    <a href="https://www.facebook.com/sharer/sharer.php?u=https://freeresumebooster.com" target="_blank">
-                        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/facebook.svg" alt="Facebook" style="width:32px; height:32px;">
-                    </a>
-                    <a href="https://twitter.com/intent/tweet?url=https://freeresumebooster.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
-                        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg" alt="X" style="width:32px; height:32px;">
-                    </a>
-                    <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://freeresumebooster.com" target="_blank">
-                        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" alt="LinkedIn" style="width:32px; height:32px;">
-                    </a>
-                </div>
-                """
-            )
+        #     gr.Markdown("### 🌍 If You Like Us, Share Us!")
+        #     gr.HTML(
+        #         """
+        #         <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+        #             <a href="https://www.facebook.com/sharer/sharer.php?u=https://freeresumebooster.com" target="_blank">
+        #                 <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/facebook.svg" alt="Facebook" style="width:32px; height:32px;">
+        #             </a>
+        #             <a href="https://twitter.com/intent/tweet?url=https://freeresumebooster.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
+        #                 <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg" alt="X" style="width:32px; height:32px;">
+        #             </a>
+        #             <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://freeresumebooster.com" target="_blank">
+        #                 <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" alt="LinkedIn" style="width:32px; height:32px;">
+        #             </a>
+        #         </div>
+        #         """
+        #     )
 
 # Launch
 app.launch(server_name="0.0.0.0", server_port=8080)
