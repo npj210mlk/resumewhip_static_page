@@ -99,10 +99,10 @@ To Force A Page Break (Copy This Entire Line)
                 language="markdown"
             )
 
-            gr.Markdown("### 📬 Contact Us")
+            gr.Markdown("### 📬 Questions? / Comments? / Feedback?")
             gr.HTML(
-                """<p>Have feedback or suggestions? Reach out anytime:</p>
-                   <p>📧 <a href="mailto:support@freeresumebooster.com">support@freeresumebooster.com</a></p>
+                """
+                  <p>📧 <a href="mailto:support@freeresumebooster.com">support@freeresumebooster.com</a></p>
                 """
             )
             gr.Markdown("### 🛡️ Your Data Is Neither Stored, Shared, Nor Sold. Ever. At Any Time.")
@@ -146,16 +146,19 @@ To Force A Page Break (Copy This Entire Line)
         # --- Main App ---
         with gr.Column(scale=5):
             # Header
-            gr.Markdown("<div class='big-header'>🥇 Welcome To Freeresumebooster.com!!</div>")
-            gr.Markdown("Your <b><i>free resume-optimizing app</i></b> focused on beating those stupid ATS filters to land you actual interviews!")    
-            gr.Markdown("""<center>### 🦮 <u>Quick Guide: How This Works</u>:
+            gr.Markdown("<h1 style  = 'text-align:center; color:#1e90ff;'>🥇 Welcome To Freeresumebooster.com!!</h1>")
+            gr.Markdown("""
+                        <center>Your <b><i>free resume-optimizing app</i></b> focused on beating those 
+                        stupid ATS filters to land you actual interviews!
+                        """)    
+            gr.Markdown("""### 🦮 <u>Quick Guide: How This Works</u>:
                         1.) Create A Main Resume - list every single skill and experience you have;  
                         2.) Follow the Prompts To Load the Info the Tools Need;  
                         3.) Choose the Tool You Want;  
                         4.) Proofread / Edit the Results Using the Markdown Cheat Sheet;  
                         5.) When You're Satisfied, Download What You Want;  
                         6.) Apply; and  
-                        7.) Land That Dream Job!</center> 
+                        7.) Land That Dream Job! 
                         """)
 
             # Inputs
@@ -164,21 +167,21 @@ To Force A Page Break (Copy This Entire Line)
                 company_input = gr.Textbox(label="🏢 The Company with Whom You're Applying", placeholder="e.g., Data Clymer")
                 job_input = gr.Textbox(label="🔬 Paste FULL Job Description Here", lines=10, interactive=True)
             
-            gr.Markdown("<div class='sub-header'>🧰 Your Free Resume Booster Tools!</div>")
+            gr.Markdown("<h3 style = 'text-align:center; color:#1e90ff;'>🧰 Click Below To Choose Your Free Resume Boosting Tool!</h3>")
 
             with gr.Tab("Resume Optimizer"):
                 gr.Markdown("<div class='section-header'>🤓 Resume Optimizer</div>" )
-                run_resume = gr.Button("✨ Optimize Resume")
+                run_resume = gr.Button("✨ Click Here To Optimize Your Resume")
                 resume_md = gr.Markdown(label="Optimized Resume (Markdown View)")
-                resume_edit = gr.Textbox(label="Edit Your Resume Below", lines=10, interactive=True)
-                suggestions = gr.Markdown(label="Suggestions")
-                export_resume_btn = gr.Button("⬇ Download Your Optimized Resume As PDF (In Blue, To Right)")
+                resume_edit = gr.Textbox(label="Edit Your Resume In the Box Below", lines=10, interactive=True)
+                suggestions = gr.Markdown(label="Suggestions for Improvement")
+                export_resume_btn = gr.Button("⬇ Download Your Optimized Resume As PDF And Click To View (In Blue, To Right)")
                 export_resume_result = gr.Markdown()
 
             with gr.Tab("Cover Letter Generator"):
-                run_cover = gr.Button("📝 Generate Cover Letter")
-                cover_output = gr.Textbox(label="Generated Cover Letter (Markdown)", lines=15, interactive=True)
-                export_cover_btn = gr.Button("⬇ Download Your Optimized Cover Letter As PDF (In Blue, To Right)")
+                run_cover = gr.Button("📝 Click Here To Generate Your Cover Letter")
+                cover_output = gr.Textbox(label="Generated Cover Letter (Proofread and Edit To Your Tastes))", lines=15, interactive=True)
+                export_cover_btn = gr.Button("⬇ Download And View Your Optimized Cover Letter As PDF (In Blue, To Right)")
                 export_cover_result = gr.Markdown()
 
             with gr.Tab("Job Validator"):
