@@ -36,12 +36,12 @@ with gr.Blocks() as app:
                 gr.Markdown("""
                         1.) Create A Super Main Resume - list every single skill and experience you have
                             (this is the AI's source material);  
-#                       2.) Follow the Prompts To Load the Info That the Tools Need;  
-#                       3.) Choose the Tool You Want;  
-#                       4.) Proofread / Edit the Results Using the Markdown Cheat Sheet;  
-#                       5.) When You're Satisfied, Download the File You Want;  
-#                       6.) Use That File To Apply; and  
-#                       7.) Sit Back and Entertain Offers!
+                        2.) Follow the Prompts To Load the Info That the Tools Need;  
+                        3.) Choose the Tool You Want;  
+                        4.) Proofread / Edit the Results Using the Markdown Cheat Sheet;  
+                        5.) When You're Satisfied, Download the File You Want;  
+                        6.) Use That File To Apply; and  
+                        7.) Sit Back and Entertain Offers!
                             """)
                 
             with gr.Accordion("📚 Copy/Pastes for Resume Formatting", open=False):
@@ -116,13 +116,13 @@ Start A New Page (copy/paste entire line below):
                 resume_edit = gr.Textbox(label="Optimized Resume Above. Make Any Edits In This Box", lines=10)
                 suggestions = gr.Markdown(label="Suggestions")
                 export_resume_btn = gr.Button("⬇ Download as PDF")
-                export_resume_result = gr.Markdown()
+                export_resume_result = gr.File()
 
             with gr.Tab("Cover Letter Generator"):
                 run_cover = gr.Button("📝 Generate My Cover Letter")
                 cover_output = gr.Textbox(label="Cover Letter", lines=12)
                 export_cover_btn = gr.Button("⬇ Download as PDF")
-                export_cover_result = gr.Markdown()
+                export_cover_result = gr.File()
 
             with gr.Tab("Job Validator"):
                 jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
@@ -166,7 +166,8 @@ Start A New Page (copy/paste entire line below):
 
             def export_cover_handler(cover_text, company):
                 pdf, md = save_cover_letter(cover_text, company)
-                return f"✅ PDF saved at: `{pdf}`" if pdf else "❌ Failed to export."
+                return pdf 
+                # f"✅ PDF saved at: `{pdf}`" if pdf else "❌ Failed to export."
 
             run_cover.click(fn=generate_cover_letter, inputs=[resume_input, job_input], outputs=[cover_output])
             export_cover_btn.click(fn=export_cover_handler, inputs=[cover_output, company_input], outputs=[export_cover_result])
