@@ -96,7 +96,7 @@ Start A New Page (copy/paste entire line below):
                 company_input = gr.Textbox(label="🏢 Drop In the Company Name", placeholder="e.g., Data Clymer")
                 job_input = gr.Textbox(label="🔬 Paste Entire Job Description", lines=8)
 
-            with gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Your Free Resume Booster Tools</h2>")
+            gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Your Free Resume Booster Tools</h2>")
 
             with gr.Tab("Resume Optimizer"):
                 run_resume = gr.Button("🧙 Optimize Resume")
