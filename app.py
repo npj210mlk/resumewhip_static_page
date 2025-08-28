@@ -26,7 +26,7 @@ with gr.Blocks() as app:
     # --- Header ---
     gr.Markdown("""
     <h1 style='text-align:center; color:#1e90ff;'>🥇 Welcome To Freeresumebooster.com!!</h1>
-    <h3 style='text-align:center;'>Upload → Optimize → Apply</h3>
+    <h2 style='text-align:center;'>Upload → Optimize → Apply</h2>
     """)
 
     with gr.Row():
@@ -43,7 +43,8 @@ Fonts:
 <b>text</b> = Bold  
 <i>text</i> = Italic  
 <u>text</u> = Underline
-
+(⬆️ Can Be Combined)
+                        
 Lists:
 - Bullet Point  
 1. Numbered List
@@ -86,6 +87,8 @@ Start A New Page (copy/paste entire line below):
                 </div>
                 """)
 
+            with gr.Markdown("### 🛡️ Your data is never stored, shared, or sold. Ever.")
+
         # --- Main App ---
         with gr.Column(scale=5):
             with gr.Row():
@@ -93,10 +96,10 @@ Start A New Page (copy/paste entire line below):
                 company_input = gr.Textbox(label="🏢 Drop In the Company Name", placeholder="e.g., Data Clymer")
                 job_input = gr.Textbox(label="🔬 Paste Entire Job Description", lines=8)
 
-                gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Your Free Resume Booster Tools</h2>")
+            with gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Your Free Resume Booster Tools</h2>")
 
             with gr.Tab("Resume Optimizer"):
-                run_resume = gr.Button("✨ Optimize Resume")
+                run_resume = gr.Button("🧙 Optimize Resume")
                 resume_md = gr.Markdown()
                 resume_edit = gr.Textbox(label="Edit Resume", lines=10)
                 suggestions = gr.Markdown(label="Suggestions")
@@ -157,12 +160,12 @@ Start A New Page (copy/paste entire line below):
             export_cover_btn.click(fn=export_cover_handler, inputs=[cover_output, company_input], outputs=[export_cover_result])
 
     # --- Footer ---
-    gr.Markdown("""
-    <hr>
-    <p style='text-align:center; font-size:1.5em; color:gray;'>
-    🛡️ Your data is never stored, shared, or sold. Ever.
-    </p>
-    """)
+    # gr.Markdown("""
+    # <hr>
+    # <p style='text-align:center; font-size:1.5em; color:gray;'>
+    # 🛡️ Your data is never stored, shared, or sold. Ever.
+    # </p>
+    # """)
 
 # Launch
 app.launch(server_name="0.0.0.0", server_port=8080)
