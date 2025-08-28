@@ -32,6 +32,18 @@ with gr.Blocks() as app:
     with gr.Row():
         # --- Sidebar (simplified into Accordions) ---
         with gr.Column(scale=1):
+            with gr.Accordion("🦮 How To Use This Website", open = False):
+                gr.Markdown("""
+                        1.) Create A Super Main Resume - list every single skill and experience you have
+                            (this is the AI's source material);  
+#                       2.) Follow the Prompts To Load the Info That the Tools Need;  
+#                       3.) Choose the Tool You Want;  
+#                       4.) Proofread / Edit the Results Using the Markdown Cheat Sheet;  
+#                       5.) When You're Satisfied, Download the File You Want;  
+#                       6.) Use That File To Apply; and  
+#                       7.) Sit Back and Entertain Offers!
+                            """)
+                
             with gr.Accordion("📚 Copy/Pastes for Resume Formatting", open=False):
                 gr.Code("""
 If you want to adjust the formatting on your resume:
@@ -99,15 +111,15 @@ Start A New Page (copy/paste entire line below):
             gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Your Free Resume Booster Tools</h2>")
 
             with gr.Tab("Resume Optimizer"):
-                run_resume = gr.Button("🧙 Optimize Resume")
+                run_resume = gr.Button("🧙 Optimize My Resume")
                 resume_md = gr.Markdown()
-                resume_edit = gr.Textbox(label="Edit Resume", lines=10)
+                resume_edit = gr.Textbox(label="Optimized Resume Above. Make Any Edits In This Box", lines=10)
                 suggestions = gr.Markdown(label="Suggestions")
                 export_resume_btn = gr.Button("⬇ Download as PDF")
                 export_resume_result = gr.Markdown()
 
             with gr.Tab("Cover Letter Generator"):
-                run_cover = gr.Button("📝 Generate Cover Letter")
+                run_cover = gr.Button("📝 Generate My Cover Letter")
                 cover_output = gr.Textbox(label="Cover Letter", lines=12)
                 export_cover_btn = gr.Button("⬇ Download as PDF")
                 export_cover_result = gr.Markdown()
