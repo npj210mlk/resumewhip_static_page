@@ -26,30 +26,38 @@ with gr.Blocks() as app:
     # --- Header ---
     gr.Markdown("""
     <h1 style='text-align:center; color:#1e90ff;'>🥇 Welcome To Freeresumebooster.com!!</h1>
-    <h2 style='text-align:center; color:#ff7f50;'>🧰 Your Free Resume Booster Tools</h2>
-    <p style='text-align:center;'>Upload → Optimize → Apply</p>
+    <h3 style='text-align:center;'>Upload → Optimize → Apply</h3>
     """)
 
     with gr.Row():
         # --- Sidebar (simplified into Accordions) ---
         with gr.Column(scale=1):
-            with gr.Accordion("📚 Markdown Cheat Sheet", open=False):
+            with gr.Accordion("📚 Copy/Pastes for Resume Formatting", open=False):
                 gr.Code("""
+If you want to adjust the formatting on your resume:
+                        
+Fonts:
 # = Biggest  
 ## = Smaller  
 ### = Smallest
-
 <b>text</b> = Bold  
 <i>text</i> = Italic  
 <u>text</u> = Underline
 
+Lists:
 - Bullet Point  
 1. Numbered List
 
-[Website](yourlink.com)
+Website Linking:
+[Your Website](https://www.yourwebsite.com)
 
-Page Break:
+To break a paragraph up into separate lines, 
+leave two spaces where you want the line to break 
+(e.g. after a period).
+
+Start A New Page (copy/paste entire line below):
 <div style="page-break-after: always; break-after: page;"></div>
+                        
                 """, language="markdown")
 
             with gr.Accordion("💖 Support & Share", open=False):
@@ -81,9 +89,11 @@ Page Break:
         # --- Main App ---
         with gr.Column(scale=5):
             with gr.Row():
-                resume_input = gr.File(label="📝 Upload Your Resume")
-                company_input = gr.Textbox(label="🏢 Company Name", placeholder="e.g., Data Clymer")
-                job_input = gr.Textbox(label="🔬 Job Description", lines=8)
+                resume_input = gr.File(label="📝 Upload Your Resume Here")
+                company_input = gr.Textbox(label="🏢 Drop In the Company Name", placeholder="e.g., Data Clymer")
+                job_input = gr.Textbox(label="🔬 Paste Entire Job Description", lines=8)
+
+                gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Your Free Resume Booster Tools</h2>")
 
             with gr.Tab("Resume Optimizer"):
                 run_resume = gr.Button("✨ Optimize Resume")
@@ -149,7 +159,7 @@ Page Break:
     # --- Footer ---
     gr.Markdown("""
     <hr>
-    <p style='text-align:center; font-size:0.9em; color:gray;'>
+    <p style='text-align:center; font-size:1.5em; color:gray;'>
     🛡️ Your data is never stored, shared, or sold. Ever.
     </p>
     """)
