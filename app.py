@@ -87,7 +87,7 @@ Start A New Page (copy/paste entire line below):
                 </div>
                 """)
 
-            with gr.Markdown("### 🛡️ Your data is never stored, shared, or sold. Ever.")
+            gr.Markdown("### 🛡️ Your data is never stored, shared, or sold. Ever.")
 
         # --- Main App ---
         with gr.Column(scale=5):
