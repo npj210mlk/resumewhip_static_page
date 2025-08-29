@@ -477,8 +477,8 @@ def save_cover_letter(response_string: str, company_name: str, output_dir: str =
     # Slug / Clean company name and generate unique ID and file path
     company_slugged = company_name.lower().replace(" ", "_").replace(".", "") #<- "taco deli" becomes "taco_deli"
     unique_id = str(uuid.uuid4())[:8] #<- gets unique 8-character code 
-    output_pdf_file = os.path.join(output_dir, f"{company_slugged}_{unique_id}_optimized.pdf") #<- preps as PDF
-    output_markdown_file = os.path.join(output_dir, f"{company_slugged}_{unique_id}_optimized.md")# <- preps as MD
+    output_pdf_file = os.path.join(output_dir, f"{company_slugged}_{unique_id}_optimized_cover_letter.pdf") #<- preps as PDF
+    output_markdown_file = os.path.join(output_dir, f"{company_slugged}_{unique_id}_optimized_cover_letter.md")# <- preps as MD
 
     # Save as Markdown (from Block 3)
     try:
