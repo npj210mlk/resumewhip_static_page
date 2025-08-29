@@ -89,9 +89,10 @@ Start A New Page (copy/paste entire line below):
                         <a href="https://www.facebook.com/sharer/sharer.php?u=https://freeresumebooster.com" target="_blank">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" style="width:32px; height:32px;">
                         </a>
-                        <a href="https://twitter.com/intent/tweet?url=https://freeresumebooster.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/X_logo_2023.svg" style="width:32px; height:32px;">
+                        <a href="https://x.com/intent/post?url=https://freeresumebooster.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/X_logo_2023.svg" style="width:36px; height:36px;">
                         </a>
+
                         <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://freeresumebooster.com" target="_blank">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg" style="width:32px; height:32px;">
                         </a>
@@ -111,9 +112,9 @@ Start A New Page (copy/paste entire line below):
             gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Your Free Resume Booster Tools</h2>")
 
             with gr.Tab("Resume Optimizer"):
-                run_resume = gr.Button("🧙 Optimize My Resume")
+                run_resume = gr.Button("🧙 Optimize My Resume (This Is What Your Resume Will Look Like w/o Any Edits.)")
                 resume_md = gr.Markdown()
-                resume_edit = gr.Textbox(label="Optimized Resume Above. Make Any Edits In This Box", lines=10)
+                resume_edit = gr.Textbox(label="Optimized Resume Above. Make Any Edits In This Box. Or Don't. Up To You.", lines=10)
                 suggestions = gr.Markdown(label="Suggestions")
                 export_resume_btn = gr.Button("⬇ Download as PDF")
                 export_resume_result = gr.File()
