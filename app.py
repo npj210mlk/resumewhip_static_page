@@ -89,17 +89,14 @@ Start A New Page (copy/paste entire line below):
             <img src="https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg" style="width:32px; height:32px;">
         </a>
         <a href="https://www.reddit.com/submit?url=https://freeresumebooster.com&title=Check%20this%20out!" target="_blank">
-            <img src="https://upload.wikimedia.org/wikipedia/en/5/58/Reddit_logo_new.svg" style="width:32px; height:32px;">
-        </a>
-        <a href="https://freeresumebooster.com" target="_blank">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Generic_share_icon.svg" style="width:28px; height:28px;">
+            <img src="https://commons.wikimedia.org/wiki/Category:Reddit_logos#/media/File:Snoo.svg" style="width:32px; height:32px;">
         </a>
     </div>
 </div>
 """)
             gr.Markdown("### 💸 Donations appreciated... only if we've helped:")
             gr.HTML("""
-                    <div style="text-align:center; display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+                    <div style="text-align:left; display:flex; flex-direction:column; gap:10px; margin-top:15px;">
         <!-- Support Buttons -->
         <form action="https://www.paypal.com/donate" method="post" target="_blank">
             <input type="hidden" name="business" value="YOUR_PAYPAL_EMAIL_OR_ID" />
