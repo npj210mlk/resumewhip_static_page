@@ -90,7 +90,7 @@ Start A New Page (copy/paste entire line below):
                             <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" style="width:32px; height:32px;">
                         </a>
                         <a href="https://x.com/intent/post?url=https://freeresumebooster.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
-                            <img src="https://abs.twimg.com/responsive-web/client-web/icon-ios.8ea219d5.png" alt="X" style="width:36px; height:36px;">
+                        <img src="https://abs.twimg.com/responsive-web/client-web/icon-ios.8ea219d5.png" alt="X" style="width:36px; height:36px;">
                         </a>
 
                         <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://freeresumebooster.com" target="_blank">
