@@ -94,7 +94,7 @@ Start A New Page (copy/paste entire line below):
                         </a>
 
                         <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://freeresumebooster.com" target="_blank">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg" style="width:32px; height:32px;">
+                            <<img src="https://uxwing.com/wp-content/themes/uxwing/download/social-media/x-social-media-logo-icon.png" alt="X" style="width:36px; height:36px;">
                         </a>
                     </div>
                 </div>
