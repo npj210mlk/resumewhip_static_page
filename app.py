@@ -90,11 +90,15 @@ Start A New Page (copy/paste entire line below):
                             <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" style="width:32px; height:32px;">
                         </a>
                         <a href="https://x.com/intent/post?url=https://freeresumebooster.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
-                        <img src="https://abs.twimg.com/responsive-web/client-web/icon-ios.8ea219d5.png" alt="X" style="width:36px; height:36px;">
+                        <img
+  src="https://uxwing.com/wp-content/themes/uxwing/download/social-media/x-social-media-logo-icon.png"
+  alt="X"
+  style="width:36px; height:36px;"
+>
                         </a>
 
                         <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://freeresumebooster.com" target="_blank">
-                            <<img src="https://uxwing.com/wp-content/themes/uxwing/download/social-media/x-social-media-logo-icon.png" alt="X" style="width:36px; height:36px;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg" style="width:32px; height:32px;">
                         </a>
                     </div>
                 </div>
