@@ -73,20 +73,11 @@ Start A New Page (copy/paste entire line below):
                         
                 """, language="markdown")
 
-            gr.HTML("""
-<div style="text-align:center; display:flex; flex-direction:column; gap:10px; margin-top:15px;">
-    <!-- Support Buttons -->
-    <form action="https://www.paypal.com/donate" method="post" target="_blank">
-        <input type="hidden" name="business" value="YOUR_PAYPAL_EMAIL_OR_ID" />
-        <input type="hidden" name="currency_code" value="USD" />
-        <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" 
-               border="0" name="submit" alt="Donate with PayPal" />
-    </form>
-    <a href="https://www.buymeacoffee.com/yourname" target="_blank">
-        <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" style="height:40px;width:180px;">
-    </a>
+            gr.Markdown("### 🛡️ Your data is never stored, shared, or sold. Ever. Close the page, and your data is gone.")
 
-    <!-- Share Icons -->
+            gr.Markdown("### #️⃣ Know someone who could use this in their job search? Share away!")
+            gr.HTML("""
+                    <!-- Share Icons -->
     <div style="display:flex; flex-direction:row; gap:15px; justify-content:center; margin-top:10px;">
         <a href="https://www.facebook.com/sharer/sharer.php?u=https://freeresumebooster.com" target="_blank">
             <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" style="width:32px; height:32px;">
@@ -106,8 +97,22 @@ Start A New Page (copy/paste entire line below):
     </div>
 </div>
 """)
-
-            gr.Markdown("### 🛡️ Your data is never stored, shared, or sold. Ever. When you close the page, your data is gone.")
+            gr.Markdown("### 💸 Donations appreciated... only if we've helped:")
+            gr.HTML("""
+                    <div style="text-align:center; display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+        <!-- Support Buttons -->
+        <form action="https://www.paypal.com/donate" method="post" target="_blank">
+            <input type="hidden" name="business" value="YOUR_PAYPAL_EMAIL_OR_ID" />
+            <input type="hidden" name="currency_code" value="USD" />
+            <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" 
+               border="0" name="submit" alt="Donate with PayPal" />
+        </form>
+        <a href="https://www.buymeacoffee.com/yourname" target="_blank">
+        <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" style="height:40px;width:180px;">
+        </a>
+    </div>
+</div>
+""")
 
         # --- Main App ---
         with gr.Column(scale=5):
