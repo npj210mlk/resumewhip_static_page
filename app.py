@@ -73,33 +73,41 @@ Start A New Page (copy/paste entire line below):
                         
                 """, language="markdown")
 
-            with gr.Accordion("💖 Support & Share", open=False):
-                gr.HTML("""
-                <div style="text-align:center; display:flex; flex-direction:column; gap:10px;">
-                    <form action="https://www.paypal.com/donate" method="post" target="_blank">
-                        <input type="hidden" name="business" value="YOUR_PAYPAL_EMAIL_OR_ID" />
-                        <input type="hidden" name="currency_code" value="USD" />
-                        <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" 
-                               border="0" name="submit" alt="Donate with PayPal" />
-                    </form>
-                    <a href="https://www.buymeacoffee.com/yourname" target="_blank">
-                        <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" style="height:40px;width:180px;">
-                    </a>
-                    <div style="display:flex; flex-direction:row; gap:15px; justify-content:center; margin-top:10px;">
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=https://freeresumebooster.com" target="_blank">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" style="width:32px; height:32px;">
-                        </a>
-                        <a href="https://x.com/intent/post?url=https://freeresumebooster.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/X_logo_2023.svg" alt="X" style="width:36px; height:36px;">
-                        </a>
-                        <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://freeresumebooster.com" target="_blank">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg" style="width:32px; height:32px;">
-                        </a>
-                    </div>
-                </div>
-                """)
+            gr.HTML("""
+<div style="text-align:center; display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+    <!-- Support Buttons -->
+    <form action="https://www.paypal.com/donate" method="post" target="_blank">
+        <input type="hidden" name="business" value="YOUR_PAYPAL_EMAIL_OR_ID" />
+        <input type="hidden" name="currency_code" value="USD" />
+        <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" 
+               border="0" name="submit" alt="Donate with PayPal" />
+    </form>
+    <a href="https://www.buymeacoffee.com/yourname" target="_blank">
+        <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" style="height:40px;width:180px;">
+    </a>
 
-            gr.Markdown("### 🛡️ Your data is never stored, shared, or sold. Ever.")
+    <!-- Share Icons -->
+    <div style="display:flex; flex-direction:row; gap:15px; justify-content:center; margin-top:10px;">
+        <a href="https://www.facebook.com/sharer/sharer.php?u=https://freeresumebooster.com" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" style="width:32px; height:32px;">
+        </a>
+        <a href="https://x.com/intent/post?url=https://freeresumebooster.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/X_logo_2023.svg" alt="X" style="width:36px; height:36px;">
+        </a>
+        <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://freeresumebooster.com" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg" style="width:32px; height:32px;">
+        </a>
+        <a href="https://www.reddit.com/submit?url=https://freeresumebooster.com&title=Check%20this%20out!" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/en/5/58/Reddit_logo_new.svg" style="width:32px; height:32px;">
+        </a>
+        <a href="https://freeresumebooster.com" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Generic_share_icon.svg" style="width:28px; height:28px;">
+        </a>
+    </div>
+</div>
+""")
+
+            gr.Markdown("### 🛡️ Your data is never stored, shared, or sold. Ever. When you close the page, your data is gone.")
 
         # --- Main App ---
         with gr.Column(scale=5):
