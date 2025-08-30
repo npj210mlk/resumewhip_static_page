@@ -89,7 +89,7 @@ Start A New Page (copy/paste entire line below):
             <img src="https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg" style="width:32px; height:32px;">
         </a>
         <a href="https://www.reddit.com/submit?url=https://freeresumebooster.com&title=Check%20this%20out!" target="_blank">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/58/Reddit_logo_new.svg" alt="Reddit" style="width:32px; height:32px;">
+             <img src="https://cdn.simpleicons.org/reddit/FF4500" alt="Reddit" style="width:32px; height:32px;">
         </a>
     </div>
 </div>
