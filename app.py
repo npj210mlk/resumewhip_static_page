@@ -25,8 +25,9 @@ from bs4 import BeautifulSoup
 with gr.Blocks() as app:
     # --- Header ---
     gr.Markdown("""
-    <h1 style='text-align:center; color:#1e90ff;'>🥇 Welcome To Freeresumebooster.com!!</h1>
-    <h2 style='text-align:center;'>Upload → Optimize → Apply</h2>
+    <h1 style='text-align:center; color:#1e90ff;'>🥇 Welcome To ResumeWhip!!</h1>
+    <h2 style='text-align:center; color:#dd1eff;'>Where We Help You Land Your Next Job with the Help of AI!</h2> 
+    <h3 style='text-align:center;'>Powerful Simplicity: Just Verify → Upload → Optimize → Apply!</h3>
     """)
 
     with gr.Row():
@@ -34,21 +35,22 @@ with gr.Blocks() as app:
         with gr.Column(scale=1):
             with gr.Accordion("🦮 How To Use This Website", open = False):
                 gr.Markdown("""
-                        1.) Create A Super Main Resume - list every single skill and experience you have
-                            (this is the AI's source material);  
-                        2.) Follow the Prompts To Load the Info That the Tools Need;  
-                        3.) Choose the Tool You Want;  
-                        4.) Proofread / Edit the Results Using the Markdown Cheat Sheet;  
-                        5.) When You're Satisfied, Download the File You Want;  
-                        6.) Use That File To Apply; and  
-                        7.) Sit Back and Entertain Offers!
+                        1.) Amplify Your Existing Resume To 11 - list every single skill and experience you have
+                            (this is how our AI writes your resume and scores your chances);  
+                        2.) Follow the Prompts To Load the Requested Info;  
+                        3.) Choose Your Tool (you don't have to use all 3);  
+                        4.) Proofread / Edit the Results Using the 'Copy/Pastes' below;  
+                        5.) Download Your File as PDF; and 
+                        6.) Apply!
                             """)
                 
             with gr.Accordion("📚 Copy/Pastes for Resume Formatting", open=False):
                 gr.Code("""
-If you want to adjust the formatting on your resume:
+If you're not happy with the default resume 
+format, you can make adjustments using the 
+simple copy and pastes below:
                         
-Fonts:
+Want To Change Fonts:
 # = Biggest  
 ## = Smaller  
 ### = Smallest
@@ -57,59 +59,61 @@ Fonts:
 <u>text</u> = Underline
 (⬆️ Can Be Combined)
                         
-Lists:
-- Bullet Point  
-1. Numbered List
+How About A List?
+- = Bullet Point  
+1. = Numbered List
 
-Website Linking:
+Link Your Website:
 [Your Website](https://www.yourwebsite.com)
 
-To break a paragraph up into separate lines, 
-leave two spaces where you want the line to break 
-(e.g. after a period).
+Too "clumpy?" Break things up into separate lines, 
+by leaving two spaces where you want the line 
+to break (e.g. after a period).
 
+Page cuts off where you don't want it to?
 Start A New Page (copy/paste entire line below):
-<div style="page-break-after: always; break-after: page;"></div>
-                        
+<div style="page-break-after: always; break-after: page;"></div>                      
                 """, language="markdown")
 
-            gr.Markdown("### 🛡️ Your data is never stored, shared, or sold. Ever. Close the page, and your data is gone.")
+            gr.Markdown("[📬 Need Help? Have Suggestions?](mailto:support@resumewhip.com)")
+
+            gr.Markdown("### 🛡️ We never store, share, or sell your data. Ever.")
 
             gr.Markdown("### #️⃣ Know someone who could use this in their job search? Share away!")
             gr.HTML("""
                     <!-- Share Icons -->
     <div style="display:flex; flex-direction:row; gap:15px; justify-content:center; margin-top:10px;">
-        <a href="https://www.facebook.com/sharer/sharer.php?u=https://freeresumebooster.com" target="_blank">
+        <a href="https://www.facebook.com/sharer/sharer.php?u=https://resumewhip.com" target="_blank">
             <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" style="width:32px; height:32px;">
         </a>
-        <a href="https://x.com/intent/post?url=https://freeresumebooster.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
+        <a href="https://x.com/intent/post?url=https://resumewhip.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
             <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/X_logo_2023.svg" alt="X" style="width:36px; height:36px;">
         </a>
-        <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://freeresumebooster.com" target="_blank">
+        <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://resumewhip.com" target="_blank">
             <img src="https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg" style="width:32px; height:32px;">
         </a>
-        <a href="https://www.reddit.com/submit?url=https://freeresumebooster.com&title=Check%20this%20out!" target="_blank">
+        <a href="https://www.reddit.com/submit?url=https://resumewhip.com&title=Check%20this%20out!" target="_blank">
              <img src="https://cdn.simpleicons.org/reddit/FF4500" alt="Reddit" style="width:32px; height:32px;">
         </a>
     </div>
 </div>
 """)
-            gr.Markdown("### 💸 Donations appreciated... only if we've helped:")
-            gr.HTML("""
-                    <div style="text-align:left; display:flex; flex-direction:column; gap:10px; margin-top:15px;">
-        <!-- Support Buttons -->
-        <form action="https://www.paypal.com/donate" method="post" target="_blank">
-            <input type="hidden" name="business" value="YOUR_PAYPAL_EMAIL_OR_ID" />
-            <input type="hidden" name="currency_code" value="USD" />
-            <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" 
-               border="0" name="submit" alt="Donate with PayPal" />
-        </form>
-        <a href="https://www.buymeacoffee.com/yourname" target="_blank">
-        <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" style="height:40px;width:180px;">
-        </a>
-    </div>
-</div>
-""")
+#             gr.Markdown("### 💸 Donations appreciated... only if we've helped:")
+#             gr.HTML("""
+#                     <div style="text-align:left; display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+#         <!-- Support Buttons -->
+#         <form action="https://www.paypal.com/donate" method="post" target="_blank">
+#             <input type="hidden" name="business" value="YOUR_PAYPAL_EMAIL_OR_ID" />
+#             <input type="hidden" name="currency_code" value="USD" />
+#             <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" 
+#                border="0" name="submit" alt="Donate with PayPal" />
+#         </form>
+#         <a href="https://www.buymeacoffee.com/yourname" target="_blank">
+#         <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" style="height:40px;width:180px;">
+#         </a>
+#     </div>
+# </div>
+# """)
 
         # --- Main App ---
         with gr.Column(scale=5):
@@ -118,21 +122,7 @@ Start A New Page (copy/paste entire line below):
                 company_input = gr.Textbox(label="🏢 Drop In the Company Name", placeholder="e.g., Data Clymer")
                 job_input = gr.Textbox(label="🔬 Paste Entire Job Description", lines=8)
 
-            gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Your Free Resume Booster Tools</h2>")
-
-            with gr.Tab("Resume Optimizer"):
-                run_resume = gr.Button("🧙 Optimize My Resume (This Is What Your Resume Will Look Like w/o Any Edits.)")
-                resume_md = gr.Markdown()
-                resume_edit = gr.Textbox(label="Optimized Resume Above. Make Any Edits In This Box. Or Don't. Up To You.", lines=10)
-                suggestions = gr.Markdown(label="Suggestions")
-                export_resume_btn = gr.Button("⬇ Download as PDF")
-                export_resume_result = gr.File()
-
-            with gr.Tab("Cover Letter Generator"):
-                run_cover = gr.Button("📝 Generate My Cover Letter")
-                cover_output = gr.Textbox(label="Cover Letter", lines=12)
-                export_cover_btn = gr.Button("⬇ Download as PDF")
-                export_cover_result = gr.File()
+            gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Tools In the Toolkit</h2>")
 
             with gr.Tab("Job Validator"):
                 jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
@@ -162,6 +152,49 @@ Start A New Page (copy/paste entire line below):
                     inputs=[jd_date, company_input, jd_title, job_input],
                     outputs=jd_validation_result
                 )
+            
+            with gr.Tab("Resume Optimizer"):
+                run_resume = gr.Button("🧙 Optimize My Resume (This Is What Your Resume Will Look Like w/o Any Edits.)")
+                resume_md = gr.Markdown()
+                resume_edit = gr.Textbox(label="Optimized Resume Above. Make Any Edits In This Box. Or Don't. Up To You.", lines=10)
+                suggestions = gr.Markdown(label="Suggestions")
+                export_resume_btn = gr.Button("⬇ Download as PDF")
+                export_resume_result = gr.File()
+
+            with gr.Tab("Cover Letter Generator"):
+                run_cover = gr.Button("📝 Generate My Cover Letter")
+                cover_output = gr.Textbox(label="Cover Letter", lines=12)
+                export_cover_btn = gr.Button("⬇ Download as PDF")
+                export_cover_result = gr.File()
+
+            # with gr.Tab("Job Validator"):
+            #     jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
+            #     jd_title = gr.Textbox(label="Job Title")
+            #     jd_validate_btn = gr.Button("✅ Validate Job")
+            #     jd_validation_result = gr.Markdown()
+
+            #     def validate_job(posting_date, company, job_title, job_description):
+            #         recent = is_posting_recent(posting_date)
+            #         template_flag = template_detector(job_description)
+            #         social_links = mentioned_on_socials(company, job_title)
+
+            #         report = f"### 🕒 Posting Date Check:\n"
+            #         report += "✅ Job appears to be recent.\n" if recent else "⚠️ Job may be outdated.\n"
+
+            #         report += f"\n### 🤖 Template Language:\n"
+            #         report += "⚠️ Generic/template language detected.\n" if template_flag else "✅ Looks specific.\n"
+
+            #         report += f"\n### 🔍 Social Media Mentions:\n"
+            #         report += f"- [Search on X](<{social_links['x']}>)\n"
+            #         report += f"- [Search on LinkedIn](<{social_links['linkedin']}>)\n"
+
+            #         return report
+
+            #     jd_validate_btn.click(
+            #         fn=validate_job,
+            #         inputs=[jd_date, company_input, jd_title, job_input],
+            #         outputs=jd_validation_result
+            #     )
 
             # Resume events
             run_resume.click(fn=process_resume, inputs=[resume_input, job_input], outputs=[resume_md, resume_edit, suggestions])
@@ -297,7 +330,7 @@ app.launch(server_name="0.0.0.0", server_port=8080)
 #             gr.Markdown("### 📬 Questions? / Comments? / Feedback?")
 #             gr.HTML(
 #                 """
-#                   <p>📧 <a href="mailto:support@freeresumebooster.com">support@freeresumebooster.com</a></p>
+#                   <p>📧 <a href="mailto:support@resumewhip.com">support@resumewhip.com</a></p>
 #                 """
 #             )
 #             gr.Markdown("### 🛡️ Your Data Is Neither Stored, Shared, Nor Sold. Ever. At Any Time.")
@@ -325,13 +358,13 @@ app.launch(server_name="0.0.0.0", server_port=8080)
 #             gr.HTML(
 #                 """
 #                 <div style="display:flex; flex-direction:row; gap:15px; justify-content:center;">
-#                     <a href="https://www.facebook.com/sharer/sharer.php?u=https://freeresumebooster.com" target="_blank">
+#                     <a href="https://www.facebook.com/sharer/sharer.php?u=https://resumewhip.com" target="_blank">
 #                         <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/facebook.svg" alt="Facebook" style="width:32px; height:32px;">
 #                     </a>
-#                     <a href="https://twitter.com/intent/tweet?url=https://freeresumebooster.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
+#                     <a href="https://twitter.com/intent/tweet?url=https://resumewhip.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
 #                         <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg" alt="X" style="width:32px; height:32px;">
 #                     </a>
-#                     <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://freeresumebooster.com" target="_blank">
+#                     <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://resumewhip.com" target="_blank">
 #                         <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" alt="LinkedIn" style="width:32px; height:32px;">
 #                     </a>
 #                 </div>
@@ -341,7 +374,7 @@ app.launch(server_name="0.0.0.0", server_port=8080)
 #         # --- Main App ---
 #         with gr.Column(scale=5):
 #             # Header
-#             gr.Markdown("<h1 style  = 'text-align:center; color:#1e90ff;'>🥇 Welcome To Freeresumebooster.com!!</h1>")
+#             gr.Markdown("<h1 style  = 'text-align:center; color:#1e90ff;'>🥇 Welcome To resumewhip.com!!</h1>")
 #             gr.Markdown("""
 #                         <center>Your <b><i>free resume-optimizing app</i></b> focused on beating those 
 #                         stupid ATS filters to land you actual interviews!
@@ -459,13 +492,13 @@ app.launch(server_name="0.0.0.0", server_port=8080)
 #         #     gr.HTML(
 #         #         """
 #         #         <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
-#         #             <a href="https://www.facebook.com/sharer/sharer.php?u=https://freeresumebooster.com" target="_blank">
+#         #             <a href="https://www.facebook.com/sharer/sharer.php?u=https://resumewhip.com" target="_blank">
 #         #                 <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/facebook.svg" alt="Facebook" style="width:32px; height:32px;">
 #         #             </a>
-#         #             <a href="https://twitter.com/intent/tweet?url=https://freeresumebooster.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
+#         #             <a href="https://twitter.com/intent/tweet?url=https://resumewhip.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
 #         #                 <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg" alt="X" style="width:32px; height:32px;">
 #         #             </a>
-#         #             <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://freeresumebooster.com" target="_blank">
+#         #             <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://resumewhip.com" target="_blank">
 #         #                 <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" alt="LinkedIn" style="width:32px; height:32px;">
 #         #             </a>
 #         #         </div>
@@ -583,7 +616,7 @@ app.launch(server_name="0.0.0.0", server_port=8080)
 # #             gr.Markdown("### 📬 Contact Us")
 # #             gr.HTML(
 # #                 """<p>Have feedback or suggestions? Reach out anytime:</p>
-# #                    <p>📧 <a href="mailto:support@freeresumebooster.com">support@freeresumebooster.com</a></p>
+# #                    <p>📧 <a href="mailto:support@resumewhip.com">support@resumewhip.com</a></p>
 # #                 """
 # #             )
 
