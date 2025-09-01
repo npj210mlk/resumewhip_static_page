@@ -125,13 +125,21 @@ Start A New Page (copy/paste entire line below):
 
             gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Tools In the Toolkit</h2>")
 
-            with gr.Tab("Job Validator"):
-                jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
-                jd_title = gr.Textbox(label="Job Title")
-                jd_validate_btn = gr.Button("✅ Validate Job")
-                jd_validation_result = gr.Markdown()
+            with gr.Tab("📋 Job Validator"):
+                with gr.Row():
+                    with gr.Column():
+                        resume_input = gr.File(label="Upload Your Resume")
+                        job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
+                    with gr.Column():
+                        jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
+                        jd_title = gr.Textbox(label="Job Title")
+                        company_input = gr.Textbox(label="Company Name")  # added for social check
 
-                def validate_job(posting_date, company, job_title, job_description):
+                validate_btn = gr.Button("✅ Validate Job")
+                validation_output = gr.Markdown(label="Job Validation Results")
+
+                def full_job_validator(resume_file, job_description, posting_date, company, job_title):
+                    # --- Existing job validation logic ---
                     recent = is_posting_recent(posting_date)
                     template_flag = template_detector(job_description)
                     urgency_flag = detect_urgency_language(job_description)
@@ -143,17 +151,55 @@ Start A New Page (copy/paste entire line below):
                     report += f"\n### 🤖 Template Language:\n"
                     report += "⚠️ Generic/template language detected - could be just harvesting candidates.\n" if template_flag else "✅ Posting looks specific enough to be an actual need.\n"
 
+                    report += f"\n### ⚡ Urgency Language:\n"
+                    report += "⚠️ Urgency words detected.\n" if urgency_flag else "✅ No urgency language detected.\n"
+
                     report += f"\n### 🔍 Social Media Mentions:\n"
                     report += f"- [Search on X](<{social_links['x']}>)\n"
                     report += f"- [Search on LinkedIn](<{social_links['linkedin']}>)\n"
 
+                    # --- Optional: Resume processing ---
+                    if resume_file is not None:
+                        resume_report = process_resume(resume_file, job_description)
+                        report += f"\n### 📄 Resume Fit Analysis:\n{resume_report}\n"
+
                     return report
 
-                jd_validate_btn.click(
-                    fn=validate_job,
-                    inputs=[jd_date, company_input, jd_title, job_input],
-                    outputs=jd_validation_result
+                validate_btn.click(
+                    full_job_validator,
+                    inputs=[resume_input, job_desc_input, jd_date, company_input, jd_title],
+                    outputs=validation_output
                 )
+
+            # with gr.Tab("Job Validator"):
+            #     jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
+            #     jd_title = gr.Textbox(label="Job Title")
+            #     jd_validate_btn = gr.Button("✅ Validate Job")
+            #     jd_validation_result = gr.Markdown()
+
+            #     def validate_job(posting_date, company, job_title, job_description):
+            #         recent = is_posting_recent(posting_date)
+            #         template_flag = template_detector(job_description)
+            #         urgency_flag = detect_urgency_language(job_description)
+            #         social_links = mentioned_on_socials(company, job_title)
+
+            #         report = f"### 🕒 Posting Date Check:\n"
+            #         report += "✅ Job appears to be recent.\n" if recent else "⚠️ Job may be outdated.\n"
+
+            #         report += f"\n### 🤖 Template Language:\n"
+            #         report += "⚠️ Generic/template language detected - could be just harvesting candidates.\n" if template_flag else "✅ Posting looks specific enough to be an actual need.\n"
+
+            #         report += f"\n### 🔍 Social Media Mentions:\n"
+            #         report += f"- [Search on X](<{social_links['x']}>)\n"
+            #         report += f"- [Search on LinkedIn](<{social_links['linkedin']}>)\n"
+
+            #         return report
+
+            #     jd_validate_btn.click(
+            #         fn=validate_job,
+            #         inputs=[jd_date, company_input, jd_title, job_input],
+            #         outputs=jd_validation_result
+            #     )
             
             with gr.Tab("Resume Optimizer"):
                 run_resume = gr.Button("🧙 Whip Up Some Resume Magic!")
