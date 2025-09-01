@@ -32,6 +32,9 @@ if not open_apikey:
 else:
     logging.info("OpenAI API key was successfully loaded from your .env file.")
 
+# global client instantiation so we can use it in all functions
+client = OpenAI(api_key=open_apikey)
+
 # ===== Resume Functions =====
 
 # extract the resume text
