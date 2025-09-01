@@ -1,4 +1,5 @@
 gradio
+docx
 requests
 pdfplumber
 python-dotenv
