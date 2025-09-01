@@ -203,7 +203,7 @@ Start A New Page (copy/paste entire line below):
             
             with gr.Tab("Resume Optimizer"):
                 run_resume = gr.Button("🧙 Whip Up Some Resume Magic!")
-                # resume_md = gr.Markdown()
+                resume_md = gr.Markdown()
                 resume_edit = gr.Textbox(label="Optimized Resume Above. Make Any Edits In This Box. Or Don't - Up To You.", lines=10)
                 suggestions = gr.Markdown(label="Suggestions")
                 export_resume_btn = gr.Button("⬇ Download as PDF")
