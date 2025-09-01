@@ -127,9 +127,9 @@ Start A New Page (copy/paste entire line below):
 
             with gr.Tab("📋 Job Validator"):
                 with gr.Row():
-                    with gr.Column():
-                        resume_input = gr.File(label="Upload Your Resume")
-                        job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
+                    # with gr.Column():
+                    #     resume_input = gr.File(label="Upload Your Resume")
+                    #     job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
                     with gr.Column():
                         jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
                         jd_title = gr.Textbox(label="Job Title")
@@ -167,7 +167,7 @@ Start A New Page (copy/paste entire line below):
 
                 validate_btn.click(
                     full_job_validator,
-                    inputs=[resume_input, job_desc_input, jd_date, company_input, jd_title],
+                    inputs=[resume_input, job_input, jd_date, company_input, jd_title],
                     outputs=validation_output
                 )
 
