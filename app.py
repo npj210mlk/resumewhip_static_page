@@ -154,15 +154,15 @@ Start A New Page (copy/paste entire line below):
                 )
             
             with gr.Tab("Resume Optimizer"):
-                run_resume = gr.Button("🧙 Optimize My Resume (This Is What Your Resume Will Look Like w/o Any Edits.)")
-                resume_md = gr.Markdown()
-                resume_edit = gr.Textbox(label="Optimized Resume Above. Make Any Edits In This Box. Or Don't. Up To You.", lines=10)
+                run_resume = gr.Button("🧙 Whip Up Some Resume Magic!")
+                # resume_md = gr.Markdown()
+                resume_edit = gr.Textbox(label="Optimized Resume Above. Make Any Edits In This Box. Or Don't - Up To You.", lines=10)
                 suggestions = gr.Markdown(label="Suggestions")
                 export_resume_btn = gr.Button("⬇ Download as PDF")
                 export_resume_result = gr.File()
 
             with gr.Tab("Cover Letter Generator"):
-                run_cover = gr.Button("📝 Generate My Cover Letter")
+                run_cover = gr.Button("📝 Write My Cover Letter")
                 cover_output = gr.Textbox(label="Cover Letter", lines=12)
                 export_cover_btn = gr.Button("⬇ Download as PDF")
                 export_cover_result = gr.File()
@@ -202,8 +202,20 @@ Start A New Page (copy/paste entire line below):
 
             # Cover letter events
             def generate_cover_letter(resume_file, job_desc):
-                with open(resume_file.name, "r", encoding="utf-8") as f:
-                    resume_txt = f.read()
+                resume_text = ""
+
+                # for pdf uploads
+                if resume_file.name.endswith(".pdf"):
+                    with pdfplumber.open(resume_file.name) as pdf:
+                        for page in pdf.pages:
+                            resume_txt += page.extract_text() or ""
+                
+                # .txt, .md, or other file handling
+                else:
+                    with open(resume_file.name, "r", encoding="utf-8") as f:
+                        resume_txt = f.read()
+                
+                # build prompt / call
                 prompt = cover_letter_prompt_creator(resume_txt, job_desc)
                 return get_cover_response(prompt)
 
