@@ -4,6 +4,7 @@ import io
 import pdfplumber
 import requests
 from new_functions import (
+    extract_resume_text,
     sanitize_input,
     prompt_creator,
     get_resume_response,
@@ -35,7 +36,7 @@ with gr.Blocks() as app:
         with gr.Column(scale=1):
             with gr.Accordion("🦮 How To Use This Website", open = False):
                 gr.Markdown("""
-                        1.) Amplify Your Existing Resume To 11 - list every single skill and experience you have
+                        1.) Crank Your Existing Resume To 11 - list every single skill and experience you have
                             (this is how our AI writes your resume and scores your chances);  
                         2.) Follow the Prompts To Load the Requested Info;  
                         3.) Choose Your Tool (you don't have to use all 3);  
