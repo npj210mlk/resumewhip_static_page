@@ -134,13 +134,14 @@ Start A New Page (copy/paste entire line below):
                 def validate_job(posting_date, company, job_title, job_description):
                     recent = is_posting_recent(posting_date)
                     template_flag = template_detector(job_description)
+                    urgency_flag = detect_urgency_language(job_description)
                     social_links = mentioned_on_socials(company, job_title)
 
                     report = f"### 🕒 Posting Date Check:\n"
                     report += "✅ Job appears to be recent.\n" if recent else "⚠️ Job may be outdated.\n"
 
                     report += f"\n### 🤖 Template Language:\n"
-                    report += "⚠️ Generic/template language detected.\n" if template_flag else "✅ Looks specific.\n"
+                    report += "⚠️ Generic/template language detected - could be just harvesting candidates.\n" if template_flag else "✅ Posting looks specific enough to be an actual need.\n"
 
                     report += f"\n### 🔍 Social Media Mentions:\n"
                     report += f"- [Search on X](<{social_links['x']}>)\n"
