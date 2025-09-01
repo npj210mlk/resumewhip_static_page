@@ -1,7 +1,7 @@
 # imports for both Resume and Cover Letter Optimizers
 import os
 import numpy as np
-import docx
+import python-docx
 import uuid
 import re
 import requests
