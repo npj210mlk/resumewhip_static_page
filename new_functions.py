@@ -1,5 +1,6 @@
 # imports for both Resume and Cover Letter Optimizers
 import os
+import docx
 import uuid
 import re
 import requests
@@ -31,6 +32,33 @@ else:
 
 # ===== Resume Functions =====
 
+# extract the resume text
+def extract_resume_text(file_path: str) -> str:
+    """
+    Extracts text from PDF, DOCX, MD, or TXT resumes.
+    """
+    resume_txt = ""
+
+    if file_path.lower().endswith(".pdf"):
+        with pdfplumber.open(file_path) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    resume_txt += text + "\n"
+
+    elif file_path.lower().endswith(".docx"):
+        doc = docx.Document(file_path)
+        for para in doc.paragraphs:
+            resume_txt += para.text + "\n"
+
+    elif file_path.lower().endswith((".md", ".txt")):
+        with open(file_path, "r", encoding="utf-8") as f:
+            resume_txt = f.read()
+
+    else:
+        raise ValueError("Sorry - we don't support that type of file. Please upload a file with either the .pdf, .docx, .md, or .txt extensions.")
+
+    return resume_txt.strip()
 # create the gpt_resumes folder
 os.makedirs("gpt_resumes", exist_ok = True)
 
@@ -216,29 +244,41 @@ def process_resume(resume_file_path, job_desc_string):
     """
     try:
         # Read resume content based on the particular file type
-        resume_txt = " "
-        if resume_file_path.lower().endswith(".pdf"):
-            with pdfplumber.open(resume_file_path) as pdf:
-                for page in pdf.pages:
-                    text = page.extract_text()
-                    if text: 
-                        resume_txt += text + "\n"
-        elif resume_file_path.lower().endswith(".md"):
-            with open(resume_file_path, "r", encoding="utf-8") as f:
-                resume_txt = f.read()
-        else: 
-            return [
-                "⚠️ Unsupported file type. Please upload a .pdf or .md resume.",
-                "",
-                "## Additional Suggestions\n\nOnly PDF and Markdown formats are supported at this time."
-            ] 
+        resume_txt = extract_resume_text(resume_file_path)
+        # resume_txt = " "
+        # if resume_file_path.lower().endswith(".pdf"):
+        #     with pdfplumber.open(resume_file_path) as pdf:
+        #         for page in pdf.pages:
+        #             text = page.extract_text()
+        #             if text: 
+        #                 resume_txt += text + "\n"
+
+        # elif resume_file_path.lower().endswith(".docx"):
+        #     doc = docx.Document(file_path)
+        #     for para in doc.paragraphs:
+        #         resume_txt += para.text + "\n"
+
+        # elif resume_file_path.lower().endswith((".md", ".txt")):
+        #     with open(resume_file_path, "r", encoding="utf-8") as f:
+        #         resume_txt = f.read()
+        
+        # else: 
+        #     raise ValueError("Sorry - we don't support that type of file. Please upload a file with either the .pdf, .docx, .md, or .txt extensions.")
+        
+        # return resume_txt.strip()
+        #     return [
+        #         "⚠️ Unsupported file type. Please upload a .pdf or .md resume.",
+        #         "",
+        #         "## Additional Suggestions\n\nOnly PDF and Markdown formats are supported at this time."
+        #     ] 
+
         if not resume_txt.strip():
             return [
                 "⚠️ Either that resume file is empty, or we couldn't read it.",
                 " ",
                 "## Additional Suggestions\n\nThat resume file you gave us seems to be empty. Please check it again for content."
             ]
-        # Create prompt from inputs
+        #Create prompt from inputs
         prompt = prompt_creator(resume_txt, job_desc_string)
         # Get AI response from LLM
         response = get_resume_response(prompt)
