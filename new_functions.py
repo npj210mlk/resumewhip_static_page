@@ -1,11 +1,13 @@
 # imports for both Resume and Cover Letter Optimizers
 import os
+import numpy as np
 import docx
 import uuid
 import re
 import requests
 import pdfplumber
 import logging
+from sklearn.metrics.pairwise import cosine_similarity
 from dotenv import load_dotenv
 from openai import OpenAI
 from markdown import markdown
@@ -59,6 +61,30 @@ def extract_resume_text(file_path: str) -> str:
         raise ValueError("Sorry - we don't support that type of file. Please upload a file with either the .pdf, .docx, .md, or .txt extensions.")
 
     return resume_txt.strip()
+
+# embed the text with OpenAI
+def get_embedding(text: str):
+    """
+    Embeds the provided text
+    """
+    response = client.embeddings.create(
+        model = "text-embedding-3-small",
+        input = text
+    )
+
+    return response.data[0].embedding
+
+# scoring for similarity between resume and job description
+def calculate_resume_job_similarity(resume_txt: str, job_description: str) -> float:
+    """
+    Gives us the cosine similarity score between the resume and job description
+    provided by the user - thanks Shaw Talebi for the suggestion!
+    """
+    resume_embedding = np.array(get_embedding(resume_txt)).reshape(1, -1)
+    job_embedding = np.array(get_embedding(job_desc)).reshape(1, -1)
+    score = cosine_similarity(resume_embedding, job_embedding)[0][0]
+    return round(float(score), 3)
+
 # create the gpt_resumes folder
 os.makedirs("gpt_resumes", exist_ok = True)
 
@@ -278,10 +304,24 @@ def process_resume(resume_file_path, job_desc_string):
                 " ",
                 "## Additional Suggestions\n\nThat resume file you gave us seems to be empty. Please check it again for content."
             ]
-        #Create prompt from inputs
+        
+        # Compute similarity
+        similarity_score = calculate_resume_job_similarity(resume_txt, job_desc_string)
+        
+        # Create prompt from inputs
         prompt = prompt_creator(resume_txt, job_desc_string)
+        
         # Get AI response from LLM
         response = get_resume_response(prompt)
+
+        # Add similarity score to the response
+        match_info = f"### 🔍 How Well Does Your Resume Match the Job Description? **{similarity_score * 100:.1f}%**\n"
+
+        return [response, "", match_info]
+    
+    except Exception as e:
+        return [f"Error: We Couldn't Process Your Resume: {e}", "", ""]
+
         # Check API call for errors
         if response.startswith("Error:"):
             return [response, " ", "## Additional Suggestions\n\nPlease see error message above."]
