@@ -27,7 +27,7 @@ with gr.Blocks() as app:
     # --- Header ---
     gr.Markdown("""
     <h1 style='text-align:center; color:#1e90ff;'>🥇 Welcome To ResumeWhip!!</h1>
-    <h2 style='text-align:center; color:#dd1eff;'>Where We Help You Land Your Next Job with the Help of AI!</h2> 
+    <h2 style='text-align:center; color:#dd1eff;'>Your One-Stop Resume Optimizer Shop!</h2> 
     <h3 style='text-align:center;'>Powerful Simplicity: Just Verify → Upload → Optimize → Apply!</h3>
     """)
 
