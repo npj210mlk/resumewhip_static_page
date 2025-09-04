@@ -127,9 +127,9 @@ Start A New Page (copy/paste entire line below):
 
             with gr.Tab("📋 Job Validator"):
                 with gr.Row():
-                    with gr.Column():
-                        resume_input = gr.File(label="Upload Your Resume")
-                        job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
+                    # with gr.Column():
+                        # resume_input = gr.File(label="Upload Your Resume")
+                        # job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
                     with gr.Column():
                         jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
                         jd_title = gr.Textbox(label="Job Title")
@@ -138,11 +138,11 @@ Start A New Page (copy/paste entire line below):
                 validate_btn = gr.Button("✅ Validate Job")
                 validation_output = gr.Markdown(label="Job Validation Results")
 
-                def full_job_validator(resume_file, job_description, posting_date, company, job_title):
+                def full_job_validator(resume_file, job_input, posting_date, company, job_title):
                     # --- Existing job validation logic ---
                     recent = is_posting_recent(posting_date)
-                    template_flag = template_detector(job_description)
-                    urgency_flag = detect_urgency_language(job_description)
+                    template_flag = template_detector(job_input)
+                    urgency_flag = detect_urgency_language(job_input)
                     social_links = mentioned_on_socials(company, job_title)
 
                     report = f"### 🕒 Posting Date Check:\n"
@@ -160,14 +160,14 @@ Start A New Page (copy/paste entire line below):
 
                     # --- Optional: Resume processing ---
                     if resume_file is not None:
-                        resume_report = process_resume(resume_file, job_description)
+                        resume_report = process_resume(resume_file, job_input)
                         report += f"\n### 📄 Resume Fit Analysis:\n{resume_report}\n"
 
                     return report
 
                 validate_btn.click(
                     full_job_validator,
-                    inputs=[resume_input, job_desc_input, jd_date, company_input, jd_title],
+                    inputs=[resume_input, job_input, jd_date, company_input, jd_title],
                     outputs=validation_output
                 )
 
@@ -203,7 +203,7 @@ Start A New Page (copy/paste entire line below):
             
             with gr.Tab("Resume Optimizer"):
                 run_resume = gr.Button("🧙 Whip Up Some Resume Magic!")
-                # resume_md = gr.Markdown()
+                resume_md = gr.Markdown()
                 resume_edit = gr.Textbox(label="Optimized Resume Above. Make Any Edits In This Box. Or Don't - Up To You.", lines=10)
                 suggestions = gr.Markdown(label="Suggestions")
                 export_resume_btn = gr.Button("⬇ Download as PDF")
@@ -249,7 +249,7 @@ Start A New Page (copy/paste entire line below):
             export_resume_btn.click(fn=export_resume, inputs=[resume_edit, company_input], outputs=[export_resume_result])
 
             # Cover letter events
-            def generate_cover_letter(resume_file, job_desc):
+            def generate_cover_letter(resume_file, job_input):
                 resume_text = ""
 
                 # for pdf uploads
@@ -264,7 +264,7 @@ Start A New Page (copy/paste entire line below):
                         resume_txt = f.read()
                 
                 # build prompt / call
-                prompt = cover_letter_prompt_creator(resume_txt, job_desc)
+                prompt = cover_letter_prompt_creator(resume_txt, job_input)
                 return get_cover_response(prompt)
 
             def export_cover_handler(cover_text, company):
