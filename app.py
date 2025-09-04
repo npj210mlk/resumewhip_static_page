@@ -130,6 +130,8 @@ Start A New Page (copy/paste entire line below):
                     # with gr.Column():
                     #     resume_input = gr.File(label="Upload Your Resume")
                     #     job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
+                        # resume_input = gr.File(label="Upload Your Resume")
+                        # job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
                     with gr.Column():
                         jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
                         jd_title = gr.Textbox(label="Job Title")
@@ -264,7 +266,8 @@ Start A New Page (copy/paste entire line below):
                         resume_txt = f.read()
                 
                 # build prompt / call
-                prompt = cover_letter_prompt_creator(resume_txt, job_)
+                prompt = cover_letter_prompt_creator(resume_txt, job_input)
+                prompt = cover_letter_prompt_creator(resume_txt, job_input)
                 return get_cover_response(prompt)
 
             def export_cover_handler(cover_text, company):
