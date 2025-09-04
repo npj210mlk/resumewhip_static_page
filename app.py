@@ -128,6 +128,8 @@ Start A New Page (copy/paste entire line below):
             with gr.Tab("📋 Job Validator"):
                 with gr.Row():
                     # with gr.Column():
+                    #     resume_input = gr.File(label="Upload Your Resume")
+                    #     job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
                         # resume_input = gr.File(label="Upload Your Resume")
                         # job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
                     with gr.Column():
