@@ -84,7 +84,7 @@ def calculate_resume_job_similarity(resume_txt: str, job_description: str) -> fl
     provided by the user - thanks Shaw Talebi for the suggestion!
     """
     resume_embedding = np.array(get_embedding(resume_txt)).reshape(1, -1)
-    job_embedding = np.array(get_embedding(job_desc)).reshape(1, -1)
+    job_embedding = np.array(get_embedding(job_description)).reshape(1, -1)
     score = cosine_similarity(resume_embedding, job_embedding)[0][0]
     return round(float(score), 3)
 
