@@ -249,7 +249,7 @@ Start A New Page (copy/paste entire line below):
             export_resume_btn.click(fn=export_resume, inputs=[resume_edit, company_input], outputs=[export_resume_result])
 
             # Cover letter events
-            def generate_cover_letter(resume_file, job_desc):
+            def generate_cover_letter(resume_file, job_input):
                 resume_text = ""
 
                 # for pdf uploads
@@ -264,7 +264,7 @@ Start A New Page (copy/paste entire line below):
                         resume_txt = f.read()
                 
                 # build prompt / call
-                prompt = cover_letter_prompt_creator(resume_txt, job_desc)
+                prompt = cover_letter_prompt_creator(resume_txt, job_)
                 return get_cover_response(prompt)
 
             def export_cover_handler(cover_text, company):
