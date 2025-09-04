@@ -138,11 +138,11 @@ Start A New Page (copy/paste entire line below):
                 validate_btn = gr.Button("✅ Validate Job")
                 validation_output = gr.Markdown(label="Job Validation Results")
 
-                def full_job_validator(resume_file, job_description, posting_date, company, job_title):
+                def full_job_validator(resume_file, job_input, posting_date, company, job_title):
                     # --- Existing job validation logic ---
                     recent = is_posting_recent(posting_date)
-                    template_flag = template_detector(job_description)
-                    urgency_flag = detect_urgency_language(job_description)
+                    template_flag = template_detector(job_input)
+                    urgency_flag = detect_urgency_language(job_input)
                     social_links = mentioned_on_socials(company, job_title)
 
                     report = f"### 🕒 Posting Date Check:\n"
@@ -160,7 +160,7 @@ Start A New Page (copy/paste entire line below):
 
                     # --- Optional: Resume processing ---
                     if resume_file is not None:
-                        resume_report = process_resume(resume_file, job_description)
+                        resume_report = process_resume(resume_file, job_input)
                         report += f"\n### 📄 Resume Fit Analysis:\n{resume_report}\n"
 
                     return report
