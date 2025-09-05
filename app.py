@@ -252,32 +252,32 @@ Start A New Page (copy/paste entire line below):
             # Cover letter events
             def generate_cover_letter(resume_file, job_input):
                 if resume_file is None or not job_input or job_input.strip() == "":
-                    return "⚠️ Please upload a resume and paste a job description first."
+                    return "⚠️ Sorry, but the tools need both a resume and pasted job description before they can do you any good."
 
                 # Normalize extension safely
                 fname = getattr(resume_file, "name", "")
                 ext = fname.lower().split(".")[-1] if "." in fname else ""
 
             # Read resume text from PDF or text-like files
-            resume_txt = ""
-            try:
-                if ext == "pdf":
-                    with pdfplumber.open(fname or resume_file) as pdf:
-                        for page in pdf.pages:
-                            resume_txt += (page.extract_text() or "")
-                else:
-            # Fallback: treat as text/markdown
-                    with open(fname, "r", encoding="utf-8") as f:
-                        resume_txt = f.read()
-            except Exception as e:
-                return f"😐 Ruh-roh! Problem with the resume: {e}"
+                resume_txt = ""
+                try:
+                    if ext == "pdf":
+                        with pdfplumber.open(fname or resume_file) as pdf:
+                            for page in pdf.pages:
+                                resume_txt += (page.extract_text() or "")
+                    else:
+                    # Fallback: treat as text/markdown
+                        with open(fname, "r", encoding="utf-8") as f:
+                            resume_txt = f.read()
+                except Exception as e:
+                    return f"😐 Ruh-roh! Problem with the resume: {e}"
 
-            prompt = cover_letter_prompt_creator(resume_txt, job_input)
-            return get_cover_response(prompt)
+                prompt = cover_letter_prompt_creator(resume_txt, job_input)
+                return get_cover_response(prompt)
 
 
             run_cover.click(fn=generate_cover_letter, inputs=[resume_input, job_input], outputs=[cover_output])
-            export_cover_btn.click(fn=export_cover_handler, inputs=[cover_output, company_input], outputs=[export_cover_result])
+            export_cover_btn.click(fn=save_cover_letter, inputs=[cover_output, company_input], outputs=[export_cover_result])
 
     # --- Footer ---
     # gr.Markdown("""
