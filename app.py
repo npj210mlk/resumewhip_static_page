@@ -97,7 +97,6 @@ Start A New Page (copy/paste entire line below):
              <img src="https://cdn.simpleicons.org/reddit/FF4500" alt="Reddit" style="width:32px; height:32px;">
         </a>
     </div>
-</div>
 """)
 #             gr.Markdown("### 💸 Donations appreciated... only if we've helped:")
 #             gr.HTML("""
@@ -119,8 +118,8 @@ Start A New Page (copy/paste entire line below):
         # --- Main App ---
         with gr.Column(scale=5):
             with gr.Row():
-                resume_input = gr.File(label="📝 Upload Your Resume Here")
-                company_input = gr.Textbox(label="🏢 Drop In the Company Name", placeholder="e.g., Data Clymer")
+                resume_input = gr.File(label="📝 Upload Your Resume Here", file_types = [".pdf", ".md", ".docx", ".txt"])
+                company_input = gr.Textbox(label="🏢 Type In the Company Name", placeholder="e.g., ING Partners")
                 job_input = gr.Textbox(label="🔬 Paste Entire Job Description", lines=8)
 
             gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Tools In the Toolkit</h2>")
@@ -132,15 +131,15 @@ Start A New Page (copy/paste entire line below):
                     #     job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
                         # resume_input = gr.File(label="Upload Your Resume")
                         # job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
-                    with gr.Column():
+                    # with gr.Column():
                         jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
                         jd_title = gr.Textbox(label="Job Title")
-                        company_input = gr.Textbox(label="Company Name")  # added for social check
+                        jd_company = gr.Textbox(label="Company Name")  # added for social check
 
-                validate_btn = gr.Button("✅ Validate Job")
+                validate_btn = gr.Button("✅ Validate Job - A Quick Check To See If It's Legitimate")
                 validation_output = gr.Markdown(label="Job Validation Results")
 
-                def full_job_validator(resume_file, job_input, posting_date, company, job_title):
+                def full_job_validator(resume_file, job_input_text, posting_date, company, job_title):
                     # --- Existing job validation logic ---
                     recent = is_posting_recent(posting_date)
                     template_flag = template_detector(job_input)
@@ -148,28 +147,28 @@ Start A New Page (copy/paste entire line below):
                     social_links = mentioned_on_socials(company, job_title)
 
                     report = f"### 🕒 Posting Date Check:\n"
-                    report += "✅ Job appears to be recent.\n" if recent else "⚠️ Job may be outdated.\n"
+                    report += "✅ Job appears to be recent enough.\nNot a lot of jobs are still looking after 30 days." if recent else "⚠️ Warning! Job may be outdated.\n"
 
                     report += f"\n### 🤖 Template Language:\n"
-                    report += "⚠️ Generic/template language detected - could be just harvesting candidates.\n" if template_flag else "✅ Posting looks specific enough to be an actual need.\n"
+                    report += "⚠️ Generic/template language detected - could be just harvesting data and / or candidates.\n" if template_flag else "✅ Posting looks specific enough to be an actual need.\n"
 
                     report += f"\n### ⚡ Urgency Language:\n"
-                    report += "⚠️ Urgency words detected.\n" if urgency_flag else "✅ No urgency language detected.\n"
+                    report += "⚠️ Urgency words detected.\nProceed with caution, especially if the post is older than 30 days." if urgency_flag else "✅ No urgency language detected.\n"
 
                     report += f"\n### 🔍 Social Media Mentions:\n"
                     report += f"- [Search on X](<{social_links['x']}>)\n"
                     report += f"- [Search on LinkedIn](<{social_links['linkedin']}>)\n"
 
-                    # --- Optional: Resume processing ---
-                    if resume_file is not None:
-                        resume_report = process_resume(resume_file, job_input)
-                        report += f"\n### 📄 Resume Fit Analysis:\n{resume_report}\n"
+                    # # --- Optional: Resume processing ---
+                    # if resume_file is not None:
+                    #     resume_report = process_resume(resume_file, job_input)
+                    #     report += f"\n### 📄 Resume Fit Analysis:\n{resume_report}\n"
 
                     return report
 
                 validate_btn.click(
                     full_job_validator,
-                    inputs=[resume_input, job_input, jd_date, company_input, jd_title],
+                    inputs=[resume_input, job_input, jd_date, jd_company, jd_title],
                     outputs=validation_output
                 )
 
@@ -252,27 +251,30 @@ Start A New Page (copy/paste entire line below):
 
             # Cover letter events
             def generate_cover_letter(resume_file, job_input):
-                resume_text = ""
+                if resume_file is None or not job_input or job_input.strip() == "":
+                    return "⚠️ Please upload a resume and paste a job description first."
 
-                # for pdf uploads
-                if resume_file.name.endswith(".pdf"):
-                    with pdfplumber.open(resume_file.name) as pdf:
+                # Normalize extension safely
+                fname = getattr(resume_file, "name", "")
+                ext = fname.lower().split(".")[-1] if "." in fname else ""
+
+            # Read resume text from PDF or text-like files
+            resume_txt = ""
+            try:
+                if ext == "pdf":
+                    with pdfplumber.open(fname or resume_file) as pdf:
                         for page in pdf.pages:
-                            resume_txt += page.extract_text() or ""
-                
-                # .txt, .md, or other file handling
+                            resume_txt += (page.extract_text() or "")
                 else:
-                    with open(resume_file.name, "r", encoding="utf-8") as f:
+            # Fallback: treat as text/markdown
+                    with open(fname, "r", encoding="utf-8") as f:
                         resume_txt = f.read()
-                
-                # build prompt / call
-                prompt = cover_letter_prompt_creator(resume_txt, job_input)
-                return get_cover_response(prompt)
+            except Exception as e:
+                return f"😐 Ruh-roh! Problem with the resume: {e}"
 
-            def export_cover_handler(cover_text, company):
-                pdf, md = save_cover_letter(cover_text, company)
-                return pdf 
-                # f"✅ PDF saved at: `{pdf}`" if pdf else "❌ Failed to export."
+            prompt = cover_letter_prompt_creator(resume_txt, job_input)
+            return get_cover_response(prompt)
+
 
             run_cover.click(fn=generate_cover_letter, inputs=[resume_input, job_input], outputs=[cover_output])
             export_cover_btn.click(fn=export_cover_handler, inputs=[cover_output, company_input], outputs=[export_cover_result])
@@ -286,7 +288,7 @@ Start A New Page (copy/paste entire line below):
     # """)
 
 # Launch
-app.launch(server_name="0.0.0.0", server_port=8080)
+app.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", "8080")))
 
 # # Round 3
 # import gradio as gr
