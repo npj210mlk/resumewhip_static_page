@@ -1,5 +1,6 @@
 # Round 4
 import gradio as gr
+import os
 import io
 import pdfplumber
 import requests
