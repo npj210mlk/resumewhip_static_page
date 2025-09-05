@@ -135,28 +135,27 @@ Start A New Page (copy/paste entire line below):
                     # with gr.Column():
                         jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
                         jd_title = gr.Textbox(label="Job Title")
-                        jd_company = gr.Textbox(label="Company Name")  # added for social check
 
                 validate_btn = gr.Button("✅ Validate Job - A Quick Check To See If It's Legitimate")
                 validation_output = gr.Markdown(label="Job Validation Results")
 
-                def full_job_validator(resume_file, job_input_text, posting_date, company, job_title):
+                def full_job_validator(job_input_text, posting_date, company, job_title):
                     # --- Existing job validation logic ---
                     recent = is_posting_recent(posting_date)
-                    template_flag = template_detector(job_input)
-                    urgency_flag = detect_urgency_language(job_input)
+                    template_flag = template_detector(job_input_text)
+                    urgency_flag = detect_urgency_language(job_input_text)
                     social_links = mentioned_on_socials(company, job_title)
 
-                    report = f"### 🕒 Posting Date Check:\n"
+                    report = "### 🕒 Posting Date Check:\n"
                     report += "✅ Job appears to be recent enough.\nNot a lot of jobs are still looking after 30 days." if recent else "⚠️ Warning! Job may be outdated.\n"
 
-                    report += f"\n### 🤖 Template Language:\n"
+                    report += "\n### 🤖 Template Language:\n"
                     report += "⚠️ Generic/template language detected - could be just harvesting data and / or candidates.\n" if template_flag else "✅ Posting looks specific enough to be an actual need.\n"
 
-                    report += f"\n### ⚡ Urgency Language:\n"
+                    report += "\n### ⚡ Urgency Language:\n"
                     report += "⚠️ Urgency words detected.\nProceed with caution, especially if the post is older than 30 days." if urgency_flag else "✅ No urgency language detected.\n"
 
-                    report += f"\n### 🔍 Social Media Mentions:\n"
+                    report += "\n### 🔍 Social Media Mentions:\n"
                     report += f"- [Search on X](<{social_links['x']}>)\n"
                     report += f"- [Search on LinkedIn](<{social_links['linkedin']}>)\n"
 
@@ -169,7 +168,7 @@ Start A New Page (copy/paste entire line below):
 
                 validate_btn.click(
                     full_job_validator,
-                    inputs=[resume_input, job_input, jd_date, jd_company, jd_title],
+                    inputs=[job_input, jd_date, company_input, jd_title],
                     outputs=validation_output
                 )
 
@@ -204,15 +203,15 @@ Start A New Page (copy/paste entire line below):
             #     )
             
             with gr.Tab("Resume Optimizer"):
-                run_resume = gr.Button("🧙 Whip Up Some Resume Magic!")
+                run_resume = gr.Button("🧙 Click Here To Whip Up Some Resume Magic!")
                 resume_md = gr.Markdown()
-                resume_edit = gr.Textbox(label="Optimized Resume Above. Make Any Edits In This Box. Or Don't - Up To You.", lines=10)
+                resume_edit = gr.Textbox(label="A Preview of Your Optimized Resume Is Above. You Can Edit It In This Box. Or Don't - It's Up To You.", lines=10)
                 suggestions = gr.Markdown(label="Suggestions")
                 export_resume_btn = gr.Button("⬇ Download as PDF")
                 export_resume_result = gr.File()
 
             with gr.Tab("Cover Letter Generator"):
-                run_cover = gr.Button("📝 Write My Cover Letter")
+                run_cover = gr.Button("📝 Click Here To Whip Up A Cover Letter")
                 cover_output = gr.Textbox(label="Cover Letter", lines=12)
                 export_cover_btn = gr.Button("⬇ Download as PDF")
                 export_cover_result = gr.File()
