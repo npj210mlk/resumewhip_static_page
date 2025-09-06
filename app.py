@@ -416,7 +416,6 @@ def stripe_webhook():
 
     return "", 200
 
-app.config(favicon_path = "/Users/nicholasjoseph/Desktop/ResumeApp/apple-touch-icon.png")
 # Launch
 if __name__ == "__main__":
     app.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", "8080")), title = "ResumeWhip")
