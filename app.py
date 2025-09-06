@@ -1,9 +1,12 @@
 # Round 4
 import gradio as gr
 import os
+import stripe
 import io
 import pdfplumber
 import requests
+import uuid
+from flask import request
 from new_functions import (
     extract_resume_text,
     sanitize_input,
@@ -24,6 +27,63 @@ from new_functions import (
 )
 from bs4 import BeautifulSoup 
 
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+PRICE_ID = "prod_T0NAPQ3cEPtCBN"
+
+# tracking credits / resumes
+user_credits = {}
+active_resumes = {}
+FREE_CREDITS = 3
+
+def get_user_id():
+    """
+    Gets user's id; if no login info provided, uses session-based ID.
+    If needed, replaces with real authentication later.
+    """
+    return str(uuid.uuid4())
+
+# create the permanent user id
+user_id = get_user_id()
+
+def run_resume_with_credits(resume_file, job_input):
+    user_id = get_user_id()
+    credits = user_credits.get(user_id, FREE_CREDITS)
+
+    # generate the resume's unique ID from uploaded file and job description
+    resume_name = getattr(resume_file, "name", "unknown")
+    new_resume_id = f"{resume_name}_{hash(job_input)}"
+
+    # run a check to see if it's a new resume (using a credit) or just an edit to the same one (not using any credits)
+    if active_resumes.get(user_id) != new_resume_id:
+        # make sure it's NOT an unlimited subscription
+        if credits != float("inf"):
+            if credits <= 0:
+                return ("⏰ Looks like your 3 free resumes have been completed, but we'd love to keep helping - our prompts are constantly being worked on to improve your likelihood of landing your dream job. Please consider subscribing - at only $5.99 / month, you get all the AI-powered resume optimization you want!", "", "")
+            user_credits[user_id] = credits - 1
+
+        active_resumes[user_id] = new_resume_id
+
+    # normal resume generation
+    return process_resume(resume_file, job_input)
+
+def create_checkout_session():
+    try:
+        session = stripe.checkout.Session.create(
+            client_reference_id = user_id,
+            payment_method_types = ['card'],
+            line_items = [{
+                'price' : PRICE_ID,
+                'quantity' : 1,
+            }],
+            mode = 'subscription', 
+            success_url = "https://www.resumewhip.com/success",
+            cancel_url = "https://www.resumewhip.com/cancel"
+        )
+
+        return session.url
+    except Exception as e:
+        return f"There was an error in creating your checkout session: {e}"
+
 with gr.Blocks() as app:
     # --- Header ---
     gr.Markdown("""
@@ -37,7 +97,7 @@ with gr.Blocks() as app:
         with gr.Column(scale=1):
             with gr.Accordion("🦮 How To Use This Website", open = False):
                 gr.Markdown("""
-                        1.) Crank Your Existing Resume To 11 - list every single skill and experience you have
+                        1.) Crank Your Existing Resume Up To 11 - list every single skill and experience you have
                             (this is how our AI writes your resume and scores your chances);  
                         2.) Follow the Prompts To Load the Requested Info;  
                         3.) Choose Your Tool (you don't have to use all 3);  
@@ -70,16 +130,21 @@ Link Your Website:
 
 Too "clumpy?" Break things up into separate lines, 
 by leaving two spaces where you want the line 
-to break (e.g. after a period).
+to break (e.g. after a period). Or, if you want to 
+break things up by drawing a line, just enter three
+dashes (---) where you want the section break (eg:
+between 'Summary' and 'Experience).
 
-Page cuts off where you don't want it to?
-Start A New Page (copy/paste entire line below):
+Page cuts off where you don't want it to (like, in
+the middle of your job responsibilities / successes)?
+Force A New Page by copy/pasting this entire line, and
+put it wherever you want:
 <div style="page-break-after: always; break-after: page;"></div>                      
                 """, language="markdown")
 
             gr.Markdown("[📬 Need Help? Have Suggestions?](mailto:support@resumewhip.com)")
 
-            gr.Markdown("### 🛡️ We never store, share, or sell your data. Ever.")
+            gr.Markdown("### 🛡️ We never store, share, or sell your data. Ever. All payments are handled through Stripe.")
 
             gr.Markdown("### #️⃣ Know someone who could use this in their job search? Share away!")
             gr.HTML("""
@@ -140,6 +205,18 @@ Start A New Page (copy/paste entire line below):
                 validation_output = gr.Markdown(label="Job Validation Results")
 
                 def full_job_validator(job_input_text, posting_date, company, job_title):
+                    # --- Warning for empty / missing company name ---
+                    if not company or company.strip() == "":
+                        return "⚠️ Please enter a company name so we can validate the job posting."
+                    
+                    # --- Warning if job_input_text is missing ---
+                    if not job_input_text or job_input_text.strip() == "":
+                        return "⚠️ Sorry, but we need a job description to help validate the job!"
+                    
+                    # --- Warning if posting_date is missing ---
+                    if not posting_date or posting_date.strip() == "":
+                        return "⚠️ Can you please give us a job posting date (or your best guess)? That would help alot."
+                    
                     # --- Existing job validation logic ---
                     recent = is_posting_recent(posting_date)
                     template_flag = template_detector(job_input_text)
@@ -215,6 +292,14 @@ Start A New Page (copy/paste entire line below):
                 cover_output = gr.Textbox(label="Cover Letter", lines=12)
                 export_cover_btn = gr.Button("⬇ Download as PDF")
                 export_cover_result = gr.File()
+            
+            buy_button = gr.Button("🛍️ Subscribe!")
+            buy_link = gr.Markdown()
+
+            buy_button.click(
+                fn = lambda: f"[Click here for Limitless AI-Powered Resume Optimization!]({create_checkout_session()})",
+                outputs = buy_link
+            )
 
             # with gr.Tab("Job Validator"):
             #     jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
@@ -246,7 +331,7 @@ Start A New Page (copy/paste entire line below):
             #     )
 
             # Resume events
-            run_resume.click(fn=process_resume, inputs=[resume_input, job_input], outputs=[resume_md, resume_edit, suggestions])
+            run_resume.click(fn=run_resume_with_credits, inputs=[resume_input, job_input], outputs=[resume_md, resume_edit, suggestions])
             export_resume_btn.click(fn=export_resume, inputs=[resume_edit, company_input], outputs=[export_resume_result])
 
             # Cover letter events
@@ -286,6 +371,27 @@ Start A New Page (copy/paste entire line below):
     # 🛡️ Your data is never stored, shared, or sold. Ever.
     # </p>
     # """)
+@app.route("/webhook", methods = ["POST"])
+
+def stripe_webhook():
+    payload = request.data
+    sig_header = request.headers.get("Stripe-Signature")
+    endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+    except Exception as e:
+        return str(e), 400
+    
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        user_id = session.get("client_reference_id", "guest")
+
+        # give user infinite ("inf") access
+        user_credits[user_id] = float("inf")
+
+    return "", 200
+
 
 # Launch
 app.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", "8080")))
