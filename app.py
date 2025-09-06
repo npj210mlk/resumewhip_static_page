@@ -6,7 +6,7 @@ import io
 import pdfplumber
 import requests
 import uuid
-from flask import request
+from flask import Flask, request
 from new_functions import (
     extract_resume_text,
     sanitize_input,
@@ -371,15 +371,21 @@ put it wherever you want:
     # 🛡️ Your data is never stored, shared, or sold. Ever.
     # </p>
     # """)
-@app.route("/webhook", methods = ["POST"])
+
+# set up Flask so we can set up the webhook
+flask_app = Flask(__name__)
+
+# Webhook so that once users pay, they have full access
+
+@flask_app.route("/webhook", methods = ["POST"])
 
 def stripe_webhook():
     payload = request.data
-    sig_header = request.headers.get("Stripe-Signature")
+    signature_header = request.headers.get("Stripe-Signature")
     endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
 
     try:
-        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+        event = stripe.Webhook.construct_event(payload, signature_header, endpoint_secret)
     except Exception as e:
         return str(e), 400
     
@@ -394,7 +400,9 @@ def stripe_webhook():
 
 
 # Launch
-app.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", "8080")))
+if __name__ == "__main__":
+    app.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", "8080")))
+    flask_app.run(host = "0.0.0.0", port = 8081)
 
 # # Round 3
 # import gradio as gr
