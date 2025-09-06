@@ -28,7 +28,7 @@ from new_functions import (
 from bs4 import BeautifulSoup 
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-PRICE_ID = "prod_T0NAPQ3cEPtCBN"
+PRICE_ID = "price_1S4MQICB2P1PAV6iRNFAcF36"
 
 # tracking credits / resumes
 user_credits = {}
@@ -102,7 +102,7 @@ with gr.Blocks() as app:
                         2.) Follow the Prompts To Load the Requested Info;  
                         3.) Choose Your Tool (you don't have to use all 3);  
                         4.) Proofread / Edit the Results Using the 'Copy/Pastes' below;  
-                        5.) Download Your File as PDF; and 
+                        5.) Download Your File as PDF; and  
                         6.) Apply!
                             """)
                 
@@ -128,23 +128,38 @@ How About A List?
 Link Your Website:
 [Your Website](https://www.yourwebsite.com)
 
-Too "clumpy?" Break things up into separate lines, 
-by leaving two spaces where you want the line 
-to break (e.g. after a period). Or, if you want to 
-break things up by drawing a line, just enter three
-dashes (---) where you want the section break (eg:
-between 'Summary' and 'Experience).
+Too "clumpy?" Break things up into separate lines
+with two spaces where you want the line break
+(e.g. after a period). 
+                        
+Or, if you want to break things up by drawing a
+a line, just enter three dashes (---) where you 
+want the section break (eg: between 'Summary' 
+and 'Experience).
 
-Page cuts off where you don't want it to (like, in
-the middle of your job responsibilities / successes)?
-Force A New Page by copy/pasting this entire line, and
-put it wherever you want:
+Page cuts off where you don't want it to?
+Force Create A New Page by copy/pasting this entire 
+line, andnput it wherever you want:
 <div style="page-break-after: always; break-after: page;"></div>                      
                 """, language="markdown")
 
-            gr.Markdown("[📬 Need Help? Have Suggestions?](mailto:support@resumewhip.com)")
+            gr.HTML("""
+        <div style="text-align:center; margin-top:20px;">
+            <a href="https://buy.stripe.com/cNi9ASgWl6C614l3Ja1Jm00" 
+               target="_blank" 
+               style="background-color:#635BFF; color:white; padding:15px 25px; 
+                      text-decoration:none; border-radius:8px; font-size:1.2em; 
+                      font-weight:bold; display:inline-block;">
+                🚀 Subscribe for Unlimited Access
+            </a>
+        </div>
+    """)
+            
+            gr.Markdown("### 🛡️ We never store, share, or sell your data.")
+            
+            gr.Markdown("### 🔐 All payments are handled through Stripe.")
 
-            gr.Markdown("### 🛡️ We never store, share, or sell your data. Ever. All payments are handled through Stripe.")
+            gr.Markdown("[📬 Need Help / Have Suggestions? Send Us An Email!](mailto:support@resumewhip.com)")
 
             gr.Markdown("### #️⃣ Know someone who could use this in their job search? Share away!")
             gr.HTML("""
@@ -201,7 +216,7 @@ put it wherever you want:
                         jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
                         jd_title = gr.Textbox(label="Job Title")
 
-                validate_btn = gr.Button("✅ Validate Job - A Quick Check To See If It's Legitimate")
+                validate_btn = gr.Button("✅ Validate Job - A Quick Check To See If the Job Post Is Legitimate")
                 validation_output = gr.Markdown(label="Job Validation Results")
 
                 def full_job_validator(job_input_text, posting_date, company, job_title):
@@ -293,7 +308,7 @@ put it wherever you want:
                 export_cover_btn = gr.Button("⬇ Download as PDF")
                 export_cover_result = gr.File()
             
-            buy_button = gr.Button("🛍️ Subscribe!")
+            buy_button = gr.Button("🛍️ Subscribe and Get All the Resumes You Want for Less Than $6/Month!")
             buy_link = gr.Markdown()
 
             buy_button.click(
