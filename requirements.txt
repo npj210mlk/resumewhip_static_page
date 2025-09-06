@@ -8,3 +8,4 @@ openai
 markdown
 weasyprint
 beautifulsoup4
+stripe
