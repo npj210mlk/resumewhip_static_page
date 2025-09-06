@@ -60,11 +60,12 @@ def run_resume_with_credits(resume_file, job_input):
             if credits <= 0:
                 return ("⏰ Looks like your 3 free resumes have been completed, but we'd love to keep helping - our prompts are constantly being worked on to improve your likelihood of landing your dream job. Please consider subscribing - at only $5.99 / month, you get all the AI-powered resume optimization you want!", "", "")
             user_credits[user_id] = credits - 1
-
+            credits -= 1
         active_resumes[user_id] = new_resume_id
 
     # normal resume generation
-    return process_resume(resume_file, job_input)
+    result =  process_resume(resume_file, job_input)
+    return (*result, f"Free resumes left: {'∞' if credits == float('inf') else credits}")
 
 def create_checkout_session():
     try:
@@ -87,9 +88,9 @@ def create_checkout_session():
 with gr.Blocks() as app:
     # --- Header ---
     gr.Markdown("""
-    <h1 style='text-align:center; color:#1e90ff;'>🥇 Welcome To ResumeWhip!!</h1>
-    <h2 style='text-align:center; color:#dd1eff;'>Your One-Stop Resume Optimizer Shop!</h2> 
-    <h3 style='text-align:center;'>Powerful Simplicity: Just Verify → Upload → Optimize → Apply!</h3>
+    <h1 style='text-align:center; color:#1e90ff;'>🏎️💨 Welcome To ResumeWhip!!</h1>
+    <h2 style='text-align:center; color:#dd1eff;'>Your One-Stop AI-Powered Resume Optimizer Shop</h2> 
+    <h3 style='text-align:center; color:#4bff1e;'>Powerful Simplicity: Just Verify → Upload → Optimize → Apply!</h3>          
     """)
 
     with gr.Row():
@@ -308,13 +309,15 @@ line, andnput it wherever you want:
                 export_cover_btn = gr.Button("⬇ Download as PDF")
                 export_cover_result = gr.File()
             
-            buy_button = gr.Button("🛍️ Subscribe and Get All the Resumes You Want for Less Than $6/Month!")
-            buy_link = gr.Markdown()
+            resume_counter = gr.Markdown("Free Resumes Left: 3")
+            
+            # buy_button = gr.Button("🛍️ Subscribe and Get All the Resumes You Want for Less Than $6/Month!")
+            # buy_link = gr.Markdown()
 
-            buy_button.click(
-                fn = lambda: f"[Click here for Limitless AI-Powered Resume Optimization!]({create_checkout_session()})",
-                outputs = buy_link
-            )
+            # buy_button.click(
+            #     fn = lambda: f"[Click here for Limitless AI-Powered Resume Optimization!]({create_checkout_session()})",
+            #     outputs = buy_link
+            # )
 
             # with gr.Tab("Job Validator"):
             #     jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
@@ -346,7 +349,7 @@ line, andnput it wherever you want:
             #     )
 
             # Resume events
-            run_resume.click(fn=run_resume_with_credits, inputs=[resume_input, job_input], outputs=[resume_md, resume_edit, suggestions])
+            run_resume.click(fn=run_resume_with_credits, inputs=[resume_input, job_input], outputs=[resume_md, resume_edit, suggestions, resume_counter])
             export_resume_btn.click(fn=export_resume, inputs=[resume_edit, company_input], outputs=[export_resume_result])
 
             # Cover letter events
@@ -416,7 +419,7 @@ def stripe_webhook():
 
 # Launch
 if __name__ == "__main__":
-    app.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", "8080")))
+    app.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", "8080")), title = "ResumeWhip")
     flask_app.run(host = "0.0.0.0", port = 8081)
 
 # # Round 3
