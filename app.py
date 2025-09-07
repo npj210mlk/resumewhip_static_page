@@ -196,12 +196,28 @@ line, andnput it wherever you want:
 # </div>
 # """)
 
-        # --- Main App ---
+        # --- Main App ---      
+        # Add CSS styling for the counter
+        gr.HTML("""
+                <style>
+                #resume-counter {
+                text-align: center;
+                font-size: 1.2em;
+                color: #1e90ff;
+                margin-bottom: 10px;
+                font-weight: bold;
+                }
+                </style>
+                """)
+        
         with gr.Column(scale=5):
             with gr.Row():
                 resume_input = gr.File(label="📝 Upload Your Resume Here", file_types = [".pdf", ".md", ".docx", ".txt"])
                 company_input = gr.Textbox(label="🏢 Type In the Company Name", placeholder="e.g., ING Partners")
                 job_input = gr.Textbox(label="🔬 Paste Entire Job Description", lines=8)
+                
+            with gr.Row():
+                resume_counter = gr.Markdown("### Free Resumes Left: 3", elem_id = "counter")
 
             gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Tools In the Toolkit</h2>")
 
@@ -297,7 +313,7 @@ line, andnput it wherever you want:
             with gr.Tab("Resume Optimizer"):
                 run_resume = gr.Button("🧙 Click Here To Whip Up Some Resume Magic!")
                 resume_md = gr.Markdown()
-                resume_edit = gr.Textbox(label="Abovee Is the Preview of Your Optimized Resume - If You Want, You Can Edit In This Box Below.", lines=10)
+                resume_edit = gr.Textbox(label="Above Is the Preview of Your Optimized Resume - If You Want, You Can Edit In This Box Below.", lines=10)
                 suggestions = gr.Markdown(label="Suggestions")
                 export_resume_btn = gr.Button("⬇ Download as PDF")
                 export_resume_result = gr.File()
@@ -307,8 +323,6 @@ line, andnput it wherever you want:
                 cover_output = gr.Textbox(label="Cover Letter", lines=12)
                 export_cover_btn = gr.Button("⬇ Download as PDF")
                 export_cover_result = gr.File()
-            
-            resume_counter = gr.Markdown("Free Resumes Left: 3")
             
             # buy_button = gr.Button("🛍️ Subscribe and Get All the Resumes You Want for Less Than $6/Month!")
             # buy_link = gr.Markdown()

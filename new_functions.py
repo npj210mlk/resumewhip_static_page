@@ -274,16 +274,16 @@ def save_cover_letter(response_string: str, company_name: str):
     slug = company_name.lower().replace(" ", "_").replace(".", "")
     uid = str(uuid.uuid4())[:8]
     pdf_path = f"gpt_cover_letters/{slug}_{uid}_optimized_cover_letter.pdf"
-    md_path = f"gpt_cover_letters/{slug}_{uid}_optimized_cover_letter.md"
+    # md_path = f"gpt_cover_letters/{slug}_{uid}_optimized_cover_letter.md"
 
     try:
-        with open(md_path, "w", encoding="utf-8") as f:
-            f.write(response_string)
+        # with open(md_path, "w", encoding="utf-8") as f:
+        #     f.write(response_string)
         HTML(string = markdown(response_string)).write_pdf(pdf_path)
-        return pdf_path, md_path
+        return pdf_path # , md_path
     except Exception as e:
         logging.error(f"Cover letter save failed: {e}")
-        return None, md_path
+        return None# , md_path
 
 # ========================
 # Job Validator Functions
