@@ -79,7 +79,11 @@ def create_checkout_session():
     except Exception as e:
         return f"There was an error creating your checkout session: {e}"
 
-with gr.Blocks(title = "ResumeWhip", favicon_path = "favicon.png") as app:
+with gr.Blocks(title = "ResumeWhip") as app:
+
+    gr.HTML("""<head>
+            <link rel="icon" href="favicon.png" type="image/png">
+            </head>""")
     # --- Header ---
     gr.Markdown("""
     <h1 style='text-align:center; color:#1e90ff;'>🏎️💨 Welcome To ResumeWhip!!</h1>
