@@ -4,7 +4,7 @@ import os
 import stripe
 import pdfplumber
 import uuid
-from flask import Flask, request
+from flask import Flask, request, make_response
 from new_functions import (
     extract_resume_text,
     sanitize_input,
@@ -24,6 +24,9 @@ from new_functions import (
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 PRICE_ID = "price_1S4MQICB2P1PAV6iRNFAcF36"
 
+# set up Flask for cookies to track free use
+flask_app = Flask(__name__)
+
 # tracking credits / resumes
 user_credits = {}
 active_resumes = {}
@@ -34,10 +37,24 @@ def get_user_id():
     Gets user's id; if no login info provided, uses session-based ID.
     If needed, replaces with real authentication later.
     """
-    return str(uuid.uuid4())
+    user_id = request.cookies.get("user_id")
+    if not user_id:
+        user_id = str(uuid.uuid4())
+    return user_id
 
-# create the permanent user id
-user_id = get_user_id()
+@flask_app.after_request
+def set_cookie(response):
+    if not request.cookies.get("user_id"):
+        response.set_cookie("user_id", str(uuid.uuid4()), max_age = 60*60*24*30)
+    return response
+
+# Flask to set the cookies once the page loads
+@flask_app.route("/")
+def home():
+    resp = make_response("Welcome to ResumeWhip!")
+    if not request.cookies.get("user_id"):
+        resp.set_cookie("user_id", str(uuid.uuid4()), max_age = 60*60*24*30)
+    return resp
 
 def run_resume_with_credits(resume_file, job_input):
     user_id = get_user_id()
@@ -49,12 +66,12 @@ def run_resume_with_credits(resume_file, job_input):
 
     # run a check to see if it's a new resume (using a credit) or just an edit to the same one (not using any credits)
     if active_resumes.get(user_id) != new_resume_id:
-        # make sure it's NOT an unlimited subscription
+        # check to see if it's an unlimited plan
         if credits != float("inf"):
             if credits <= 0:
                 return ("⏰ Looks like your 3 free resumes have been completed, but we'd love to keep helping - our prompts are constantly being worked on to improve your likelihood of landing your dream job. Please consider subscribing - at only $5.99 / month, you get all the AI-powered resume optimization you want!", "", "", f"Free resumes left: 0")
-            user_credits[user_id] = credits - 1
             credits -= 1
+            user_credits[user_id] = credits
         active_resumes[user_id] = new_resume_id
 
     # normal resume generation
@@ -64,7 +81,7 @@ def run_resume_with_credits(resume_file, job_input):
 def create_checkout_session():
     try:
         session = stripe.checkout.Session.create(
-            client_reference_id = user_id,
+            client_reference_id = get_user_id(),
             payment_method_types = ['card'],
             line_items = [{
                 'price' : PRICE_ID,
@@ -80,10 +97,8 @@ def create_checkout_session():
         return f"There was an error creating your checkout session: {e}"
 
 with gr.Blocks(title = "ResumeWhip") as app:
-
-    gr.HTML("""<head>
-            <link rel="icon" href="favicon.png" type="image/png">
-            </head>""")
+   
+    gr.HTML("<head><link rel='icon' href='favicon.png' type='image/png'></head>")
     # --- Header ---
     gr.Markdown("""
     <h1 style='text-align:center; color:#1e90ff;'>🏎️💨 Welcome To ResumeWhip!!</h1>
@@ -231,21 +246,20 @@ line, andnput it wherever you want:
                     # with gr.Column():
                         jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
                         jd_title = gr.Textbox(label="Job Title")
-
-                validate_btn = gr.Button("✅ Validate Job - A Quick Check To See If the Job Post Is Legitimate")
-                validation_output = gr.Markdown(label="Job Validation Results")
+                        validate_btn = gr.Button("✅ Validate Job - A Quick Check To See If the Job Post Is Legitimate")
+                        validation_output = gr.Markdown(label="Job Validation Results")
 
                 def full_job_validator(job_input_text, posting_date, company, job_title):
                     # --- Warning for empty / missing company name ---
-                    if not company or company.strip() == "":
+                    if not company.strip() == "":
                         return "⚠️ Please enter a company name so we can validate the job posting."
                     
                     # --- Warning if job_input_text is missing ---
-                    if not job_input_text or job_input_text.strip() == "":
+                    if not job_input_text.strip() == "":
                         return "⚠️ Sorry, but we need a job description to help validate the job!"
                     
                     # --- Warning if posting_date is missing ---
-                    if not posting_date or posting_date.strip() == "":
+                    if not posting_date.strip() == "":
                         return "⚠️ Can you please give us a job posting date (or your best guess)? That would help alot."
                     
                     # --- Existing job validation logic ---
@@ -275,9 +289,7 @@ line, andnput it wherever you want:
                     return report
 
                 validate_btn.click(
-                    full_job_validator,
-                    inputs=[job_input, jd_date, company_input, jd_title],
-                    outputs=validation_output
+                    full_job_validator, [job_input, jd_date, company_input, jd_title], validation_output
                 )
 
             # with gr.Tab("Job Validator"):
@@ -362,12 +374,12 @@ line, andnput it wherever you want:
             #     )
 
             # Resume events
-            run_resume.click(fn=run_resume_with_credits, inputs=[resume_input, job_input], outputs=[resume_md, resume_edit, suggestions, resume_counter])
-            export_resume_btn.click(fn=export_resume, inputs=[resume_edit, company_input], outputs=[export_resume_result])
+            run_resume.click(run_resume_with_credits, [resume_input, job_input], [resume_md, resume_edit, suggestions, resume_counter])
+            export_resume_btn.click(export_resume, inputs=[resume_edit, company_input], [export_resume_result])
 
             # Cover letter events
             def generate_cover_letter(resume_file, job_input):
-                if resume_file is None or not job_input or job_input.strip() == "":
+                if resume_file is None or not job_input.strip():
                     return "⚠️ Sorry, but the tools need both a resume and pasted job description before they can do you any good."
 
                 # Normalize extension safely
@@ -392,8 +404,8 @@ line, andnput it wherever you want:
                 return get_cover_response(prompt)
 
 
-            run_cover.click(fn=generate_cover_letter, inputs=[resume_input, job_input], outputs=[cover_output])
-            export_cover_btn.click(fn=save_cover_letter, inputs=[cover_output, company_input], outputs=[export_cover_result])
+            run_cover.click(generate_cover_letter, [resume_input, job_input], [cover_output])
+            export_cover_btn.click(ave_cover_letter, [cover_output, company_input], [export_cover_result])
 
     # --- Footer ---
     # gr.Markdown("""
@@ -403,10 +415,7 @@ line, andnput it wherever you want:
     # </p>
     # """)
 
-# set up Flask so we can set up the webhook
-flask_app = Flask(__name__)
-
-# Webhook so that once users pay, they have full access
+# Flask webhook setup so that once users pay, they have full access
 
 @flask_app.route("/webhook", methods = ["POST"])
 
