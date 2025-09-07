@@ -2,9 +2,7 @@
 import gradio as gr
 import os
 import stripe
-import io
 import pdfplumber
-import requests
 import uuid
 from flask import Flask, request
 from new_functions import (
@@ -20,12 +18,8 @@ from new_functions import (
     is_posting_recent,
     template_detector,
     mentioned_on_socials,
-    source_link_meta_date,
-    detect_urgency_language,
-    detect_job_board_source,
-    career_page_search_url
-)
-from bs4 import BeautifulSoup 
+    detect_urgency_language
+) 
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 PRICE_ID = "price_1S4MQICB2P1PAV6iRNFAcF36"
@@ -58,13 +52,13 @@ def run_resume_with_credits(resume_file, job_input):
         # make sure it's NOT an unlimited subscription
         if credits != float("inf"):
             if credits <= 0:
-                return ("⏰ Looks like your 3 free resumes have been completed, but we'd love to keep helping - our prompts are constantly being worked on to improve your likelihood of landing your dream job. Please consider subscribing - at only $5.99 / month, you get all the AI-powered resume optimization you want!", "", "")
+                return ("⏰ Looks like your 3 free resumes have been completed, but we'd love to keep helping - our prompts are constantly being worked on to improve your likelihood of landing your dream job. Please consider subscribing - at only $5.99 / month, you get all the AI-powered resume optimization you want!", "", "", f"Free resumes left: 0")
             user_credits[user_id] = credits - 1
             credits -= 1
         active_resumes[user_id] = new_resume_id
 
     # normal resume generation
-    result =  process_resume(resume_file, job_input)
+    result = process_resume(resume_file, job_input)
     return (*result, f"Free resumes left: {'∞' if credits == float('inf') else credits}")
 
 def create_checkout_session():
@@ -83,14 +77,14 @@ def create_checkout_session():
 
         return session.url
     except Exception as e:
-        return f"There was an error in creating your checkout session: {e}"
+        return f"There was an error creating your checkout session: {e}"
 
-with gr.Blocks() as app:
+with gr.Blocks(title = "ResumeWhip", favicon_path = "favicon.png") as app:
     # --- Header ---
     gr.Markdown("""
     <h1 style='text-align:center; color:#1e90ff;'>🏎️💨 Welcome To ResumeWhip!!</h1>
     <h2 style='text-align:center; color:#dd1eff;'>Your One-Stop AI-Powered Resume Optimizer Shop</h2> 
-    <h3 style='text-align:center; color:#4bff1e;'>Powerful Simplicity: Just Verify → Upload → Optimize → Apply!</h3>          
+    <h3 style='text-align:center;'>Powerful Simplicity: Just Verify → Upload → Optimize → Apply!</h3>          
     """)
 
     with gr.Row():
@@ -143,7 +137,7 @@ Force Create A New Page by copy/pasting this entire
 line, andnput it wherever you want:
 <div style="page-break-after: always; break-after: page;"></div>                      
                 """, language="markdown")
-
+    # Stripe Subscribe Button
             gr.HTML("""
         <div style="text-align:center; margin-top:20px;">
             <a href="https://buy.stripe.com/cNi9ASgWl6C614l3Ja1Jm00" 
@@ -151,7 +145,8 @@ line, andnput it wherever you want:
                style="background-color:#635BFF; color:white; padding:15px 25px; 
                       text-decoration:none; border-radius:8px; font-size:1.2em; 
                       font-weight:bold; display:inline-block;">
-                🚀 Subscribe for Unlimited Access
+                🚀 Subscribe and Get Unlimited Resume Optimizatons
+                    for Only $5.99/month!
             </a>
         </div>
     """)
@@ -298,7 +293,7 @@ line, andnput it wherever you want:
             with gr.Tab("Resume Optimizer"):
                 run_resume = gr.Button("🧙 Click Here To Whip Up Some Resume Magic!")
                 resume_md = gr.Markdown()
-                resume_edit = gr.Textbox(label="A Preview of Your Optimized Resume Is Above. You Can Edit It In This Box. Or Don't - It's Up To You.", lines=10)
+                resume_edit = gr.Textbox(label="Abovee Is the Preview of Your Optimized Resume - If You Want, You Can Edit In This Box Below.", lines=10)
                 suggestions = gr.Markdown(label="Suggestions")
                 export_resume_btn = gr.Button("⬇ Download as PDF")
                 export_resume_result = gr.File()
