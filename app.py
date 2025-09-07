@@ -49,8 +49,8 @@ def create_checkout_session():
                 'quantity': 1,
             }],
             mode='subscription',
-            success_url="https://your-app.onrender.com/success",  # Update with your actual URL
-            cancel_url="https://your-app.onrender.com/cancel"
+            success_url="https://www.resumewhip.com/success",  # Update with your actual URL
+            cancel_url="https://resumewhip.com/cancel"
         )
         return session.url
     except Exception as e:
@@ -59,7 +59,7 @@ def create_checkout_session():
 def run_resume_with_credits(resume_file, job_input):
     """Handle resume processing with credit system"""
     if not resume_file or not job_input.strip():
-        return ("⚠️ Please upload a resume and paste the job description.", "", "", "Free resumes left: -")
+        return ("⚠️ Please upload your resume and paste the job description they've provided.", "", "", "Free resumes left: -")
     
     user_id = get_user_id()
     credits = user_credits.get(user_id, FREE_CREDITS)
@@ -92,18 +92,18 @@ def run_resume_with_credits(resume_file, job_input):
 def generate_cover_letter(resume_file, job_input):
     """Generate cover letter from resume and job description"""
     if not resume_file or not job_input.strip():
-        return "⚠️ Please upload a resume and paste the job description."
+        return "⚠️ Please check that you've uploaded a resume and pasted in the job description."
     
     try:
         # Extract text from resume file
         resume_txt = extract_resume_text(resume_file)
         if not resume_txt:
-            return "⚠️ Could not extract text from resume file."
+            return "⚠️ For some reason, we could not extract text from the resume file. Please try again."
         
         prompt = cover_letter_prompt_creator(resume_txt, job_input)
         return get_cover_response(prompt)
     except Exception as e:
-        return f"Error generating cover letter: {e}"
+        return f"🚩 Unexpected error in generating cover letter: {e}"
 
 def validate_job_posting(job_input_text, posting_date, company, job_title):
     """Validate job posting legitimacy"""
@@ -125,22 +125,22 @@ def validate_job_posting(job_input_text, posting_date, company, job_title):
         social_links = mentioned_on_socials(company, job_title or "")
         
         report = "### 🕐 Posting Date Check:\n"
-        report += "✅ Job appears recent (posted within 60 days).\n" if recent else "⚠️ Warning: Job may be outdated (older than 60 days).\n"
+        report += "✅ Yup, the job looks recent (posted within 60 days).\nIn this market, jobs don't stay open for more than that." if recent else "⚠️ Warning: Job may be outdated (older than 60 days).\nCould be they're just harvesting candidates."
         
         report += "\n### 🤖 Template Language Check:\n"
-        report += "⚠️ Generic/template language detected - proceed with caution.\n" if template_flag else "✅ Posting appears specific and legitimate.\n"
+        report += "⚠️ Generic/template language detected - proceed with caution.\nCould be just a cattle call for info to keep on file." if template_flag else "✅ Posting appears specific and legitimate - as if an actual person wrote it and they have an actual need.\n"
         
         report += "\n### ⚡ Urgency Language Check:\n"
-        report += "⚠️ Urgency language detected - be cautious of scams.\n" if urgency_flag else "✅ No suspicious urgency language found.\n"
+        report += "⚠️ Urgency language detected - be cautious of scams.\nCheck the post for poor grammar, unrealistic salary / work expectations, and that 'too good to be true' feel." if urgency_flag else "✅ No suspicious urgency language found.\nSeems like a real job posting."
         
-        report += "\n### 🔍 Verify on Social Media:\n"
+        report += "\n### 🔍 Verify the Job / Company on Social Media:\n"
         report += f"- [Search on X/Twitter]({social_links['x']})\n"
         report += f"- [Search on LinkedIn]({social_links['linkedin']})\n"
         
         return report
         
     except Exception as e:
-        return f"Error validating job posting: {e}"
+        return f"🚩 Error validating job posting: {e}"
 
 # Create Gradio interface
 with gr.Blocks(title="ResumeWhip", theme=gr.themes.Soft()) as app:
@@ -149,9 +149,9 @@ with gr.Blocks(title="ResumeWhip", theme=gr.themes.Soft()) as app:
     
     # Header
     gr.Markdown("""
-    <h1 style='text-align:center; color:#1e90ff;'>🎯💨 Welcome To ResumeWhip!</h1>
-    <h2 style='text-align:center; color:#dd1eff;'>Your AI-Powered Resume Optimizer</h2> 
-    <h3 style='text-align:center;'>Upload → Optimize → Apply!</h3>          
+    <h1 style='text-align:center; color:#1e90ff;'>🏎️💨 Welcome To ResumeWhip!</h1>
+    <h2 style='text-align:center; color:#dd1eff;'>Your AI-Powered Resume Optimizer Where Your First 3 Resumes Are Free</h2> 
+    <h3 style='text-align:center;'>Powerful Simplicity: Just Validate → Upload → Optimize → Apply!</h3>          
     """)
 
     with gr.Row():
@@ -172,15 +172,40 @@ with gr.Blocks(title="ResumeWhip", theme=gr.themes.Soft()) as app:
                 
             with gr.Accordion("📚 Formatting Tips", open=False):
                 gr.Code("""
-# Headers (# = largest, ### = smallest)
-**Bold text**
-*Italic text*
-- Bullet points
-1. Numbered lists
-[Link text](https://example.com)
+If you're not happy with the default resume 
+format, you can make adjustments using the 
+simple copy and pastes below:
+                        
+Want To Change Fonts:
+# = Biggest  
+## = Smaller  
+### = Smallest
+<b>text</b> = Bold  
+<i>text</i> = Italic  
+<u>text</u> = Underline
+(⬆️ Can Be Combined As Needed)
+                        
+Making A List?
+- = Bullet Point  
+1. = Numbered List
 
-Force page break:
-<div style="page-break-after: always;"></div>
+Want To Link A Website?
+[Your Website](https://www.yourwebsite.com)
+
+Too "clumpy?" Break things up into separate lines
+with two spaces where you want the line break
+(after a period, for example). 
+                        
+Or, if you want to create a section break with
+a line, just enter three dashes (---) where you 
+want that break to happen (eg: between 'Summary' 
+and 'Experience').
+
+"But the page cuts off where I don't want it to!"
+Simple - just force a new page by copy/pasting this entire 
+line (below), and put it where you want one page to end
+and the next to begin:
+<div style="page-break-after: always; break-after: page;"></div>
                 """, language="markdown")
             
             # Subscribe button
@@ -191,35 +216,38 @@ Force page break:
                    style="background-color:#635BFF; color:white; padding:15px 25px; 
                           text-decoration:none; border-radius:8px; font-size:1.1em; 
                           font-weight:bold; display:inline-block;">
-                    🚀 Get Unlimited Access - $5.99/month
+                    🚀 Get Unlimited AI-Powered Resume Optimizaton for Just  $5.99/Month!
                 </a>
             </div>
             """)
             
-            gr.Markdown("### 🛡️ We never store, share, or sell your data.")
-            gr.Markdown("[📧 Need Help?](mailto:support@resumewhip.com)")
+            gr.Markdown("### 🛡️ We never share or sell your data. Ever.")
+            gr.Markdown("[📧 Need Help / Have Suggestions?](mailto:support@resumewhip.com)")
 
         # Main content
         with gr.Column(scale=3):
             # Input section
             with gr.Row():
                 resume_input = gr.File(
-                    label="📄 Upload Resume", 
+                    label="📄 Upload Resume Here", 
                     file_types=[".pdf", ".docx", ".md", ".txt"]
                 )
                 company_input = gr.Textbox(
-                    label="🏢 Company Name", 
+                    label="🏢 Enter the Company's Name", 
                     placeholder="e.g., Google, Microsoft"
                 )
             
             job_input = gr.Textbox(
-                label="📝 Job Description (paste full text)", 
+                label="📝 Job Description (Please Paste Full Text)", 
                 lines=6,
                 placeholder="Paste the complete job posting here..."
             )
             
             # Credit counter
             resume_counter = gr.Markdown("### Free Resumes Left: 3")
+
+            # Tools Available
+            gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Tools In the Toolkit</h2>")
 
             # Tools tabs
             with gr.Tabs():
@@ -234,11 +262,11 @@ Force page break:
                             placeholder="e.g., Data Scientist"
                         )
                     
-                    validate_btn = gr.Button("🔍 Validate Job Posting", variant="secondary")
+                    validate_btn = gr.Button("🔍 Validate This Job Posting", variant="secondary")
                     validation_output = gr.Markdown()
 
                 with gr.TabItem("🎯 Resume Optimizer"):
-                    run_resume = gr.Button("✨ Optimize My Resume!", variant="primary")
+                    run_resume = gr.Button("✨ Whip Up Some Resume Magic!", variant="primary")
                     resume_md = gr.Markdown(label="Preview")
                     resume_edit = gr.Textbox(
                         label="✏️ Edit Your Resume (optional)", 
@@ -251,7 +279,7 @@ Force page break:
                         export_resume_result = gr.File()
 
                 with gr.TabItem("📝 Cover Letter"):
-                    run_cover = gr.Button("📝 Generate Cover Letter", variant="secondary")
+                    run_cover = gr.Button("📝 Whip Up A Cover Letter", variant="secondary")
                     cover_output = gr.Textbox(
                         label="Your Cover Letter", 
                         lines=15
