@@ -1,10 +1,11 @@
-# Round 4
+# Round 5 - with Claude's Help
 import gradio as gr
 import os
 import stripe
 import pdfplumber
 import uuid
-from flask import Flask, request, make_response
+import json
+from datetime import datetime
 from new_functions import (
     extract_resume_text,
     sanitize_input,
@@ -19,429 +20,752 @@ from new_functions import (
     template_detector,
     mentioned_on_socials,
     detect_urgency_language
-) 
+)
 
+# Stripe setup
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 PRICE_ID = "price_1S4MQICB2P1PAV6iRNFAcF36"
 
-# set up Flask for cookies to track free use
-flask_app = Flask(__name__)
-
-# tracking credits / resumes
+# Simple in-memory storage (consider Redis for production)
 user_credits = {}
 active_resumes = {}
 FREE_CREDITS = 3
 
 def get_user_id():
-    """
-    Gets user's id; if no login info provided, uses session-based ID.
-    If needed, replaces with real authentication later.
-    """
-    user_id = request.cookies.get("user_id")
-    if not user_id:
-        user_id = str(uuid.uuid4())
-    return user_id
-
-@flask_app.after_request
-def set_cookie(response):
-    if not request.cookies.get("user_id"):
-        response.set_cookie("user_id", str(uuid.uuid4()), max_age = 60*60*24*30)
-    return response
-
-# Flask to set the cookies once the page loads
-@flask_app.route("/")
-def home():
-    resp = make_response("Welcome to ResumeWhip!")
-    if not request.cookies.get("user_id"):
-        resp.set_cookie("user_id", str(uuid.uuid4()), max_age = 60*60*24*30)
-    return resp
-
-def run_resume_with_credits(resume_file, job_input):
-    user_id = get_user_id()
-    credits = user_credits.get(user_id, FREE_CREDITS)
-
-    # generate the resume's unique ID from uploaded file and job description
-    resume_name = getattr(resume_file, "name", "unknown")
-    new_resume_id = f"{resume_name}_{hash(job_input)}"
-
-    # run a check to see if it's a new resume (using a credit) or just an edit to the same one (not using any credits)
-    if active_resumes.get(user_id) != new_resume_id:
-        # check to see if it's an unlimited plan
-        if credits != float("inf"):
-            if credits <= 0:
-                return ("⏰ Looks like your 3 free resumes have been completed, but we'd love to keep helping - our prompts are constantly being worked on to improve your likelihood of landing your dream job. Please consider subscribing - at only $5.99 / month, you get all the AI-powered resume optimization you want!", "", "", f"Free resumes left: 0")
-            credits -= 1
-            user_credits[user_id] = credits
-        active_resumes[user_id] = new_resume_id
-
-    # normal resume generation
-    result = process_resume(resume_file, job_input)
-    return (*result, f"Free resumes left: {'∞' if credits == float('inf') else credits}")
+    """Generate a session-based user ID"""
+    # For Gradio, we'll use a simple session state approach
+    if not hasattr(gr, '_current_user_id'):
+        gr._current_user_id = str(uuid.uuid4())
+    return gr._current_user_id
 
 def create_checkout_session():
     try:
+        user_id = get_user_id()
         session = stripe.checkout.Session.create(
-            client_reference_id = get_user_id(),
-            payment_method_types = ['card'],
-            line_items = [{
-                'price' : PRICE_ID,
-                'quantity' : 1,
+            client_reference_id=user_id,
+            payment_method_types=['card'],
+            line_items=[{
+                'price': PRICE_ID,
+                'quantity': 1,
             }],
-            mode = 'subscription', 
-            success_url = "https://www.resumewhip.com/success",
-            cancel_url = "https://www.resumewhip.com/cancel"
+            mode='subscription',
+            success_url="https://your-app.onrender.com/success",  # Update with your actual URL
+            cancel_url="https://your-app.onrender.com/cancel"
         )
-
         return session.url
     except Exception as e:
-        return f"There was an error creating your checkout session: {e}"
+        return f"Error creating checkout session: {e}"
 
-with gr.Blocks(title = "ResumeWhip") as app:
-   
+def run_resume_with_credits(resume_file, job_input):
+    """Handle resume processing with credit system"""
+    if not resume_file or not job_input.strip():
+        return ("⚠️ Please upload a resume and paste the job description.", "", "", "Free resumes left: -")
+    
+    user_id = get_user_id()
+    credits = user_credits.get(user_id, FREE_CREDITS)
+    
+    # Generate unique resume ID
+    resume_name = getattr(resume_file, "name", "unknown")
+    new_resume_id = f"{resume_name}_{hash(job_input)}"
+    
+    # Check if this is a new resume (consumes credit) or edit of existing one
+    if active_resumes.get(user_id) != new_resume_id:
+        if credits != float("inf"):
+            if credits <= 0:
+                checkout_url = create_checkout_session()
+                return (
+                    f"⏰ You've used your 3 free resumes! Ready for unlimited access? [Subscribe here]({checkout_url}) for just $5.99/month!",
+                    "", "", "Free resumes left: 0"
+                )
+            credits -= 1
+            user_credits[user_id] = credits
+        active_resumes[user_id] = new_resume_id
+    
+    # Process resume
+    try:
+        result = process_resume(resume_file, job_input)
+        credits_display = '∞' if credits == float('inf') else str(credits)
+        return (*result, f"Free resumes left: {credits_display}")
+    except Exception as e:
+        return (f"Error processing resume: {e}", "", "", f"Free resumes left: {credits}")
+
+def generate_cover_letter(resume_file, job_input):
+    """Generate cover letter from resume and job description"""
+    if not resume_file or not job_input.strip():
+        return "⚠️ Please upload a resume and paste the job description."
+    
+    try:
+        # Extract text from resume file
+        resume_txt = extract_resume_text(resume_file)
+        if not resume_txt:
+            return "⚠️ Could not extract text from resume file."
+        
+        prompt = cover_letter_prompt_creator(resume_txt, job_input)
+        return get_cover_response(prompt)
+    except Exception as e:
+        return f"Error generating cover letter: {e}"
+
+def validate_job_posting(job_input_text, posting_date, company, job_title):
+    """Validate job posting legitimacy"""
+    # Fixed logic - check if fields are empty (not inverted)
+    if not company.strip():
+        return "⚠️ Please enter a company name to validate the job posting."
+    
+    if not job_input_text.strip():
+        return "⚠️ Please paste the job description to validate."
+    
+    if not posting_date.strip():
+        return "⚠️ Please provide a job posting date (YYYY-MM-DD format)."
+    
+    try:
+        # Validate job posting
+        recent = is_posting_recent(posting_date)
+        template_flag = template_detector(job_input_text)
+        urgency_flag = detect_urgency_language(job_input_text)
+        social_links = mentioned_on_socials(company, job_title or "")
+        
+        report = "### 🕐 Posting Date Check:\n"
+        report += "✅ Job appears recent (posted within 60 days).\n" if recent else "⚠️ Warning: Job may be outdated (older than 60 days).\n"
+        
+        report += "\n### 🤖 Template Language Check:\n"
+        report += "⚠️ Generic/template language detected - proceed with caution.\n" if template_flag else "✅ Posting appears specific and legitimate.\n"
+        
+        report += "\n### ⚡ Urgency Language Check:\n"
+        report += "⚠️ Urgency language detected - be cautious of scams.\n" if urgency_flag else "✅ No suspicious urgency language found.\n"
+        
+        report += "\n### 🔍 Verify on Social Media:\n"
+        report += f"- [Search on X/Twitter]({social_links['x']})\n"
+        report += f"- [Search on LinkedIn]({social_links['linkedin']})\n"
+        
+        return report
+        
+    except Exception as e:
+        return f"Error validating job posting: {e}"
+
+# Create Gradio interface
+with gr.Blocks(title="ResumeWhip", theme=gr.themes.Soft()) as app:
+    
     gr.HTML("<head><link rel='icon' href='favicon.png' type='image/png'></head>")
-    # --- Header ---
+    
+    # Header
     gr.Markdown("""
-    <h1 style='text-align:center; color:#1e90ff;'>🏎️💨 Welcome To ResumeWhip!!</h1>
-    <h2 style='text-align:center; color:#dd1eff;'>Your One-Stop AI-Powered Resume Optimizer Shop</h2> 
-    <h3 style='text-align:center;'>Powerful Simplicity: Just Verify → Upload → Optimize → Apply!</h3>          
+    <h1 style='text-align:center; color:#1e90ff;'>🎯💨 Welcome To ResumeWhip!</h1>
+    <h2 style='text-align:center; color:#dd1eff;'>Your AI-Powered Resume Optimizer</h2> 
+    <h3 style='text-align:center;'>Upload → Optimize → Apply!</h3>          
     """)
 
     with gr.Row():
-        # --- Sidebar (simplified into Accordions) ---
+        # Sidebar
         with gr.Column(scale=1):
-            with gr.Accordion("🦮 How To Use This Website", open = False):
+            with gr.Accordion("🦮 How To Use", open=False):
                 gr.Markdown("""
-                        1.) Crank Your Existing Resume Up To 11 - list every single skill and experience you have
-                            (this is how our AI writes your resume and scores your chances);  
-                        2.) Follow the Prompts To Load the Requested Info;  
-                        3.) Choose Your Tool (you don't have to use all 3);  
-                        4.) Proofread / Edit the Results Using the 'Copy/Pastes' below;  
-                        5.) Download Your File as PDF; and  
-                        6.) Apply!
-                            """)
+                1. Upload your current resume (PDF, DOCX, MD, or TXT)
+                2. Enter the company name  
+                3. Paste the complete job description
+                4. Choose your tool:
+                   - **Job Validator**: Check if posting is legitimate
+                   - **Resume Optimizer**: AI-optimized resume for the role
+                   - **Cover Letter**: Generate tailored cover letter
+                5. Download your optimized documents
+                6. Apply with confidence!
+                """)
                 
-            with gr.Accordion("📚 Copy/Pastes for Resume Formatting", open=False):
+            with gr.Accordion("📚 Formatting Tips", open=False):
                 gr.Code("""
-If you're not happy with the default resume 
-format, you can make adjustments using the 
-simple copy and pastes below:
-                        
-Want To Change Fonts:
-# = Biggest  
-## = Smaller  
-### = Smallest
-<b>text</b> = Bold  
-<i>text</i> = Italic  
-<u>text</u> = Underline
-(⬆️ Can Be Combined)
-                        
-How About A List?
-- = Bullet Point  
-1. = Numbered List
+# Headers (# = largest, ### = smallest)
+**Bold text**
+*Italic text*
+- Bullet points
+1. Numbered lists
+[Link text](https://example.com)
 
-Link Your Website:
-[Your Website](https://www.yourwebsite.com)
-
-Too "clumpy?" Break things up into separate lines
-with two spaces where you want the line break
-(e.g. after a period). 
-                        
-Or, if you want to break things up by drawing a
-a line, just enter three dashes (---) where you 
-want the section break (eg: between 'Summary' 
-and 'Experience).
-
-Page cuts off where you don't want it to?
-Force Create A New Page by copy/pasting this entire 
-line, andnput it wherever you want:
-<div style="page-break-after: always; break-after: page;"></div>                      
+Force page break:
+<div style="page-break-after: always;"></div>
                 """, language="markdown")
-    # Stripe Subscribe Button
+            
+            # Subscribe button
             gr.HTML("""
-        <div style="text-align:center; margin-top:20px;">
-            <a href="https://buy.stripe.com/cNi9ASgWl6C614l3Ja1Jm00" 
-               target="_blank" 
-               style="background-color:#635BFF; color:white; padding:15px 25px; 
-                      text-decoration:none; border-radius:8px; font-size:1.2em; 
-                      font-weight:bold; display:inline-block;">
-                🚀 Subscribe and Get Unlimited Resume Optimizatons
-                    for Only $5.99/month!
-            </a>
-        </div>
-    """)
+            <div style="text-align:center; margin:20px 0;">
+                <a href="https://buy.stripe.com/cNi9ASgWl6C614l3cc" 
+                   target="_blank" 
+                   style="background-color:#635BFF; color:white; padding:15px 25px; 
+                          text-decoration:none; border-radius:8px; font-size:1.1em; 
+                          font-weight:bold; display:inline-block;">
+                    🚀 Get Unlimited Access - $5.99/month
+                </a>
+            </div>
+            """)
             
             gr.Markdown("### 🛡️ We never store, share, or sell your data.")
+            gr.Markdown("[📧 Need Help?](mailto:support@resumewhip.com)")
+
+        # Main content
+        with gr.Column(scale=3):
+            # Input section
+            with gr.Row():
+                resume_input = gr.File(
+                    label="📄 Upload Resume", 
+                    file_types=[".pdf", ".docx", ".md", ".txt"]
+                )
+                company_input = gr.Textbox(
+                    label="🏢 Company Name", 
+                    placeholder="e.g., Google, Microsoft"
+                )
             
-            gr.Markdown("### 🔐 All payments are handled through Stripe.")
+            job_input = gr.Textbox(
+                label="📝 Job Description (paste full text)", 
+                lines=6,
+                placeholder="Paste the complete job posting here..."
+            )
+            
+            # Credit counter
+            resume_counter = gr.Markdown("### Free Resumes Left: 3")
 
-            gr.Markdown("[📬 Need Help / Have Suggestions? Send Us An Email!](mailto:support@resumewhip.com)")
+            # Tools tabs
+            with gr.Tabs():
+                with gr.TabItem("✅ Job Validator"):
+                    with gr.Row():
+                        jd_date = gr.Textbox(
+                            label="📅 Posting Date", 
+                            placeholder="YYYY-MM-DD (e.g., 2024-12-01)"
+                        )
+                        jd_title = gr.Textbox(
+                            label="💼 Job Title", 
+                            placeholder="e.g., Data Scientist"
+                        )
+                    
+                    validate_btn = gr.Button("🔍 Validate Job Posting", variant="secondary")
+                    validation_output = gr.Markdown()
 
-            gr.Markdown("### #️⃣ Know someone who could use this in their job search? Share away!")
-            gr.HTML("""
-                    <!-- Share Icons -->
-    <div style="display:flex; flex-direction:row; gap:15px; justify-content:center; margin-top:10px;">
-        <a href="https://www.facebook.com/sharer/sharer.php?u=https://resumewhip.com" target="_blank">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" style="width:32px; height:32px;">
-        </a>
-        <a href="https://x.com/intent/post?url=https://resumewhip.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/X_logo_2023.svg" alt="X" style="width:36px; height:36px;">
-        </a>
-        <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://resumewhip.com" target="_blank">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg" style="width:32px; height:32px;">
-        </a>
-        <a href="https://www.reddit.com/submit?url=https://resumewhip.com&title=Check%20this%20out!" target="_blank">
-             <img src="https://cdn.simpleicons.org/reddit/FF4500" alt="Reddit" style="width:32px; height:32px;">
-        </a>
-    </div>
-""")
-#             gr.Markdown("### 💸 Donations appreciated... only if we've helped:")
+                with gr.TabItem("🎯 Resume Optimizer"):
+                    run_resume = gr.Button("✨ Optimize My Resume!", variant="primary")
+                    resume_md = gr.Markdown(label="Preview")
+                    resume_edit = gr.Textbox(
+                        label="✏️ Edit Your Resume (optional)", 
+                        lines=15
+                    )
+                    suggestions = gr.Markdown(label="Suggestions & Tips")
+                    
+                    with gr.Row():
+                        export_resume_btn = gr.Button("⬇️ Download PDF")
+                        export_resume_result = gr.File()
+
+                with gr.TabItem("📝 Cover Letter"):
+                    run_cover = gr.Button("📝 Generate Cover Letter", variant="secondary")
+                    cover_output = gr.Textbox(
+                        label="Your Cover Letter", 
+                        lines=15
+                    )
+                    
+                    with gr.Row():
+                        export_cover_btn = gr.Button("⬇️ Download PDF")
+                        export_cover_result = gr.File()
+
+    # Event handlers
+    validate_btn.click(
+        fn=validate_job_posting,
+        inputs=[job_input, jd_date, company_input, jd_title],
+        outputs=validation_output
+    )
+    
+    run_resume.click(
+        fn=run_resume_with_credits,
+        inputs=[resume_input, job_input],
+        outputs=[resume_md, resume_edit, suggestions, resume_counter]
+    )
+    
+    export_resume_btn.click(
+        fn=export_resume,
+        inputs=[resume_edit, company_input],
+        outputs=export_resume_result
+    )
+    
+    run_cover.click(
+        fn=generate_cover_letter,
+        inputs=[resume_input, job_input],
+        outputs=cover_output
+    )
+    
+    export_cover_btn.click(
+        fn=save_cover_letter,
+        inputs=[cover_output, company_input],
+        outputs=export_cover_result
+    )
+
+# Stripe webhook endpoint (if needed)
+def handle_stripe_webhook(request_data):
+    """Handle Stripe webhook for subscription confirmation"""
+    try:
+        endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+        event = stripe.Webhook.construct_event(
+            request_data['payload'],
+            request_data['signature'],
+            endpoint_secret
+        )
+        
+        if event["type"] == "checkout.session.completed":
+            session = event["data"]["object"]
+            user_id = session.get("client_reference_id")
+            if user_id:
+                user_credits[user_id] = float("inf")
+                
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 7860))
+    app.launch(
+        server_name="0.0.0.0",
+        server_port=port,
+        show_error=True,
+        share=False
+    )
+
+# # Round 4
+# import gradio as gr
+# import os
+# import stripe
+# import pdfplumber
+# import uuid
+# from flask import Flask, request, make_response
+# from new_functions import (
+#     extract_resume_text,
+#     sanitize_input,
+#     prompt_creator,
+#     get_resume_response,
+#     process_resume,
+#     export_resume,
+#     cover_letter_prompt_creator,
+#     get_cover_response,
+#     save_cover_letter,
+#     is_posting_recent,
+#     template_detector,
+#     mentioned_on_socials,
+#     detect_urgency_language
+# ) 
+
+# stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+# PRICE_ID = "price_1S4MQICB2P1PAV6iRNFAcF36"
+
+# # set up Flask for cookies to track free use
+# flask_app = Flask(__name__)
+
+# # tracking credits / resumes
+# user_credits = {}
+# active_resumes = {}
+# FREE_CREDITS = 3
+
+# def get_user_id():
+#     """
+#     Gets user's id; if no login info provided, uses session-based ID.
+#     If needed, replaces with real authentication later.
+#     """
+#     user_id = request.cookies.get("user_id")
+#     if not user_id:
+#         user_id = str(uuid.uuid4())
+#     return user_id
+
+# @flask_app.after_request
+# def set_cookie(response):
+#     if not request.cookies.get("user_id"):
+#         response.set_cookie("user_id", str(uuid.uuid4()), max_age = 60*60*24*30)
+#     return response
+
+# # Flask to set the cookies once the page loads
+# @flask_app.route("/")
+# def home():
+#     resp = make_response("Welcome to ResumeWhip!")
+#     if not request.cookies.get("user_id"):
+#         resp.set_cookie("user_id", str(uuid.uuid4()), max_age = 60*60*24*30)
+#     return resp
+
+# def run_resume_with_credits(resume_file, job_input):
+#     user_id = get_user_id()
+#     credits = user_credits.get(user_id, FREE_CREDITS)
+
+#     # generate the resume's unique ID from uploaded file and job description
+#     resume_name = getattr(resume_file, "name", "unknown")
+#     new_resume_id = f"{resume_name}_{hash(job_input)}"
+
+#     # run a check to see if it's a new resume (using a credit) or just an edit to the same one (not using any credits)
+#     if active_resumes.get(user_id) != new_resume_id:
+#         # check to see if it's an unlimited plan
+#         if credits != float("inf"):
+#             if credits <= 0:
+#                 return ("⏰ Looks like your 3 free resumes have been completed, but we'd love to keep helping - our prompts are constantly being worked on to improve your likelihood of landing your dream job. Please consider subscribing - at only $5.99 / month, you get all the AI-powered resume optimization you want!", "", "", f"Free resumes left: 0")
+#             credits -= 1
+#             user_credits[user_id] = credits
+#         active_resumes[user_id] = new_resume_id
+
+#     # normal resume generation
+#     result = process_resume(resume_file, job_input)
+#     return (*result, f"Free resumes left: {'∞' if credits == float('inf') else credits}")
+
+# def create_checkout_session():
+#     try:
+#         session = stripe.checkout.Session.create(
+#             client_reference_id = get_user_id(),
+#             payment_method_types = ['card'],
+#             line_items = [{
+#                 'price' : PRICE_ID,
+#                 'quantity' : 1,
+#             }],
+#             mode = 'subscription', 
+#             success_url = "https://www.resumewhip.com/success",
+#             cancel_url = "https://www.resumewhip.com/cancel"
+#         )
+
+#         return session.url
+#     except Exception as e:
+#         return f"There was an error creating your checkout session: {e}"
+
+# with gr.Blocks(title = "ResumeWhip") as app:
+   
+#     gr.HTML("<head><link rel='icon' href='favicon.png' type='image/png'></head>")
+#     # --- Header ---
+#     gr.Markdown("""
+#     <h1 style='text-align:center; color:#1e90ff;'>🏎️💨 Welcome To ResumeWhip!!</h1>
+#     <h2 style='text-align:center; color:#dd1eff;'>Your One-Stop AI-Powered Resume Optimizer Shop</h2> 
+#     <h3 style='text-align:center;'>Powerful Simplicity: Just Verify → Upload → Optimize → Apply!</h3>          
+#     """)
+
+#     with gr.Row():
+#         # --- Sidebar (simplified into Accordions) ---
+#         with gr.Column(scale=1):
+#             with gr.Accordion("🦮 How To Use This Website", open = False):
+#                 gr.Markdown("""
+#                         1.) Crank Your Existing Resume Up To 11 - list every single skill and experience you have
+#                             (this is how our AI writes your resume and scores your chances);  
+#                         2.) Follow the Prompts To Load the Requested Info;  
+#                         3.) Choose Your Tool (you don't have to use all 3);  
+#                         4.) Proofread / Edit the Results Using the 'Copy/Pastes' below;  
+#                         5.) Download Your File as PDF; and  
+#                         6.) Apply!
+#                             """)
+                
+#             with gr.Accordion("📚 Copy/Pastes for Resume Formatting", open=False):
+#                 gr.Code("""
+# If you're not happy with the default resume 
+# format, you can make adjustments using the 
+# simple copy and pastes below:
+                        
+# Want To Change Fonts:
+# # = Biggest  
+# ## = Smaller  
+# ### = Smallest
+# <b>text</b> = Bold  
+# <i>text</i> = Italic  
+# <u>text</u> = Underline
+# (⬆️ Can Be Combined)
+                        
+# How About A List?
+# - = Bullet Point  
+# 1. = Numbered List
+
+# Link Your Website:
+# [Your Website](https://www.yourwebsite.com)
+
+# Too "clumpy?" Break things up into separate lines
+# with two spaces where you want the line break
+# (e.g. after a period). 
+                        
+# Or, if you want to break things up by drawing a
+# a line, just enter three dashes (---) where you 
+# want the section break (eg: between 'Summary' 
+# and 'Experience).
+
+# Page cuts off where you don't want it to?
+# Force Create A New Page by copy/pasting this entire 
+# line, andnput it wherever you want:
+# <div style="page-break-after: always; break-after: page;"></div>                      
+#                 """, language="markdown")
+#     # Stripe Subscribe Button
 #             gr.HTML("""
-#                     <div style="text-align:left; display:flex; flex-direction:column; gap:10px; margin-top:15px;">
-#         <!-- Support Buttons -->
-#         <form action="https://www.paypal.com/donate" method="post" target="_blank">
-#             <input type="hidden" name="business" value="YOUR_PAYPAL_EMAIL_OR_ID" />
-#             <input type="hidden" name="currency_code" value="USD" />
-#             <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" 
-#                border="0" name="submit" alt="Donate with PayPal" />
-#         </form>
-#         <a href="https://www.buymeacoffee.com/yourname" target="_blank">
-#         <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" style="height:40px;width:180px;">
+#         <div style="text-align:center; margin-top:20px;">
+#             <a href="https://buy.stripe.com/cNi9ASgWl6C614l3Ja1Jm00" 
+#                target="_blank" 
+#                style="background-color:#635BFF; color:white; padding:15px 25px; 
+#                       text-decoration:none; border-radius:8px; font-size:1.2em; 
+#                       font-weight:bold; display:inline-block;">
+#                 🚀 Subscribe and Get Unlimited Resume Optimizatons
+#                     for Only $5.99/month!
+#             </a>
+#         </div>
+#     """)
+            
+#             gr.Markdown("### 🛡️ We never store, share, or sell your data.")
+            
+#             gr.Markdown("### 🔐 All payments are handled through Stripe.")
+
+#             gr.Markdown("[📬 Need Help / Have Suggestions? Send Us An Email!](mailto:support@resumewhip.com)")
+
+#             gr.Markdown("### #️⃣ Know someone who could use this in their job search? Share away!")
+#             gr.HTML("""
+#                     <!-- Share Icons -->
+#     <div style="display:flex; flex-direction:row; gap:15px; justify-content:center; margin-top:10px;">
+#         <a href="https://www.facebook.com/sharer/sharer.php?u=https://resumewhip.com" target="_blank">
+#             <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" style="width:32px; height:32px;">
+#         </a>
+#         <a href="https://x.com/intent/post?url=https://resumewhip.com&text=Check%20out%20this%20awesome%20Resume%20Optimizer!" target="_blank">
+#             <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/X_logo_2023.svg" alt="X" style="width:36px; height:36px;">
+#         </a>
+#         <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://resumewhip.com" target="_blank">
+#             <img src="https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg" style="width:32px; height:32px;">
+#         </a>
+#         <a href="https://www.reddit.com/submit?url=https://resumewhip.com&title=Check%20this%20out!" target="_blank">
+#              <img src="https://cdn.simpleicons.org/reddit/FF4500" alt="Reddit" style="width:32px; height:32px;">
 #         </a>
 #     </div>
-# </div>
 # """)
+# #             gr.Markdown("### 💸 Donations appreciated... only if we've helped:")
+# #             gr.HTML("""
+# #                     <div style="text-align:left; display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+# #         <!-- Support Buttons -->
+# #         <form action="https://www.paypal.com/donate" method="post" target="_blank">
+# #             <input type="hidden" name="business" value="YOUR_PAYPAL_EMAIL_OR_ID" />
+# #             <input type="hidden" name="currency_code" value="USD" />
+# #             <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" 
+# #                border="0" name="submit" alt="Donate with PayPal" />
+# #         </form>
+# #         <a href="https://www.buymeacoffee.com/yourname" target="_blank">
+# #         <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" style="height:40px;width:180px;">
+# #         </a>
+# #     </div>
+# # </div>
+# # """)
 
-        # --- Main App ---      
-        # Add CSS styling for the counter
-        gr.HTML("""
-                <style>
-                #resume-counter {
-                text-align: center;
-                font-size: 1.2em;
-                color: #1e90ff;
-                margin-bottom: 10px;
-                font-weight: bold;
-                }
-                </style>
-                """)
+#         # --- Main App ---      
+#         # Add CSS styling for the counter
+#         gr.HTML("""
+#                 <style>
+#                 #resume-counter {
+#                 text-align: center;
+#                 font-size: 1.2em;
+#                 color: #1e90ff;
+#                 margin-bottom: 10px;
+#                 font-weight: bold;
+#                 }
+#                 </style>
+#                 """)
         
-        with gr.Column(scale=5):
-            with gr.Row():
-                resume_input = gr.File(label="📝 Upload Your Resume Here", file_types = [".pdf", ".md", ".docx", ".txt"])
-                company_input = gr.Textbox(label="🏢 Type In the Company Name", placeholder="e.g., ING Partners")
-                job_input = gr.Textbox(label="🔬 Paste Entire Job Description", lines=8)
+#         with gr.Column(scale=5):
+#             with gr.Row():
+#                 resume_input = gr.File(label="📝 Upload Your Resume Here", file_types = [".pdf", ".md", ".docx", ".txt"])
+#                 company_input = gr.Textbox(label="🏢 Type In the Company Name", placeholder="e.g., ING Partners")
+#                 job_input = gr.Textbox(label="🔬 Paste Entire Job Description", lines=8)
                 
-            with gr.Row():
-                resume_counter = gr.Markdown("### Free Resumes Left: 3", elem_id = "counter")
+#             with gr.Row():
+#                 resume_counter = gr.Markdown("### Free Resumes Left: 3", elem_id = "counter")
 
-            gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Tools In the Toolkit</h2>")
+#             gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Tools In the Toolkit</h2>")
 
-            with gr.Tab("📋 Job Validator"):
-                with gr.Row():
-                    # with gr.Column():
-                    #     resume_input = gr.File(label="Upload Your Resume")
-                    #     job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
-                        # resume_input = gr.File(label="Upload Your Resume")
-                        # job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
-                    # with gr.Column():
-                        jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
-                        jd_title = gr.Textbox(label="Job Title")
-                        validate_btn = gr.Button("✅ Validate Job - A Quick Check To See If the Job Post Is Legitimate")
-                        validation_output = gr.Markdown(label="Job Validation Results")
+#             with gr.Tab("📋 Job Validator"):
+#                 with gr.Row():
+#                     # with gr.Column():
+#                     #     resume_input = gr.File(label="Upload Your Resume")
+#                     #     job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
+#                         # resume_input = gr.File(label="Upload Your Resume")
+#                         # job_desc_input = gr.Textbox(label="Paste Job Description", lines=10)
+#                     # with gr.Column():
+#                         jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
+#                         jd_title = gr.Textbox(label="Job Title")
+#                         validate_btn = gr.Button("✅ Validate Job - A Quick Check To See If the Job Post Is Legitimate")
+#                         validation_output = gr.Markdown(label="Job Validation Results")
 
-                def full_job_validator(job_input_text, posting_date, company, job_title):
-                    # --- Warning for empty / missing company name ---
-                    if not company.strip() == "":
-                        return "⚠️ Please enter a company name so we can validate the job posting."
+#                 def full_job_validator(job_input_text, posting_date, company, job_title):
+#                     # --- Warning for empty / missing company name ---
+#                     if not company.strip() == "":
+#                         return "⚠️ Please enter a company name so we can validate the job posting."
                     
-                    # --- Warning if job_input_text is missing ---
-                    if not job_input_text.strip() == "":
-                        return "⚠️ Sorry, but we need a job description to help validate the job!"
+#                     # --- Warning if job_input_text is missing ---
+#                     if not job_input_text.strip() == "":
+#                         return "⚠️ Sorry, but we need a job description to help validate the job!"
                     
-                    # --- Warning if posting_date is missing ---
-                    if not posting_date.strip() == "":
-                        return "⚠️ Can you please give us a job posting date (or your best guess)? That would help alot."
+#                     # --- Warning if posting_date is missing ---
+#                     if not posting_date.strip() == "":
+#                         return "⚠️ Can you please give us a job posting date (or your best guess)? That would help alot."
                     
-                    # --- Existing job validation logic ---
-                    recent = is_posting_recent(posting_date)
-                    template_flag = template_detector(job_input_text)
-                    urgency_flag = detect_urgency_language(job_input_text)
-                    social_links = mentioned_on_socials(company, job_title)
+#                     # --- Existing job validation logic ---
+#                     recent = is_posting_recent(posting_date)
+#                     template_flag = template_detector(job_input_text)
+#                     urgency_flag = detect_urgency_language(job_input_text)
+#                     social_links = mentioned_on_socials(company, job_title)
 
-                    report = "### 🕒 Posting Date Check:\n"
-                    report += "✅ Job appears to be recent enough.\nNot a lot of jobs are still looking after 45 days." if recent else "⚠️ Warning! Job may be outdated.\n"
+#                     report = "### 🕒 Posting Date Check:\n"
+#                     report += "✅ Job appears to be recent enough.\nNot a lot of jobs are still looking after 45 days." if recent else "⚠️ Warning! Job may be outdated.\n"
 
-                    report += "\n### 🤖 Template Language:\n"
-                    report += "⚠️ Generic/template language detected - could be just harvesting data and / or candidates.\n" if template_flag else "✅ Posting looks specific enough to be an actual need.\n"
+#                     report += "\n### 🤖 Template Language:\n"
+#                     report += "⚠️ Generic/template language detected - could be just harvesting data and / or candidates.\n" if template_flag else "✅ Posting looks specific enough to be an actual need.\n"
 
-                    report += "\n### ⚡ Urgency Language:\n"
-                    report += "⚠️ Urgency words detected.\nProceed with caution, especially if the post is older than 30 days." if urgency_flag else "✅ No urgency language detected.\n"
+#                     report += "\n### ⚡ Urgency Language:\n"
+#                     report += "⚠️ Urgency words detected.\nProceed with caution, especially if the post is older than 30 days." if urgency_flag else "✅ No urgency language detected.\n"
 
-                    report += "\n### 🔍 Social Media Mentions:\n"
-                    report += f"- [Search on X](<{social_links['x']}>)\n"
-                    report += f"- [Search on LinkedIn](<{social_links['linkedin']}>)\n"
+#                     report += "\n### 🔍 Social Media Mentions:\n"
+#                     report += f"- [Search on X](<{social_links['x']}>)\n"
+#                     report += f"- [Search on LinkedIn](<{social_links['linkedin']}>)\n"
 
-                    # # --- Optional: Resume processing ---
-                    # if resume_file is not None:
-                    #     resume_report = process_resume(resume_file, job_input)
-                    #     report += f"\n### 📄 Resume Fit Analysis:\n{resume_report}\n"
+#                     # # --- Optional: Resume processing ---
+#                     # if resume_file is not None:
+#                     #     resume_report = process_resume(resume_file, job_input)
+#                     #     report += f"\n### 📄 Resume Fit Analysis:\n{resume_report}\n"
 
-                    return report
+#                     return report
 
-                validate_btn.click(
-                    full_job_validator, [job_input, jd_date, company_input, jd_title], validation_output
-                )
+#                 validate_btn.click(
+#                     full_job_validator, [job_input, jd_date, company_input, jd_title], validation_output
+#                 )
 
-            # with gr.Tab("Job Validator"):
-            #     jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
-            #     jd_title = gr.Textbox(label="Job Title")
-            #     jd_validate_btn = gr.Button("✅ Validate Job")
-            #     jd_validation_result = gr.Markdown()
+#             # with gr.Tab("Job Validator"):
+#             #     jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
+#             #     jd_title = gr.Textbox(label="Job Title")
+#             #     jd_validate_btn = gr.Button("✅ Validate Job")
+#             #     jd_validation_result = gr.Markdown()
 
-            #     def validate_job(posting_date, company, job_title, job_description):
-            #         recent = is_posting_recent(posting_date)
-            #         template_flag = template_detector(job_description)
-            #         urgency_flag = detect_urgency_language(job_description)
-            #         social_links = mentioned_on_socials(company, job_title)
+#             #     def validate_job(posting_date, company, job_title, job_description):
+#             #         recent = is_posting_recent(posting_date)
+#             #         template_flag = template_detector(job_description)
+#             #         urgency_flag = detect_urgency_language(job_description)
+#             #         social_links = mentioned_on_socials(company, job_title)
 
-            #         report = f"### 🕒 Posting Date Check:\n"
-            #         report += "✅ Job appears to be recent.\n" if recent else "⚠️ Job may be outdated.\n"
+#             #         report = f"### 🕒 Posting Date Check:\n"
+#             #         report += "✅ Job appears to be recent.\n" if recent else "⚠️ Job may be outdated.\n"
 
-            #         report += f"\n### 🤖 Template Language:\n"
-            #         report += "⚠️ Generic/template language detected - could be just harvesting candidates.\n" if template_flag else "✅ Posting looks specific enough to be an actual need.\n"
+#             #         report += f"\n### 🤖 Template Language:\n"
+#             #         report += "⚠️ Generic/template language detected - could be just harvesting candidates.\n" if template_flag else "✅ Posting looks specific enough to be an actual need.\n"
 
-            #         report += f"\n### 🔍 Social Media Mentions:\n"
-            #         report += f"- [Search on X](<{social_links['x']}>)\n"
-            #         report += f"- [Search on LinkedIn](<{social_links['linkedin']}>)\n"
+#             #         report += f"\n### 🔍 Social Media Mentions:\n"
+#             #         report += f"- [Search on X](<{social_links['x']}>)\n"
+#             #         report += f"- [Search on LinkedIn](<{social_links['linkedin']}>)\n"
 
-            #         return report
+#             #         return report
 
-            #     jd_validate_btn.click(
-            #         fn=validate_job,
-            #         inputs=[jd_date, company_input, jd_title, job_input],
-            #         outputs=jd_validation_result
-            #     )
+#             #     jd_validate_btn.click(
+#             #         fn=validate_job,
+#             #         inputs=[jd_date, company_input, jd_title, job_input],
+#             #         outputs=jd_validation_result
+#             #     )
             
-            with gr.Tab("Resume Optimizer"):
-                run_resume = gr.Button("🧙 Click Here To Whip Up Some Resume Magic!")
-                resume_md = gr.Markdown()
-                resume_edit = gr.Textbox(label="Above Is the Preview of Your Optimized Resume - If You Want, You Can Edit In This Box Below.", lines=10)
-                suggestions = gr.Markdown(label="Suggestions")
-                export_resume_btn = gr.Button("⬇ Download as PDF")
-                export_resume_result = gr.File()
+#             with gr.Tab("Resume Optimizer"):
+#                 run_resume = gr.Button("🧙 Click Here To Whip Up Some Resume Magic!")
+#                 resume_md = gr.Markdown()
+#                 resume_edit = gr.Textbox(label="Above Is the Preview of Your Optimized Resume - If You Want, You Can Edit In This Box Below.", lines=10)
+#                 suggestions = gr.Markdown(label="Suggestions")
+#                 export_resume_btn = gr.Button("⬇ Download as PDF")
+#                 export_resume_result = gr.File()
 
-            with gr.Tab("Cover Letter Generator"):
-                run_cover = gr.Button("📝 Click Here To Whip Up A Cover Letter")
-                cover_output = gr.Textbox(label="Cover Letter", lines=12)
-                export_cover_btn = gr.Button("⬇ Download as PDF")
-                export_cover_result = gr.File()
+#             with gr.Tab("Cover Letter Generator"):
+#                 run_cover = gr.Button("📝 Click Here To Whip Up A Cover Letter")
+#                 cover_output = gr.Textbox(label="Cover Letter", lines=12)
+#                 export_cover_btn = gr.Button("⬇ Download as PDF")
+#                 export_cover_result = gr.File()
             
-            # buy_button = gr.Button("🛍️ Subscribe and Get All the Resumes You Want for Less Than $6/Month!")
-            # buy_link = gr.Markdown()
+#             # buy_button = gr.Button("🛍️ Subscribe and Get All the Resumes You Want for Less Than $6/Month!")
+#             # buy_link = gr.Markdown()
 
-            # buy_button.click(
-            #     fn = lambda: f"[Click here for Limitless AI-Powered Resume Optimization!]({create_checkout_session()})",
-            #     outputs = buy_link
-            # )
+#             # buy_button.click(
+#             #     fn = lambda: f"[Click here for Limitless AI-Powered Resume Optimization!]({create_checkout_session()})",
+#             #     outputs = buy_link
+#             # )
 
-            # with gr.Tab("Job Validator"):
-            #     jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
-            #     jd_title = gr.Textbox(label="Job Title")
-            #     jd_validate_btn = gr.Button("✅ Validate Job")
-            #     jd_validation_result = gr.Markdown()
+#             # with gr.Tab("Job Validator"):
+#             #     jd_date = gr.Textbox(label="Posting Date (YYYY-MM-DD)")
+#             #     jd_title = gr.Textbox(label="Job Title")
+#             #     jd_validate_btn = gr.Button("✅ Validate Job")
+#             #     jd_validation_result = gr.Markdown()
 
-            #     def validate_job(posting_date, company, job_title, job_description):
-            #         recent = is_posting_recent(posting_date)
-            #         template_flag = template_detector(job_description)
-            #         social_links = mentioned_on_socials(company, job_title)
+#             #     def validate_job(posting_date, company, job_title, job_description):
+#             #         recent = is_posting_recent(posting_date)
+#             #         template_flag = template_detector(job_description)
+#             #         social_links = mentioned_on_socials(company, job_title)
 
-            #         report = f"### 🕒 Posting Date Check:\n"
-            #         report += "✅ Job appears to be recent.\n" if recent else "⚠️ Job may be outdated.\n"
+#             #         report = f"### 🕒 Posting Date Check:\n"
+#             #         report += "✅ Job appears to be recent.\n" if recent else "⚠️ Job may be outdated.\n"
 
-            #         report += f"\n### 🤖 Template Language:\n"
-            #         report += "⚠️ Generic/template language detected.\n" if template_flag else "✅ Looks specific.\n"
+#             #         report += f"\n### 🤖 Template Language:\n"
+#             #         report += "⚠️ Generic/template language detected.\n" if template_flag else "✅ Looks specific.\n"
 
-            #         report += f"\n### 🔍 Social Media Mentions:\n"
-            #         report += f"- [Search on X](<{social_links['x']}>)\n"
-            #         report += f"- [Search on LinkedIn](<{social_links['linkedin']}>)\n"
+#             #         report += f"\n### 🔍 Social Media Mentions:\n"
+#             #         report += f"- [Search on X](<{social_links['x']}>)\n"
+#             #         report += f"- [Search on LinkedIn](<{social_links['linkedin']}>)\n"
 
-            #         return report
+#             #         return report
 
-            #     jd_validate_btn.click(
-            #         fn=validate_job,
-            #         inputs=[jd_date, company_input, jd_title, job_input],
-            #         outputs=jd_validation_result
-            #     )
+#             #     jd_validate_btn.click(
+#             #         fn=validate_job,
+#             #         inputs=[jd_date, company_input, jd_title, job_input],
+#             #         outputs=jd_validation_result
+#             #     )
 
-            # Resume events
-            run_resume.click(run_resume_with_credits, [resume_input, job_input], [resume_md, resume_edit, suggestions, resume_counter])
-            export_resume_btn.click(export_resume, [resume_edit, company_input], [export_resume_result])
+#             # Resume events
+#             run_resume.click(run_resume_with_credits, [resume_input, job_input], [resume_md, resume_edit, suggestions, resume_counter])
+#             export_resume_btn.click(export_resume, [resume_edit, company_input], [export_resume_result])
 
-            # Cover letter events
-            def generate_cover_letter(resume_file, job_input):
-                if resume_file is None or not job_input.strip():
-                    return "⚠️ Sorry, but the tools need both a resume and pasted job description before they can do you any good."
+#             # Cover letter events
+#             def generate_cover_letter(resume_file, job_input):
+#                 if resume_file is None or not job_input.strip():
+#                     return "⚠️ Sorry, but the tools need both a resume and pasted job description before they can do you any good."
 
-                # Normalize extension safely
-                fname = getattr(resume_file, "name", "")
-                ext = fname.lower().split(".")[-1] if "." in fname else ""
+#                 # Normalize extension safely
+#                 fname = getattr(resume_file, "name", "")
+#                 ext = fname.lower().split(".")[-1] if "." in fname else ""
 
-            # Read resume text from PDF or text-like files
-                resume_txt = ""
-                try:
-                    if ext == "pdf":
-                        with pdfplumber.open(fname or resume_file) as pdf:
-                            for page in pdf.pages:
-                                resume_txt += (page.extract_text() or "")
-                    else:
-                    # Fallback: treat as text/markdown
-                        with open(fname, "r", encoding="utf-8") as f:
-                            resume_txt = f.read()
-                except Exception as e:
-                    return f"😐 Ruh-roh! Problem with the resume: {e}"
+#             # Read resume text from PDF or text-like files
+#                 resume_txt = ""
+#                 try:
+#                     if ext == "pdf":
+#                         with pdfplumber.open(fname or resume_file) as pdf:
+#                             for page in pdf.pages:
+#                                 resume_txt += (page.extract_text() or "")
+#                     else:
+#                     # Fallback: treat as text/markdown
+#                         with open(fname, "r", encoding="utf-8") as f:
+#                             resume_txt = f.read()
+#                 except Exception as e:
+#                     return f"😐 Ruh-roh! Problem with the resume: {e}"
 
-                prompt = cover_letter_prompt_creator(resume_txt, job_input)
-                return get_cover_response(prompt)
+#                 prompt = cover_letter_prompt_creator(resume_txt, job_input)
+#                 return get_cover_response(prompt)
 
 
-            run_cover.click(generate_cover_letter, [resume_input, job_input], [cover_output])
-            export_cover_btn.click(save_cover_letter, [cover_output, company_input], [export_cover_result])
+#             run_cover.click(generate_cover_letter, [resume_input, job_input], [cover_output])
+#             export_cover_btn.click(save_cover_letter, [cover_output, company_input], [export_cover_result])
 
-    # --- Footer ---
-    # gr.Markdown("""
-    # <hr>
-    # <p style='text-align:center; font-size:1.5em; color:gray;'>
-    # 🛡️ Your data is never stored, shared, or sold. Ever.
-    # </p>
-    # """)
+#     # --- Footer ---
+#     # gr.Markdown("""
+#     # <hr>
+#     # <p style='text-align:center; font-size:1.5em; color:gray;'>
+#     # 🛡️ Your data is never stored, shared, or sold. Ever.
+#     # </p>
+#     # """)
 
-# Flask webhook setup so that once users pay, they have full access
+# # Flask webhook setup so that once users pay, they have full access
 
-@flask_app.route("/webhook", methods = ["POST"])
+# @flask_app.route("/webhook", methods = ["POST"])
 
-def stripe_webhook():
-    payload = request.data
-    signature_header = request.headers.get("Stripe-Signature")
-    endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+# def stripe_webhook():
+#     payload = request.data
+#     signature_header = request.headers.get("Stripe-Signature")
+#     endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
 
-    try:
-        event = stripe.Webhook.construct_event(payload, signature_header, endpoint_secret)
-    except Exception as e:
-        return str(e), 400
+#     try:
+#         event = stripe.Webhook.construct_event(payload, signature_header, endpoint_secret)
+#     except Exception as e:
+#         return str(e), 400
     
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        user_id = session.get("client_reference_id", "guest")
+#     if event["type"] == "checkout.session.completed":
+#         session = event["data"]["object"]
+#         user_id = session.get("client_reference_id", "guest")
 
-        # give user infinite ("inf") access
-        user_credits[user_id] = float("inf")
+#         # give user infinite ("inf") access
+#         user_credits[user_id] = float("inf")
 
-    return "", 200
+#     return "", 200
 
-# Launch
-if __name__ == "__main__":
-    app.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", "8080")))
-    flask_app.run(host = "0.0.0.0", port = 8081)
+# # Launch
+# if __name__ == "__main__":
+#     app.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", "8080")))
+#     flask_app.run(host = "0.0.0.0", port = 8081)
 
 # # Round 3
 # import gradio as gr
