@@ -27,13 +27,13 @@ open_apikey = os.getenv("OPENAI_API_KEY")
 if not open_apikey:
     raise EnvironmentError("OPENAI_API_KEY is missing. Please set it in Render environment variables.")
 
-client = OpenAI(api_key=open_apikey)
+client = OpenAI(api_key = open_apikey)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=logging.INFO, format = "%(asctime)s - %(levelname)s - %(message)s")
 
 # Directories
-os.makedirs("gpt_resumes", exist_ok=True)
-os.makedirs("gpt_cover_letters", exist_ok=True)
+os.makedirs("gpt_resumes", exist_ok = True)
+os.makedirs("gpt_cover_letters", exist_ok = True)
 
 # ========================
 # Resume Functions
@@ -47,13 +47,13 @@ def extract_resume_text(file_path: str) -> str:
         doc = docx.Document(file_path)
         return "\n".join([para.text for para in doc.paragraphs]).strip()
     elif file_path.lower().endswith((".md", ".txt")):
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, "r", encoding = "utf-8") as f:
             return f.read().strip()
     else:
         raise ValueError("Unsupported file type. Please upload .pdf, .docx, .md, or .txt.")
 
 def get_embedding(text: str):
-    response = client.embeddings.create(model="text-embedding-3-small", input=text)
+    response = client.embeddings.create(model = "text-embedding-3-small", input = text)
     return response.data[0].embedding
 
 def calculate_resume_job_similarity(resume_txt: str, job_description: str) -> float:
@@ -68,29 +68,93 @@ def sanitize_input(text: str) -> str:
     return text.strip()
 
 def prompt_creator(resume_string: str, job_desc_string: str) -> str:
+    """
+    Using the prompt engineered in the scratchpad 'lambda' function, this function uses the power of ChatGPT's 4o-mini-mini engine to
+    act as a professional resume optimizer to take my existing resume and:
+        1.) Use action-verbs and job posting keywords to optimize it for Applicant Tracking Systems;
+        2.) Provide us with feedback on any changes that can be made to strengthen the resume; and 
+        3.) Format the adjusted, AI-assisted resume in a clean Markdown format
+
+    Args:
+        resume_string (str): our existing resume text input
+        job_desc_string (str): The target job description text
+
+    Returns:
+        str: A formatted prompt string containing instructions for resume optimization
+    """
+    # Protect the prompt engineering / LLM instructions
     resume_string = sanitize_input(resume_string)
     job_desc_string = sanitize_input(job_desc_string)
+
     return f"""
-    ### Role: Professional Resume Optimizer
-    Tailor my resume to the given job description. Optimize for ATS, highlight impact, and return in clean Markdown format.
+    ### Role: 
+    You are a professional resume optimization expert. Your task is to tailor my resume to align with a specific job description.
 
-    **Resume:** {resume_string}
-    **Job Description:** {job_desc_string}
+    My career goals emphasize collaboration, problem-solving, and helping businesses extract value from their data. Your output should be a **targeted, one-page resume** optimized for recruiters and Applicant Tracking Systems (ATS).
 
-    Output:
-    1. Tailored one-page Markdown resume
-    2. Additional suggestions if any gaps exist
+    ---
+
+    ### Guidelines
+
+    **1. Relevance**
+    - Prioritize **my most relevant skills and experiences** based on the job description.
+    - De-emphasize or omit unrelated content to keep the resume **concise and focused**.
+    - Limit to **2–3 most relevant roles** with **2–3 key bullet points** per role.
+    - Highlight only the **core competencies** matching the job requirements.
+
+    **2. Impactful Results**
+    - Use **strong action verbs** and **quantifiable outcomes** (%, $, time saved, etc).
+    - Emphasize how my experience **adds measurable value**.
+    - Customize the Experience section to directly reflect the responsibilities and outcomes in the job posting.
+
+    **3. Summary Section**
+    - Tailor the Summary to the job description and recruiter expectations.
+    - Clearly articulate how my experience enables me to succeed quickly in this role.
+
+    **4. Keyword Optimization**
+    - Naturally integrate **keywords and phrases** from the job posting to improve ATS compatibility.
+
+    **5. Recommendations (if gaps exist)**
+    If the resume doesn't fully match the job:
+    - Suggest **additional skills** to highlight.
+    - Recommend **certifications or courses** (completed or worth pursuing).
+    - Propose **project ideas** that better align with the role.
+    - Recommend edits to improve the Summary based on the job's intent.
+    - Provide a **predicted resume–job fit score** (0–100%).
+
+    **6. Formatting**
+    - Output the resume in **clean Markdown** format.
+    - Include an **“Additional Suggestions”** section with actionable improvements.
+
+    ---
+
+    ### Input:
+    - **Resume**: `{resume_string}`
+    - **Job Description**: `{job_desc_string}`
+
+    ---
+
+    ### Output:
+
+    1. **Tailored Resume**:
+    - A one-page resume in Markdown.
+    - Focuses on relevant experience, uses confident language, and includes job-specific keywords.
+
+    2. **Additional Suggestions** *(if applicable)*:
+    - Highlight missing skills, certifications, or project ideas.
+    - Recommend edits to align tone and content with job description.
+    - Include fit score.
     """
 
 def get_resume_response(prompt: str, model: str = "gpt-4o-mini", temperature: float = 0.7) -> str:
     try:
         response = client.chat.completions.create(
-            model=model,
-            messages=[
+            model = model,
+            messages = [
                 {"role": "system", "content": "Expert Resume Writer"},
                 {"role": "user", "content": prompt}
             ],
-            temperature=temperature
+            temperature = temperature
         )
         return response.choices[0].message.content
     except Exception as e:
@@ -108,7 +172,7 @@ def process_resume(resume_file_path, job_desc_string):
         response = get_resume_response(prompt)
 
         # Split suggestions if present
-        parts = re.split(r"^#+ Additional Suggestions", response, flags=re.IGNORECASE | re.MULTILINE)
+        parts = re.split(r"^#+ Additional Suggestions", response, flags = re.IGNORECASE | re.MULTILINE)
         optimized = parts[0].strip() if parts else response
         suggestions = parts[1].strip() if len(parts) > 1 else "No additional suggestions."
 
@@ -126,8 +190,8 @@ def export_resume(new_resume, company_name):
     try:
         html_content = markdown(new_resume)
         css_path = "exported_resume_format.css"
-        stylesheets = [CSS(filename=css_path)] if os.path.exists(css_path) else []
-        HTML(string=html_content).write_pdf(output_pdf, stylesheets=stylesheets)
+        stylesheets = [CSS(filename = css_path)] if os.path.exists(css_path) else []
+        HTML(string = html_content).write_pdf(output_pdf, stylesheets = stylesheets)
         return output_pdf
     except Exception as e:
         logging.error(f"Resume export failed: {e}")
@@ -138,15 +202,60 @@ def export_resume(new_resume, company_name):
 # ========================
 
 def cover_letter_prompt_creator(resume_string: str, jd_string: str) -> str:
+   
+    # protect from injections
     resume_string = sanitize_input(resume_string)
     jd_string = sanitize_input(jd_string)
+   
     return f"""
-    ### Role: Professional Cover Letter Writer
-    Create a one-page cover letter aligning my resume with the job description.
-    Return in clean Markdown format.
+    ### Role
+    You are a professional cover letter writer tasked with creating a compelling, one-page cover letter that clearly shows 
+    how my background and experience meet — or exceed — the requirements of a specific job description.
 
-    **Resume:** {resume_string}
-    **Job Description:** {jd_string}
+    The tone should be professional yet conversational — confident without arrogance, polished but human. 
+
+    Your goal is to help me stand out by aligning the most relevant parts of my resume with the needs of the role.
+
+    ---
+
+    ### Guidelines
+
+    1. **Relevance**
+    - Highlight the 2–3 most relevant roles or experiences that directly support the job description.
+    - Cut any content that doesn't contribute to a concise, tailored message.
+    - Prioritize transferable skills, project outcomes, and business impact over duties.
+
+    2. **Action & Results**
+    - Use strong action verbs and quantify results when possible (e.g., % growth, time saved, revenue impact).
+
+    3. **ATS Alignment**
+    - Naturally weave in job description keywords and phrasing to optimize for applicant tracking systems (ATS).
+
+    4. **Tone**
+    - Aim for confident, plainspoken language — not overly formal or robotic.
+    - Speak directly to the reader, like a capable peer making their case.
+
+    5. **Formatting**
+    - Return the full cover letter in **clean Markdown format** with appropriate paragraph spacing for readability.
+
+    ---
+
+    ### Input
+
+    **My Resume:**
+    {resume_string}
+
+    **Job Description:**
+    {jd_string}
+
+    ---
+
+    ### Output
+
+    A complete, one-page **Markdown-formatted cover letter** that:
+    - Emphasizes the most relevant experience, skills, and accomplishments;
+    - Reflects the language and priorities of the job description;
+    - Shows confidence, competence, and personality without fluff.
     """
 
 def get_cover_response(prompt: str, model: str = "gpt-4o-mini", temperature: float = 0.7) -> str:
@@ -156,12 +265,12 @@ def get_cover_response(prompt: str, model: str = "gpt-4o-mini", temperature: flo
             {"role": "system", "content": "Professional Cover Letter Writer"},
             {"role": "user", "content": prompt}
         ],
-        temperature=temperature
+        temperature = temperature
     )
     return response.choices[0].message.content
 
 def save_cover_letter(response_string: str, company_name: str):
-    os.makedirs("gpt_cover_letters", exist_ok=True)
+    os.makedirs("gpt_cover_letters", exist_ok = True)
     slug = company_name.lower().replace(" ", "_").replace(".", "")
     uid = str(uuid.uuid4())[:8]
     pdf_path = f"gpt_cover_letters/{slug}_{uid}_optimized_cover_letter.pdf"
@@ -170,7 +279,7 @@ def save_cover_letter(response_string: str, company_name: str):
     try:
         with open(md_path, "w", encoding="utf-8") as f:
             f.write(response_string)
-        HTML(string=markdown(response_string)).write_pdf(pdf_path)
+        HTML(string = markdown(response_string)).write_pdf(pdf_path)
         return pdf_path, md_path
     except Exception as e:
         logging.error(f"Cover letter save failed: {e}")
@@ -207,7 +316,7 @@ def mentioned_on_socials(company, job_title):
 
 def source_link_meta_date(url):
     try:
-        resp = requests.get(url, timeout=5)
+        resp = requests.get(url, timeout = 5)
         soup = BeautifulSoup(resp.text, "html.parser")
         for tag in ["datePublished", "article:published_time", "og:published_time"]:
             meta = soup.find("meta", {"property": tag}) or soup.find("meta", {"name": tag})
