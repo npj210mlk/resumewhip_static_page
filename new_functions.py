@@ -120,7 +120,6 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
     - Recommend **certifications or courses** (completed or worth pursuing).
     - Propose **project ideas** that better align with the role.
     - Recommend edits to improve the Summary based on the job's intent.
-    - Provide a **predicted resume–job fit score** (0–100%).
 
     **6. Formatting**
     - Output the resume in **clean Markdown** format.
@@ -143,7 +142,6 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
     2. **Additional Suggestions** *(if applicable)*:
     - Highlight missing skills, certifications, or project ideas.
     - Recommend edits to align tone and content with job description.
-    - Include fit score.
     """
 
 def get_resume_response(prompt: str, model: str = "gpt-4o-mini", temperature: float = 0.7) -> str:
@@ -176,7 +174,7 @@ def process_resume(resume_file_path, job_desc_string):
         optimized = parts[0].strip() if parts else response
         suggestions = parts[1].strip() if len(parts) > 1 else "No additional suggestions."
 
-        match_info = f"### Match Score: {similarity * 100:.1f}%"
+        match_info = f"### Resume-Job Match Score: {similarity * 100:.1f}%"
         return [optimized, optimized, f"## Additional Suggestions\n{suggestions}\n{match_info}"]
     except Exception as e:
         logging.error(f"process_resume failed: {e}")
