@@ -375,7 +375,7 @@ line, andnput it wherever you want:
 
             # Resume events
             run_resume.click(run_resume_with_credits, [resume_input, job_input], [resume_md, resume_edit, suggestions, resume_counter])
-            export_resume_btn.click(export_resume, inputs=[resume_edit, company_input], [export_resume_result])
+            export_resume_btn.click(export_resume, [resume_edit, company_input], [export_resume_result])
 
             # Cover letter events
             def generate_cover_letter(resume_file, job_input):
