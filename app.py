@@ -240,7 +240,7 @@ line, andnput it wherever you want:
                     social_links = mentioned_on_socials(company, job_title)
 
                     report = "### 🕒 Posting Date Check:\n"
-                    report += "✅ Job appears to be recent enough.\nNot a lot of jobs are still looking after 30 days." if recent else "⚠️ Warning! Job may be outdated.\n"
+                    report += "✅ Job appears to be recent enough.\nNot a lot of jobs are still looking after 45 days." if recent else "⚠️ Warning! Job may be outdated.\n"
 
                     report += "\n### 🤖 Template Language:\n"
                     report += "⚠️ Generic/template language detected - could be just harvesting data and / or candidates.\n" if template_flag else "✅ Posting looks specific enough to be an actual need.\n"
@@ -418,7 +418,7 @@ def stripe_webhook():
 
 # Launch
 if __name__ == "__main__":
-    app.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", "8080")), title = "ResumeWhip")
+    app.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", "8080")))
     flask_app.run(host = "0.0.0.0", port = 8081)
 
 # # Round 3
