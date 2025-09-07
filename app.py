@@ -405,7 +405,7 @@ line, andnput it wherever you want:
 
 
             run_cover.click(generate_cover_letter, [resume_input, job_input], [cover_output])
-            export_cover_btn.click(ave_cover_letter, [cover_output, company_input], [export_cover_result])
+            export_cover_btn.click(save_cover_letter, [cover_output, company_input], [export_cover_result])
 
     # --- Footer ---
     # gr.Markdown("""
