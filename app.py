@@ -164,7 +164,8 @@ with gr.Blocks(title="ResumeWhip", theme=gr.themes.Soft()) as app:
     # Header
     gr.Markdown("""
     <h1 style='text-align:center; color:#1e90ff;'>🏎️💨 Welcome To ResumeWhip!</h1>
-    <h2 style='text-align:center; color:#dd1eff;'>Your AI-Powered Resume Optimizer Where Your First 3 Resumes Are Free</h2> 
+    <h2 style='text-align:center; color:#dd1eff;'>The AI-Powered Resume Optimizer Meant to Whips ATS Systems</h2>
+    <h2 style='text-align:center; color:#dd1eff;'>Get Your First 3 Resumes Free!</h2> 
     <h3 style='text-align:center;'>Powerful. Simple. Just Validate → Upload → Optimize → Apply!</h3>          
     """)
 
@@ -235,8 +236,88 @@ and the next to begin:
             </div>
             """)
             
-            gr.Markdown("### 🛡️ We never share or sell your data. Ever.")
-            gr.Markdown("[📧 Need Help / Have Suggestions?](mailto:support@resumewhip.com)")
+            gr.Markdown("### 🛡️ We will never sell your data. Ever.")
+
+            gr.Markdown("### 🔥 Know someone stuck in job search limbo? Help Them Out!")
+
+            gr.HTML("""
+            <div style="display:flex; flex-direction:column; gap:15px; margin-top:15px;">
+                <!-- Dynamic share messages -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                            padding: 15px; border-radius: 10px; color: white; text-align: center;">
+                    <strong>💡 Share your success:</strong><br>
+                    "Just got 40% more ATS-friendly with AI resume optimization!"
+                </div>
+                
+                <!-- Share buttons with compelling messages -->
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=https://resumewhip.com&quote=Stop%20sending%20resumes%20into%20the%20void!%20🎯%20This%20AI%20tool%20actually%20gets%20you%20past%20the%20bots%20and%20tailors%20your%20resume%20to%20each%20job%20in%2030%20seconds.%20Game%20changer%20for%20job%20hunting!" 
+                       target="_blank" 
+                       style="text-decoration: none;">
+                        <div style="background: #1877f2; color: white; padding: 12px 20px; border-radius: 8px; 
+                                    font-weight: bold; text-align: center; transition: transform 0.2s;"
+                             onmouseover="this.style.transform='scale(1.02)'"
+                             onmouseout="this.style.transform='scale(1)'">
+                            📘 Share Success on Facebook
+                        </div>
+                    </a>
+                    
+                    <a href="https://x.com/intent/post?url=https://resumewhip.com&text=Just%20boosted%20my%20resume%27s%20ATS%20score%20by%2040%25%20with%20AI!%20🎯%20Getting%20way%20more%20interviews%20now.%20ResumeWhip%20tailors%20your%20resume%20to%20each%20job%20in%2030%20seconds%20-%203%20free%20tries!" 
+                       target="_blank"
+                       style="text-decoration: none;">
+                        <div style="background: #000; color: white; padding: 12px 20px; border-radius: 8px; 
+                                    font-weight: bold; text-align: center; transition: transform 0.2s;"
+                             onmouseover="this.style.transform='scale(1.02)'"
+                             onmouseout="this.style.transform='scale(1)'">
+                            🐦 Post Win on X
+                        </div>
+                    </a>
+                    
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://resumewhip.com&summary=Finally%20found%20a%20resume%20tool%20that%20actually%20understands%20ATS%20systems%20🎯%20ResumeWhip%20uses%20AI%20to%20optimize%20your%20resume%20for%20each%20specific%20job%20posting.%20No%20more%20generic%20resumes%20-%20this%20thing%20is%20a%20game%20changer%20for%20job%20hunting!" 
+                       target="_blank"
+                       style="text-decoration: none;">
+                        <div style="background: #0077b5; color: white; padding: 12px 20px; border-radius: 8px; 
+                                    font-weight: bold; text-align: center; transition: transform 0.2s;"
+                             onmouseover="this.style.transform='scale(1.02)'"
+                             onmouseout="this.style.transform='scale(1)'">
+                            💼 Share on LinkedIn
+                        </div>
+                    </a>
+                    
+                    <a href="https://www.reddit.com/submit?url=https://resumewhip.com&title=Found%20an%20AI%20tool%20that%20actually%20gets%20your%20resume%20past%20ATS%20bots%20🤖➡️👤&text=Tired%20of%20sending%20resumes%20into%20the%20void?%20ResumeWhip%20uses%20AI%20to%20tailor%20your%20resume%20to%20each%20job%20posting%20and%20optimize%20for%20ATS%20systems.%20Finally%20getting%20actual%20responses%20instead%20of%20radio%20silence.%203%20free%20optimizations%20to%20try%20it%20out!" 
+                       target="_blank"
+                       style="text-decoration: none;">
+                        <div style="background: #ff4500; color: white; padding: 12px 20px; border-radius: 8px; 
+                                    font-weight: bold; text-align: center; transition: transform 0.2s;"
+                             onmouseover="this.style.transform='scale(1.02)'"
+                             onmouseout="this.style.transform='scale(1)'">
+                            🔥 Post on Reddit
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- Copy-paste friendly version -->
+                <details style="margin-top: 15px;">
+                    <summary style="cursor: pointer; color: #1e90ff; font-weight: bold;">
+                        📋 Copy ready-to-paste messages
+                    </summary>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                        <div style="margin-bottom: 15px;">
+                            <strong>For job hunting groups:</strong><br>
+                            <textarea readonly style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.9em; margin-top: 5px;" rows="2">PSA: Found an AI tool that actually gets resumes past ATS bots 🤖➡️👤 ResumeWhip tailors your resume to each job posting in 30 seconds. Getting way more interviews now! 3 free tries: https://resumewhip.com</textarea>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <strong>For success stories:</strong><br>
+                            <textarea readonly style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.9em; margin-top: 5px;" rows="2">Update: Just boosted my resume's ATS score by 40% with AI optimization 🎯 Finally getting callbacks instead of radio silence! https://resumewhip.com (3 free tries)</textarea>
+                        </div>
+                        <div>
+                            <strong>For casual sharing:</strong><br>
+                            <textarea readonly style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.9em; margin-top: 5px;" rows="2">Stop playing resume roulette! This AI tool shows you exactly what recruiters want to see ✨ https://resumewhip.com</textarea>
+                        </div>
+                    </div>
+                </details>
+            </div>
+            """)
 
         # Main content
         with gr.Column(scale=3):
