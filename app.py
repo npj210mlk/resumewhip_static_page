@@ -49,7 +49,7 @@ def create_checkout_session():
                 'quantity': 1,
             }],
             mode='subscription',
-            success_url="https://www.resumewhip.com/success",  # Update with your actual URL
+            success_url="https://www.resumewhip.com/success",
             cancel_url="https://resumewhip.com/cancel"
         )
         return session.url
@@ -142,6 +142,20 @@ def validate_job_posting(job_input_text, posting_date, company, job_title):
     except Exception as e:
         return f"🚩 Error validating job posting: {e}"
 
+# Sticky buy button + banner (add before "with gr.Blocks()")
+sticky_buy_button = """
+<div style="position:fixed; top:10px; right:20px; z-index:9999; text-align:center;">
+    <a href="https://buy.stripe.com/cNi9ASgWl6C614l3cc" target="_blank" 
+       style="background-color:#ff7f50; color:white; padding:12px 20px; 
+              text-decoration:none; border-radius:8px; font-size:1em; 
+              font-weight:bold; box-shadow:0px 2px 6px rgba(0,0,0,0.2);">
+        ♾️ Unlimited Resume Optimization – $5.99/mo
+    </a>
+    <div style="font-size:0.8em; color:#333; margin-top:4px;">
+        Trusted by 200+ job seekers
+    </div>
+</div>
+"""
 # Create Gradio interface
 with gr.Blocks(title="ResumeWhip", theme=gr.themes.Soft()) as app:
     
@@ -151,7 +165,7 @@ with gr.Blocks(title="ResumeWhip", theme=gr.themes.Soft()) as app:
     gr.Markdown("""
     <h1 style='text-align:center; color:#1e90ff;'>🏎️💨 Welcome To ResumeWhip!</h1>
     <h2 style='text-align:center; color:#dd1eff;'>Your AI-Powered Resume Optimizer Where Your First 3 Resumes Are Free</h2> 
-    <h3 style='text-align:center;'>Powerful Simplicity: Just Validate → Upload → Optimize → Apply!</h3>          
+    <h3 style='text-align:center;'>Powerful. Simple. Just Validate → Upload → Optimize → Apply!</h3>          
     """)
 
     with gr.Row():
@@ -216,7 +230,7 @@ and the next to begin:
                    style="background-color:#635BFF; color:white; padding:15px 25px; 
                           text-decoration:none; border-radius:8px; font-size:1.1em; 
                           font-weight:bold; display:inline-block;">
-                    🚀 Get Unlimited AI-Powered Resume Optimizaton for Just  $5.99/Month!
+                    ♾️ Get Unlimited AI-Powered Resume Optimizaton for Just  $5.99/Month!
                 </a>
             </div>
             """)
@@ -254,7 +268,7 @@ and the next to begin:
                 with gr.TabItem("✅ Job Validator"):
                     with gr.Row():
                         jd_date = gr.Textbox(
-                            label="📅 Posting Date", 
+                            label="📅 Posting Date (Best Guess, Anyway.)", 
                             placeholder="YYYY-MM-DD (e.g., 2024-12-01)"
                         )
                         jd_title = gr.Textbox(
@@ -266,7 +280,7 @@ and the next to begin:
                     validation_output = gr.Markdown()
 
                 with gr.TabItem("🎯 Resume Optimizer"):
-                    run_resume = gr.Button("✨ Whip Up Some Resume Magic!", variant="primary")
+                    run_resume = gr.Button("🪄 Whip Up Some Resume Magic!", variant="primary")
                     resume_md = gr.Markdown(label="Preview")
                     resume_edit = gr.Textbox(
                         label="✏️ Edit Your Resume (optional)", 
