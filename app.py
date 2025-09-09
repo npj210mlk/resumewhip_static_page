@@ -376,7 +376,7 @@ and the next to begin:
                 company_input = gr.Textbox(
                     label="🏢 Enter the Company's Name", 
                     placeholder="e.g., Google, Microsoft"
-   
+                )
 
 # =====================================
 # Final Code Above
