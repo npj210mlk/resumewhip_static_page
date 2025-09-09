@@ -377,6 +377,19 @@ and the next to begin:
                     label="🏢 Enter the Company's Name", 
                     placeholder="e.g., Google, Microsoft"
                 )
+if __name__ == "__main__":
+    # Get port from environment (Render sets this automatically)
+    port = int(os.environ.get("PORT", 7860))
+    
+    print(f"Starting Gradio app on port {port}")
+    
+    app.launch(
+        server_name="0.0.0.0",  # Bind to all interfaces
+        server_port=port,       # Use Render's assigned port
+        share=False,           # Don't create public Gradio link
+        show_error=True,       # Show detailed errors
+        quiet=False           # Show startup logs
+    )
 
 # =====================================
 # Final Code Above
