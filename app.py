@@ -145,7 +145,7 @@ def validate_job_posting(job_input_text, posting_date, company, job_title):
 # Sticky buy button + banner (add before "with gr.Blocks()")
 sticky_buy_button = """
 <div style="position:fixed; top:10px; right:20px; z-index:9999; text-align:center;">
-    <a href="https://buy.stripe.com/cNi9ASgWl6C614l3cc" target="_blank" 
+    <a href="https://buy.stripe.com/cNi9ASgWl6C614l3Ja1Jm00" target="_blank" 
        style="background-color:#ff7f50; color:white; padding:12px 20px; 
               text-decoration:none; border-radius:8px; font-size:1em; 
               font-weight:bold; box-shadow:0px 2px 6px rgba(0,0,0,0.2);">
@@ -225,30 +225,32 @@ and the next to begin:
                 gr.Markdown("""
         ### Common Questions About Resume Optimization
         
-        **Q: How does AI resume optimization work?**  
+        **Q: What is an ATS?**
+        A: "Applicant Tracking System." It's an automated filter Recruiters use to sift through the deluge of resumes they receive for open job positions.
+                            
+        **Q: How does your Resume Optimizer and Cover Letter Writer work?**  
         A: Our AI pits your resume up against job descriptions and tailors its content, keywords, and formatting to match what ATS systems and recruiters look for.
         
-        **Q: Is this better than manual resume writing?**  
-        A1: AI optimization ensures you never miss important keywords and helps facilitate multiple job applications efficiently, removing as many headaches as possible.
+        **Q: What makes ResumeWhip any different than the other resume optimizers?**
+        A: Its code is written by job seekers with fellow jobseekers in mind. In double-blind studies, it consistently outperforms the competition (eg: LinkedIn's AI Resume Optimizer).
+                                       
+        **Q: Do optimized resumes really get more interviews?**  
+        A1: Yes - ATS-optimized, job-specific resumes typically see 3-5x higher response rates than generic versions. AI ensures you never miss the keywords ATS systems use to qualify your resume.
         
-        **Q: What file formats work with the resume optimizer?**  
-        A: We support PDF, Word (.docx), Markdown (.md), and text (.txt) files for maximum compatibility.
+        **Q: What file formats work best with the resume optimizer?**  
+        A: We support PDF(.pdf), Word (.docx), Markdown (.md), and text (.txt) files.
         
         **Q: How many resumes can I optimize for free?**  
         A: You get 3 free resume optimizations to try our service, then unlimited access for $5.99/month.
-        
-        **Q: Do optimized resumes really get more interviews?**  
-        A: Yes - ATS-optimized, job-specific resumes typically see 3-5x higher response rates than generic versions.
 
-        **Q: What if I don't like the format of the resume your Resume Optimizer tool generates?**
-        A1: No problem! We have included a menu with some tips to help you adjust the format to your liking!
-        Tip: Keep your resume clean and simple - ATS systems don't really like a lot of formatting. (Tables? Yikes.)
+        **Q: Why is the format of the resume I download look so plain?**
+        A: That's by design - ATS systems don't like a lot of formatting. (Tables and multiple columns? Nightmares for them.)
         """)
             
             # Subscribe button
             gr.HTML("""
             <div style="text-align:center; margin:20px 0;">
-                <a href="https://buy.stripe.com/cNi9ASgWl6C614l3cc" 
+                <a href="https://buy.stripe.com/cNi9ASgWl6C614l3Ja1Jm00" 
                    target="_blank" 
                    style="background-color:#635BFF; color:white; padding:15px 25px; 
                           text-decoration:none; border-radius:8px; font-size:1.1em; 
@@ -368,7 +370,7 @@ and the next to begin:
                 """)
 
         # Main content
-        with gr.Column(scale=3):
+        with gr.Column(scale=5):
             # Input section
             with gr.Row():
                 resume_input = gr.File(
@@ -477,7 +479,7 @@ gr.HTML("""
                         style="margin: 0 20px; color: #1e90ff; text-decoration: none; font-weight: 500;">
                         📧 Contact Support
                     </a>
-                    <a href="https://buy.stripe.com/cNi9ASgWl6C614l3cc"
+                    <a href="https://buy.stripe.com/cNi9ASgWl6C614l3Ja1Jm00"
                         style="margin: 0 20px; color: #635BFF; text-decoration: none; font-weight: 500;">
                         💳 Upgrade to Premium
                     </a>
