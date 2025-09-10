@@ -1,0 +1,79 @@
+import sqlite3
+from datetime import datetime
+
+def init_database():
+    conn = sqlite3.connect('resumewhip.db')
+    cursor = conn.cursor()
+    
+    # Users table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT UNIQUE NOT NULL,
+            email TEXT,
+            subscription_status TEXT DEFAULT 'free',
+            credits_remaining INTEGER DEFAULT 3,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_payment_date TIMESTAMP
+        )
+    ''')
+    
+    # Resume sessions table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS resume_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            resume_id TEXT NOT NULL,
+            company_name TEXT,
+            job_description_hash TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (user_id)
+        )
+    ''')
+    
+    # Stripe payments table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS payments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            stripe_session_id TEXT,
+            stripe_customer_id TEXT,
+            amount INTEGER,
+            status TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (user_id)
+        )
+    ''')
+    
+    conn.commit()
+    conn.close()
+
+# Add these functions to your app.py
+def get_user_credits(user_id):
+    conn = sqlite3.connect('resumewhip.db')
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT credits_remaining, subscription_status FROM users WHERE user_id = ?', (user_id,))
+    result = cursor.fetchone()
+    
+    if not result:
+        # New user - create entry
+        cursor.execute('INSERT INTO users (user_id, credits_remaining) VALUES (?, 3)', (user_id,))
+        conn.commit()
+        conn.close()
+        return 3, 'free'
+    
+    conn.close()
+    return result[0], result[1]
+
+def update_user_credits(user_id, credits, subscription_status='free'):
+    conn = sqlite3.connect('resumewhip.db')
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        INSERT OR REPLACE INTO users (user_id, credits_remaining, subscription_status) 
+        VALUES (?, ?, ?)
+    ''', (user_id, credits, subscription_status))
+    
+    conn.commit()
+    conn.close()

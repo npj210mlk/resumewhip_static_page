@@ -1,4 +1,5 @@
 # Final
+import sqlite3
 import gradio as gr
 import os
 import stripe
@@ -29,6 +30,9 @@ PRICE_ID = os.getenv("PRICE_ID")
 # Simple in-memory storage (consider Redis for production)
 user_credits = {}
 active_resumes = {}
+# track users who've paid
+paid_users = set()
+
 FREE_CREDITS = 3
 
 def get_user_id():
@@ -55,6 +59,102 @@ def create_checkout_session():
         return session.url
     except Exception as e:
         return f"Error creating checkout session: {e}"
+    
+def check_payment_status(user_id):
+    """ Function to check if the user has paid for the service using Stripe's API """
+    try:
+        # check db for stored id
+        customer_id = get_stripe_customer_id_from_db(user_id)
+        if not customer_id:
+            return False
+        
+        # verify subscription with Stripe
+        subscriptions = stripe.Subscription.lis(
+            customer=customer_id,
+            status='active', 
+            limit=1
+        )
+
+        # see if they already have a subscription
+        if subscriptions.data:
+            subscription = subscriptions.data[0]
+
+            # make sure that subscription is for my product
+            if subscription.items.data[0].price.id == PRICE_ID:
+                return True
+        
+        return False
+    
+    except stripe.error.StripeError as e:
+        print(f"Stripe error in checking subscription: {e}")
+        return False
+    
+    except Exception as e:
+        print(f"Error in checking your payment status: {e}")
+        return False
+    
+    # return user_id in paid_users
+
+def get_stripe_customer_id_from_db(user_id):
+    """
+    Get the Stripe customer ID from SQLite db
+    """
+    conn = sqlite3.connect('resumewhip.db')
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT stripe_customer_id FROM users WHERE user_id = ?', (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+    
+    return result[0] if result and result[0] else None
+
+def store_stripe_customer_id(user_id, customer_id):
+    """
+    Store Stripe customer ID in SQLite when they first subscribe
+    """
+    conn = sqlite3.connect('resumewhip.db')
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        UPDATE users SET stripe_customer_id = ? WHERE user_id = ?
+    ''', (customer_id, user_id))
+    
+    conn.commit()
+    conn.close()
+
+def grant_unlimited_access(user_id):
+    """ If they've paid, they get full access """
+    paid_users.add(user_id)
+    user_credits[user_id] = float("inf")
+
+def get_user_credits(user_id):
+    conn = sqlite3.connect('resumewhip.db')
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT credits_remaining, subscription_status FROM users WHERE user_id = ?', (user_id,))
+    result = cursor.fetchone()
+    
+    if not result:
+        # New user - create entry
+        cursor.execute('INSERT INTO users (user_id, credits_remaining) VALUES (?, 3)', (user_id,))
+        conn.commit()
+        conn.close()
+        return 3, 'free'
+    
+    conn.close()
+    return result[0], result[1]
+
+def update_user_credits(user_id, credits, subscription_status='free'):
+    conn = sqlite3.connect('resumewhip.db')
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        INSERT OR REPLACE INTO users (user_id, credits_remaining, subscription_status) 
+        VALUES (?, ?, ?)
+    ''', (user_id, credits, subscription_status))
+    
+    conn.commit()
+    conn.close()
 
 def run_resume_with_credits(resume_file, job_input):
     """Handle resume processing with credit system"""
@@ -62,7 +162,13 @@ def run_resume_with_credits(resume_file, job_input):
         return ("⚠️ Please upload your resume and paste the job description they've provided.", "", "", "Free resumes left: -")
     
     user_id = get_user_id()
-    credits = user_credits.get(user_id, FREE_CREDITS)
+
+    # check on subscription
+    if check_payment_status(user_id):
+        credits = float("inf")
+        user_credits[user_id] = credits
+    else:
+        credits = user_credits.get(user_id, FREE_CREDITS)
     
     # Generate unique resume ID
     resume_name = getattr(resume_file, "name", "unknown")
@@ -142,6 +248,13 @@ def validate_job_posting(job_input_text, posting_date, company, job_title):
     except Exception as e:
         return f"🚩 Error validating job posting: {e}"
 
+# Admin for granting access
+def admin_grant_access(user_email_or_id):
+    """ Function to grant unlimited access """
+    user_id = get_user_id()
+    grant_unlimited_access(user_id)
+    return f"Granted unlimited access to user: {user_id}"
+
 # Sticky buy button + banner (add before "with gr.Blocks()")
 sticky_buy_button = """
 <div style="position:fixed; top:10px; right:20px; z-index:9999; text-align:center;">
@@ -156,8 +269,59 @@ sticky_buy_button = """
     </div>
 </div>
 """
+# Custom CSS for colored tabs and better styling
+custom_css = """
+<style>
+/* Style the tab buttons */
+.gradio-container .tab-nav button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    font-weight: bold !important;
+    border: none !important;
+    border-radius: 8px !important;
+    margin: 2px !important;
+    padding: 12px 20px !important;
+    transition: all 0.3s ease !important;
+}
+
+.gradio-container .tab-nav button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
+}
+
+.gradio-container .tab-nav button.selected {
+    background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%) !important;
+    box-shadow: 0 4px 16px rgba(255, 127, 80, 0.5) !important;
+}
+
+/* Style primary buttons */
+.gradio-container .btn-primary {
+    background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%) !important;
+    border: none !important;
+    font-weight: bold !important;
+    border-radius: 8px !important;
+    padding: 12px 24px !important;
+    transition: all 0.3s ease !important;
+}
+
+.gradio-container .btn-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(255, 127, 80, 0.4) !important;
+}
+
+/* Style download buttons */
+.gradio-container button:contains("Download PDF") {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    color: white !important;
+    border: none !important;
+    font-weight: bold !important;
+    border-radius: 8px !important;
+}
+</style>
+"""
+
 # Create Gradio interface
-with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Builder", theme=gr.themes.Soft()) as app:
+with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Builder", theme=gr.themes.Soft(), css=custom_css) as app:
     
     gr.HTML("<head><link rel='icon' href='favicon.png' type='image/png'></head>")
     
@@ -214,7 +378,7 @@ a line, just enter three dashes (---) where you
 want that break to happen (eg: between 'Summary' 
 and 'Experience').
 
-"But the page cuts off where I don't want it to!"
+"But my resume cuts off where I don't want it to!"
 Simple - just force a new page by copy/pasting this entire 
 line (below), and put it where you want one page to end
 and the next to begin:
@@ -391,12 +555,17 @@ and the next to begin:
             # Credit counter
             resume_counter = gr.Markdown("### Free Resumes Left: 3")
 
+            # Access granter
+            with gr.Accordion("My Admin Access", open=False, visible=False):
+                grant_access_btn = gr.Button("🟢 Grant Unlimited Access", variant="secondary")
+                access_status = gr.Markdown()
+
             # Tools Available
             gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Tools In the Toolkit</h2>")
 
             # Tools tabs
             with gr.Tabs():
-                with gr.TabItem("✅ Job Validator"):
+                with gr.TabItem("✅ Job Validator", id="validator_tab"):
                     with gr.Row():
                         jd_date = gr.Textbox(
                             label="📅 Posting Date (Best Guess, Anyway.)", 
@@ -410,7 +579,7 @@ and the next to begin:
                     validate_btn = gr.Button("🤖 Whip Up the Job Validator", variant="primary")
                     validation_output = gr.Markdown()
 
-                with gr.TabItem("🎯 Resume Optimizer"):
+                with gr.TabItem("🎯 Resume Optimizer", id="optimizer_tab"):
                     run_resume = gr.Button("🪄 Whip Up Some Resume Magic!", variant="primary")
                     resume_md = gr.Markdown(label="Preview")
                     resume_edit = gr.Textbox(
@@ -423,7 +592,7 @@ and the next to begin:
                         export_resume_btn = gr.Button("⬇️ Download PDF")
                         export_resume_result = gr.File()
 
-                with gr.TabItem("📝 Cover Letter Writer"):
+                with gr.TabItem("📝 Cover Letter Writer", id="cover_tab"):
                     run_cover = gr.Button("📝 Whip Up My Cover Letter", variant="primary")
                     cover_output = gr.Textbox(
                         label="Here's Your Cover Letter. Edit To Give It Your Voice.", 
@@ -463,6 +632,13 @@ and the next to begin:
         fn=save_cover_letter,
         inputs=[cover_output, company_input],
         outputs=export_cover_result
+    )
+
+    # Admin event handler (for testing)
+    grant_access_btn.click(
+        fn=admin_grant_access,
+        inputs=[],
+        outputs=access_status
     )
 
 # Footer for SEO
@@ -526,7 +702,7 @@ gr.HTML("""
 
 # Stripe webhook endpoint (if needed)
 def handle_stripe_webhook(request_data):
-    """Handle Stripe webhook for subscription confirmation"""
+    """Handle Stripe webhook for subscription confirmation and storage"""
     try:
         endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
         event = stripe.Webhook.construct_event(
@@ -538,12 +714,33 @@ def handle_stripe_webhook(request_data):
         if event["type"] == "checkout.session.completed":
             session = event["data"]["object"]
             user_id = session.get("client_reference_id")
+            customer_id = session.get("customer")
+
+            # store Stripe customer / user id
+            if user_id and customer_id:
+                store_stripe_customer_id(user_id, customer_id)
+                grant_unlimited_access(user_id)
+        
+        # handle subscription cancellation
+        elif event["type"] == "customer.subscription.deleted":
+            subscription = event["data"]["object"]
+            customer_id = subscription["customer"]
+
+            # revoke acess
+            user_id = get_user_id_by_customer_id(customer_id)
             if user_id:
-                user_credits[user_id] = float("inf")
+                revoke_unlimited_access(user_id)
                 
         return {"status": "success"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+def revoke_unlimited_access(user_id):
+    """
+    Revoke access when subscription is cancelled
+    """
+    paid_users.discard(user_id)
+    user_credits[user_id] = 0
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
