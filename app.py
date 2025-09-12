@@ -549,7 +549,7 @@ and the next to begin:
         **Q: Why is the format of the resume I download look so plain?**
         A: That's by design - ATS systems don't like a lot of formatting. (Tables and multiple columns? Nightmares for them.)
         """)
-            
+                
             # Subscribe button
             gr.HTML("""
             <div style="text-align:center; margin:20px 0;">
@@ -776,11 +776,14 @@ and the next to begin:
     # Admin event handler (for testing)
     admin_input = gr.Textbox(label="User Email or ID")
 
-    grant_access_btn.click(
-        fn=admin_grant_access,
-        inputs=[admin_input],
-        outputs=access_status
-    )
+# =========================================================================
+# Add the code below for free access to users for testing (like Mia, etc.)
+    # grant_access_btn.click(
+    #     fn=admin_grant_access,
+    #     inputs=[admin_input],
+    #     outputs=access_status
+    # )
+# =========================================================================
 
 # Footer for SEO
 gr.HTML("""
