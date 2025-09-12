@@ -773,8 +773,8 @@ and the next to begin:
         outputs=export_cover_result
     )
 
-    # Admin event handler (for testing)
-    admin_input = gr.Textbox(label="User Email or ID")
+    # # Admin event handler (for testing)
+    # admin_input = gr.Textbox(label="User Email or ID")
 
 # =========================================================================
 # Add the code below for free access to users for testing (like Mia, etc.)
