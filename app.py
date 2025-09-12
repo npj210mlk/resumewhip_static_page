@@ -411,50 +411,59 @@ sticky_buy_button = """
 # Custom CSS for colored tabs and better styling
 custom_css = """
 <style>
-/* Style the tab buttons */
-.gradio-container .tab-nav button {
+/* === Colored Tabs === */
+.gradio-tabs .gradio-tab {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     color: white !important;
     font-weight: bold !important;
-    border: none !important;
     border-radius: 8px !important;
     margin: 2px !important;
     padding: 12px 20px !important;
+    border: none !important;
     transition: all 0.3s ease !important;
 }
 
-.gradio-container .tab-nav button:hover {
+.gradio-tabs .gradio-tab:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
 }
 
-.gradio-container .tab-nav button.selected {
+.gradio-tabs .gradio-tab.active {
     background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%) !important;
     box-shadow: 0 4px 16px rgba(255, 127, 80, 0.5) !important;
 }
 
-/* Style primary buttons */
-.gradio-container .btn-primary {
-    background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%) !important;
-    border: none !important;
-    font-weight: bold !important;
-    border-radius: 8px !important;
-    padding: 12px 24px !important;
-    transition: all 0.3s ease !important;
-}
+/* === Download Buttons (Resume + Cover Letter) === */
 
-.gradio-container .btn-primary:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(255, 127, 80, 0.4) !important;
-}
-
-/* Style download buttons */
-.gradio-container button:contains("Download PDF") {
+button:has(span:contains("Download PDF")) {
     background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
     color: white !important;
     border: none !important;
     font-weight: bold !important;
     border-radius: 8px !important;
+    padding: 10px 20px !important;
+    transition: all 0.3s ease !important;
+}
+
+button:has(span:contains("Download PDF")):hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4) !important;
+}
+
+/* === Hide Footer Links (Use via API, Settings, Built with Gradio) === */
+#footer, .gradio-container .svelte-1ipelgc {
+    display: none !important;
+}
+
+/* === Optional: Fix Footer Alignment if you add your own Footer === */
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    color: #6c757d;
+    font-size: 0.9em;
 }
 </style>
 """
