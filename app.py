@@ -465,6 +465,27 @@ footer {
     color: #6c757d;
     font-size: 0.9em;
 }
+
+/* === Enlarge & Bold Tab Labels === */
+.tab-nav button {
+    font-size: 1.1em !important;   /* make text larger */
+    font-weight: 700 !important;   /* make it bold */
+    color: #333 !important;        /* keep text dark for good contrast */
+    text-transform: none !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* Optional: Add a subtle underline on hover for interactivity */
+.tab-nav button:hover {
+    text-decoration: underline;
+}
+
+/* Optional: Make active tab even bolder */
+.tab-nav button.selected {
+    font-weight: 800 !important;
+    text-decoration: underline;
+}
+
 </style>
 """
 
@@ -778,18 +799,18 @@ and the next to begin:
                     <!-- Value proposition -->
                     <div style="margin-bottom: 20px; color: #495057;">
                         <h3 style="color: #343a40; margin-bottom: 10px;">
-                            🎏💨 ResumeWhip - The AI Resume Optimizer That Actually Works
+                            🏎️💨 ResumeWhip - The AI Resume Optimizer That Actually Works
                         </h3>
                         <p style="font-size: 1.1em; line-height: 1.4; max-width: 600px; margin: 0 auto;">
-                            Help job seekers beat ATS systems, get more interviews and land dream jobs with
-                            the personalized AI resume optimizer that crushes the competition in head-to-head comparisons.
+                            We help job seekers beat ATS systems and get more interviews with our 
+                            personalized AI resume optimizer that crushes other optimizers in head-to-head competition.
                         </p>
                     </div>
             
                     <!-- Trust signals -->
                     <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 25px;
                                 flex-wrap: wrap; color: #6c757d; font-size: 0.9em;">
-                                        <div>🛡️ Your data never stored or shared</div>
+                                        <div>🛡️ We never share or sell your data</div>
                                         <div>⚡ 30-second resume optimization</div>
                                         <div>🎯 40% higher ATS compatibility</div>
                                         <div>💼 Works with all job boards</div>
