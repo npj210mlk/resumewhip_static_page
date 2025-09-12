@@ -1,14 +1,13 @@
 # Final
+import os
 import sqlite3
 import gradio as gr
-import os
 import stripe
 import pdfplumber
 import uuid
 import json
 import threading
 
-from flask import Flask, request, jsonify
 from datetime import datetime
 from new_functions import (
     extract_resume_text,
@@ -33,13 +32,17 @@ from fastapi.responses import JSONResponse
 # ...and because fastapi is asynchronous, we need a server:
 import uvicorn
 
-# Thread-safe database operations
-db_lock = threading.Lock()
+# get new SQLite connection for each request
+def get_db_connection():
+    """ Function to let FastAPI handle multiple requests to prevent db lockup"""
+    conn = sqlite3.connect("resumewhip.db", check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 # Stripe setup
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-PRICE_ID = os.getenv("PRICE_ID")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+PRICE_ID = os.getenv("PRICE_ID")
 
 # Fastapi for the webhooks
 fastapi_app = FastAPI()
@@ -50,11 +53,9 @@ FREE_CREDITS = 3
 
 def init_database():
     """Initialize SQLite database with required tables"""
-    with db_lock:
-        conn = sqlite3.connect('resumewhip.db')
-        cursor = conn.cursor()
-        
-        cursor.execute('''
+    conn = sqlite3.connect('resumewhip.db')
+    cursor = conn.cursor()
+    cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id TEXT UNIQUE NOT NULL,
@@ -67,8 +68,8 @@ def init_database():
             )
         ''')
         
-        conn.commit()
-        conn.close()
+    conn.commit()
+    conn.close()
 
 def get_user_id():
     """Generate a persistent session-based user ID"""
@@ -82,74 +83,67 @@ def get_user_id():
     return user_id
 
 def get_user_credits(user_id):
-    """Thread-safe method to get user credits from database"""
-    with db_lock:
-        conn = sqlite3.connect('resumewhip.db', timeout=10.0)
-        cursor = conn.cursor()
+    """ Retrieve user credits from database"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # check to see if user already exists
+    cursor.execute("SELECT credits_remaining, subscription_status FROM users WHERE user_id = ?", (user_id,))
+    row = cursor.fetchone()
         
-        cursor.execute('SELECT credits_remaining, subscription_status FROM users WHERE user_id = ?', (user_id,))
-        result = cursor.fetchone()
-        
-        if not result:
-            # New user - create entry
-            cursor.execute('INSERT INTO users (user_id, credits_remaining) VALUES (?, ?)', (user_id, FREE_CREDITS))
+    # if they are new / don't already exist
+    if row is None:
+            default_credits = 3
+            cursor.execute(
+                "INSERT INTO users (user_id, credits_remaining, subscription_status) VALUES (?, ?, ?)", 
+                (user_id, default_credits, 'free')
+            )
             conn.commit()
             conn.close()
-            return FREE_CREDITS, 'free'
-        
-        conn.close()
-        return result[0], result[1]
+            return default_credits, 'free'
+
+    # since they alreay exist, return their current credits  
+    conn.close()
+    return row["credits_remaining"], row["subscription_status"]
 
 def update_user_credits(user_id, credits, subscription_status='free'):
-    """Thread-safe method to update user credits"""
-    with db_lock:
-        conn = sqlite3.connect('resumewhip.db', timeout=10.0)
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT OR REPLACE INTO users (user_id, credits_remaining, subscription_status) 
-            VALUES (?, ?, ?)
-        ''', (user_id, credits, subscription_status))
-        
-        conn.commit()
-        conn.close()
+    """ update user credits """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET credits_remaining = ? WHERE user_id = ?", (credits, user_id))
+    conn.commit()
+    conn.close()
 
 def get_user_id_by_customer_id(customer_id):
     """Get user_id from database using customer_id"""
-    with db_lock:
-        conn = sqlite3.connect('resumewhip.db', timeout=10.0)
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT user_id FROM users WHERE stripe_customer_id = ?', (customer_id,))
-        result = cursor.fetchone()
-        conn.close()
-        
-        return result[0] if result else None
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id FROM users WHERE stripe_customer_id = ?", (customer_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return row["user_id"] if row else None
 
 def get_stripe_customer_id_from_db(user_id):
     """Get the Stripe customer ID from SQLite db"""
-    with db_lock:
-        conn = sqlite3.connect('resumewhip.db', timeout=10.0)
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT stripe_customer_id FROM users WHERE user_id = ?', (user_id,))
-        result = cursor.fetchone()
-        conn.close()
-        
-        return result[0] if result and result[0] else None
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT stripe_customer_id FROM users WHERE user_id = ?",
+        (user_id,)
+    )
+    row = cursor.fetchone()
+    conn.close()
+    return row["stripe_customer_id"] if row else None
 
 def store_stripe_customer_id(user_id, customer_id):
     """Store Stripe customer ID in SQLite when they first subscribe"""
-    with db_lock:
-        conn = sqlite3.connect('resumewhip.db', timeout=10.0)
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            UPDATE users SET stripe_customer_id = ? WHERE user_id = ?
-        ''', (customer_id, user_id))
-        
-        conn.commit()
-        conn.close()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE users SET stripe_customer_id = ? WHERE user_id = ?",
+        (customer_id, user_id))
+    conn.commit()
+    conn.close()
 
 def create_checkout_session():
     try:
@@ -204,29 +198,62 @@ def check_payment_status(user_id):
 
 def grant_unlimited_access(user_id):
     """If they've paid, they get full access"""
-    update_user_credits(user_id, float("inf"), 'premium')
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # make sure they exist
+    cursor.execute("SELECT 1 FROM users WHERE user_id = ?", (user_id,))
+    if cursor.fetchone() is None:
+        cursor.execute(
+            "INSERT INTO users (user_id, credits_remaining, subscription_status) VALUES (?, ?, ?)",
+            (user_id, -1, 'paid')
+        )
+
+    else:
+        cursor.execute(
+            "UPDATE users SET credits_remaining = -1, subscription_status = 'paid' WHERE user_id = ?",
+            (user_id,)
+        )
+
+    conn.commit()
+    conn.close()
 
 def revoke_unlimited_access(user_id):
-    """Revoke access when subscription is cancelled"""
-    update_user_credits(user_id, 0, 'free')
+    """Revoke unlimited access and set user to free; create if missing"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # see if they exist
+    cursor.execute("SELECT 1 FROM users WHERE user_id = ?", (user_id,))
+    if cursor.fetchone() is None:
+        cursor.execute(
+            "INSERT INTO users (user_id, credits_remaining, subscription_status) VALUES (?, ?, ?)",
+            (user_id, 3, 'free')
+        )
+    else:
+        cursor.execute(
+        "UPDATE users SET subscription_status = 'free' WHERE user_id = ?",
+        (user_id,) 
+    )
+    conn.commit()
+    conn.close()
 
 @fastapi_app.post("/webhook")
 async def stripe_webhook(request: Request):
-    """Fixed Stripe webhook endpoint with proper async handling"""
+    """Stripe webhook endpoint for subscription and payment events."""
     try:
-        # Get raw body and signature
+        # Get raw body and Stripe signature
         payload = await request.body()
-        sig_header = request.headers.get('stripe-signature')
-        
+        sig_header = request.headers.get("stripe-signature")
+
         if not sig_header or not WEBHOOK_SECRET:
+            print("🚨 Missing Stripe signature or webhook secret.")
             raise HTTPException(status_code=400, detail="Missing signature or webhook secret")
-        
-        # Verify webhook signature
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, WEBHOOK_SECRET
-        )
-        
-        # Handle successful payment
+
+        # Verify Stripe signature
+        event = stripe.Webhook.construct_event(payload, sig_header, WEBHOOK_SECRET)
+
+        # ✅ Handle successful payment
         if event["type"] == "checkout.session.completed":
             session = event["data"]["object"]
             user_id = session.get("client_reference_id")
@@ -235,26 +262,31 @@ async def stripe_webhook(request: Request):
             if user_id and customer_id:
                 store_stripe_customer_id(user_id, customer_id)
                 grant_unlimited_access(user_id)
-                print(f"Granted unlimited access to user: {user_id}")
-        
-        # Handle subscription cancellation
+                print(f"✅ Granted unlimited access to user: {user_id}")
+
+        # ❌ Handle subscription cancellations
         elif event["type"] == "customer.subscription.deleted":
             subscription = event["data"]["object"]
             customer_id = subscription["customer"]
             user_id = get_user_id_by_customer_id(customer_id)
-            
+
             if user_id:
                 revoke_unlimited_access(user_id)
-                print(f"Revoked access for user: {user_id}")
-                
+                print(f"❌ Revoked access for user: {user_id}")
+
+        else:
+            print(f"ℹ️ Unhandled event type: {event['type']}")
+
+        # Return success so Stripe stops retrying
         return JSONResponse(content={"status": "success"}, status_code=200)
-    
+
     except stripe.error.SignatureVerificationError as e:
-        print(f"Invalid signature: {e}")
+        print(f"🚨 Invalid signature: {e}")
         raise HTTPException(status_code=400, detail="Invalid signature")
+
     except Exception as e:
-        print(f"Webhook error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"🚨 Webhook error: {e}")
+        return JSONResponse(content={"status": "error", "message": str(e)}, status_code=400)
 
 def run_resume_with_credits(resume_file, job_input):
     """Handle resume processing with credit system - fixed version"""
@@ -434,7 +466,7 @@ with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Bui
     
     # Header
     gr.Markdown("""
-    <h1 style='text-align:center; color:#1e90ff;'>🎏💨 Welcome To ResumeWhip!</h1>
+    <h1 style='text-align:center; color:#1e90ff;'>🏎️💨 Welcome To ResumeWhip!</h1>
     <h2 style='text-align:center; color:#dd1eff;'>The AI-Powered Resume Optimizer Meant to Whip ATS Systems</h2>
     <h2 style='text-align:center; color:#dd1eff;'>Get Your First 3 Resumes Free!</h2> 
     <h3 style='text-align:center;'>Powerful. Simple. Just Validate → Upload → Optimize → Apply!</h3>          
@@ -696,7 +728,7 @@ and the next to begin:
                     suggestions = gr.Markdown(label="Suggestions & Tips")
                     
                     with gr.Row():
-                        export_resume_btn = gr.Button("⬇️ Download PDF")
+                        export_resume_btn = gr.Button("Download PDF ➡️")
                         export_resume_result = gr.File()
 
                 with gr.TabItem("📝 Cover Letter Writer", id="cover_tab"):
@@ -707,7 +739,7 @@ and the next to begin:
                     )
                     
                     with gr.Row():
-                        export_cover_btn = gr.Button("⬇️ Download PDF")
+                        export_cover_btn = gr.Button("Download PDF ➡️")
                         export_cover_result = gr.File()
 
     # Event handlers
@@ -810,39 +842,39 @@ gr.HTML("""
         """)
 
 # Stripe webhook endpoint (if needed)
-def handle_stripe_webhook(request_data):
-    """Handle Stripe webhook for subscription confirmation and storage"""
-    try:
-        endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
-        event = stripe.Webhook.construct_event(
-            request_data['payload'],
-            request_data['signature'],
-            endpoint_secret
-        )
+# def handle_stripe_webhook(request_data):
+#     """Handle Stripe webhook for subscription confirmation and storage"""
+#     try:
+#         endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+#         event = stripe.Webhook.construct_event(
+#             request_data['payload'],
+#             request_data['signature'],
+#             endpoint_secret
+#         )
         
-        if event["type"] == "checkout.session.completed":
-            session = event["data"]["object"]
-            user_id = session.get("client_reference_id")
-            customer_id = session.get("customer")
+#         if event["type"] == "checkout.session.completed":
+#             session = event["data"]["object"]
+#             user_id = session.get("client_reference_id")
+#             customer_id = session.get("customer")
 
-            # store Stripe customer / user id
-            if user_id and customer_id:
-                store_stripe_customer_id(user_id, customer_id)
-                grant_unlimited_access(user_id)
+#             # store Stripe customer / user id
+#             if user_id and customer_id:
+#                 store_stripe_customer_id(user_id, customer_id)
+#                 grant_unlimited_access(user_id)
         
-        # handle subscription cancellation
-        elif event["type"] == "customer.subscription.deleted":
-            subscription = event["data"]["object"]
-            customer_id = subscription["customer"]
+#         # handle subscription cancellation
+#         elif event["type"] == "customer.subscription.deleted":
+#             subscription = event["data"]["object"]
+#             customer_id = subscription["customer"]
 
-            # revoke acess
-            user_id = get_user_id_by_customer_id(customer_id)
-            if user_id:
-                revoke_unlimited_access(user_id)
+#             # revoke acess
+#             user_id = get_user_id_by_customer_id(customer_id)
+#             if user_id:
+#                 revoke_unlimited_access(user_id)
                 
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+#         return {"status": "success"}
+#     except Exception as e:
+#         return {"status": "error", "message": str(e)}
 
 def run_fastapi():
     """ Function to run the FASTAPI server for webhooks. """
@@ -853,33 +885,40 @@ def run_fastapi():
         log_level="info"
     )
 
+# Mounting Gradio Inside FastAPI
+fastapi_app = gr.mount_gradio_app(fastapi_app, app, path="/")
+
 if __name__ == "__main__":
     # Initialize the database
     init_database()
+    uvicorn.run(
+        "app:fastapi_app", 
+        host = "0.0.0.0",
+        port = int(os.environ.get("PORT", 7860))
+        )
+    # # Verify environment variables
+    # required_env_vars = ["STRIPE_SECRET_KEY", "PRICE_ID", "STRIPE_WEBHOOK_SECRET"]
+    # missing_vars = [var for var in required_env_vars if not os.getenv(var)]
     
-    # Verify environment variables
-    required_env_vars = ["STRIPE_SECRET_KEY", "PRICE_ID", "STRIPE_WEBHOOK_SECRET"]
-    missing_vars = [var for var in required_env_vars if not os.getenv(var)]
+    # if missing_vars:
+    #     print(f"⚠️ Missing required environment variables: {missing_vars}")
     
-    if missing_vars:
-        print(f"⚠️ Missing required environment variables: {missing_vars}")
-    
-    # Start the webhook server in background
-    webhook_thread = threading.Thread(target=run_fastapi, daemon=True)
-    webhook_thread.start()
+    # # Start the webhook server in background
+    # webhook_thread = threading.Thread(target=run_fastapi, daemon=True)
+    # webhook_thread.start()
 
-    print("🚀 Whipping Up ResumeWhip...")
-    webhook_port = os.environ.get("WEBHOOK_PORT", 5000)
-    print(f"🔗 Webhook endpoint: http://your-domain.com:{webhook_port}/webhook")
+    # print("🚀 Whipping Up ResumeWhip...")
+    # webhook_port = os.environ.get("WEBHOOK_PORT", 5000)
+    # print(f"🔗 Webhook endpoint: http://your-domain.com:{webhook_port}/webhook")
 
-    # Launch Gradio
-    port = int(os.environ.get("PORT", 7860))
-    app.launch(
-        server_name="0.0.0.0",
-        server_port=port,
-        show_error=True,
-        share=False
-    )
+    # # Launch Gradio
+    # port = int(os.environ.get("PORT", 7860))
+    # app.launch(
+    #     server_name="0.0.0.0",
+    #     server_port=port,
+    #     show_error=True,
+    #     share=False
+    # )
 # ================================ #
 # ------ Final Code Above -------
 # ================================ #
