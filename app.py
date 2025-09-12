@@ -411,8 +411,8 @@ sticky_buy_button = """
 # Custom CSS for colored tabs and better styling
 custom_css = """
 <style>
-/* === Colored Tabs === */
-.gradio-tabs .gradio-tab {
+/* === Fix for Colored Tabs (Gradio v4+) === */
+.tab-nav button {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     color: white !important;
     font-weight: bold !important;
@@ -423,12 +423,12 @@ custom_css = """
     transition: all 0.3s ease !important;
 }
 
-.gradio-tabs .gradio-tab:hover {
+.tab-nav button:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
 }
 
-.gradio-tabs .gradio-tab.active {
+.tab-nav button.selected {
     background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%) !important;
     box-shadow: 0 4px 16px rgba(255, 127, 80, 0.5) !important;
 }
