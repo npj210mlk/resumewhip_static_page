@@ -742,6 +742,64 @@ and the next to begin:
                         export_cover_btn = gr.Button("Download PDF ➡️")
                         export_cover_result = gr.File()
 
+    # Footer for SEO
+    gr.HTML("""
+            <footer style = "margin-top: 50px; padding: 30px 20px; border-top: 2px solid #eee;
+                            background: linear-gradient(135deg, #f8f9a 0%, #e9ecef 100%);")
+            
+                <!-- Main footer content -->
+                <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
+            
+                    <!-- Key links -->
+                    <div style="margin-bottom: 25px;">
+                        <a href="mailto:support@resumewhip.com"
+                            style="margin: 0 20px; color: #1e90ff; text-decoration: none; font-weight: 500;">
+                            📧 Contact Support
+                        </a>
+                        <a href="https://buy.stripe.com/cNi9ASgWl6C614l3Ja1Jm00"
+                            style="margin: 0 20px; color: #635BFF; text-decoration: none; font-weight: 500;">
+                            💳 Upgrade to Premium
+                        </a>
+                        <a href="https://resumewhip.com/blog"
+                            style="margin: 0 20px; color: #1e90ff; text-decoration: none; font-weight: 500;">
+                            📖 Resume Tips Blog
+                        </a>
+                    </div>
+            
+                    <!-- Value proposition -->
+                    <div style="margin-bottom: 20px; color: #495057;">
+                        <h3 style="color: #343a40; margin-bottom: 10px;">
+                            🎏💨 ResumeWhip - The AI Resume Optimizer That Actually Works
+                        </h3>
+                        <p style="font-size: 1.1em; line-height: 1.4; max-width: 600px; margin: 0 auto;">
+                            Help job seekers beat ATS systems, get more interviews and land dream jobs with
+                            the personalized AI resume optimizer that crushes the competition in head-to-head comparisons.
+                        </p>
+                    </div>
+            
+                    <!-- Trust signals -->
+                    <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 25px;
+                                flex-wrap: wrap; color: #6c757d; font-size: 0.9em;">
+                                        <div>🛡️ Your data never stored or shared</div>
+                                        <div>⚡ 30-second resume optimization</div>
+                                        <div>🎯 40% higher ATS compatibility</div>
+                                        <div>💼 Works with all job boards</div>
+                    </div>
+
+                    <!-- Copyright and keywords -->
+                    <div style="border-top: 1px solid #dee2e6; padding-top: 20px;">
+                        <p style="color: #6c757d; font-size: 0.95em; margin-bottom: 10px;">
+                            © 2025 ResumeWhip - AI-Powered Resume Optimization Tool
+                        </p>
+                        <p style="color: #adb5bd; font-size: 0.8em; line-height: 1.3;">
+                            Keywords: AI resume optimizer, ATS resume checker, resume builder, cover letter generator, 
+                            job application tool, interview preparation, career advancement, resume writing service
+                        </p>
+                    </div>
+                
+                </div>
+            </footer>
+            """)
     # Event handlers
     validate_btn.click(
         fn=validate_job_posting,
@@ -784,65 +842,6 @@ and the next to begin:
     #     outputs=access_status
     # )
 # =========================================================================
-
-# Footer for SEO
-gr.HTML("""
-        <footer style = "margin-top: 50px; padding: 30px 20px; border-top: 2px solid #eee;
-                        background: linear-gradient(135deg, #f8f9a 0%, #e9ecef 100%);")
-        
-            <!-- Main footer content -->
-            <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
-        
-                <!-- Key links -->
-                <div style="margin-bottom: 25px;">
-                    <a href="mailto:support@resumewhip.com"
-                        style="margin: 0 20px; color: #1e90ff; text-decoration: none; font-weight: 500;">
-                        📧 Contact Support
-                    </a>
-                    <a href="https://buy.stripe.com/cNi9ASgWl6C614l3Ja1Jm00"
-                        style="margin: 0 20px; color: #635BFF; text-decoration: none; font-weight: 500;">
-                        💳 Upgrade to Premium
-                    </a>
-                    <a href="https://resumewhip.com/blog"
-                        style="margin: 0 20px; color: #1e90ff; text-decoration: none; font-weight: 500;">
-                        📖 Resume Tips Blog
-                    </a>
-                </div>
-        
-                <!-- Value proposition -->
-                <div style="margin-bottom: 20px; color: #495057;">
-                    <h3 style="color: #343a40; margin-bottom: 10px;">
-                        🎏💨 ResumeWhip - The AI Resume Optimizer That Actually Works
-                    </h3>
-                    <p style="font-size: 1.1em; line-height: 1.4; max-width: 600px; margin: 0 auto;">
-                        Help job seekers beat ATS systems, get more interviews and land dream jobs with
-                        the personalized AI resume optimizer that crushes the competition in head-to-head comparisons.
-                    </p>
-                </div>
-        
-                <!-- Trust signals -->
-                <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 25px;
-                            flex-wrap: wrap; color: #6c757d; font-size: 0.9em;">
-                                    <div>🛡️ Your data never stored or shared</div>
-                                    <div>⚡ 30-second resume optimization</div>
-                                    <div>🎯 40% higher ATS compatibility</div>
-                                    <div>💼 Works with all job boards</div>
-                </div>
-
-                <!-- Copyright and keywords -->
-                <div style="border-top: 1px solid #dee2e6; padding-top: 20px;">
-                    <p style="color: #6c757d; font-size: 0.95em; margin-bottom: 10px;">
-                        © 2025 ResumeWhip - AI-Powered Resume Optimization Tool
-                    </p>
-                    <p style="color: #adb5bd; font-size: 0.8em; line-height: 1.3;">
-                        Keywords: AI resume optimizer, ATS resume checker, resume builder, cover letter generator, 
-                        job application tool, interview preparation, career advancement, resume writing service
-                    </p>
-                </div>
-            
-            </div>
-        </footer>
-        """)
 
 # Stripe webhook endpoint (if needed)
 # def handle_stripe_webhook(request_data):
