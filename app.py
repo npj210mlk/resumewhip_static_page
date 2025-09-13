@@ -734,7 +734,7 @@ and the next to begin:
 
             # Tools tabs
             with gr.Tabs():
-                with gr.TabItem("<b style='font-size: 1.1em;'>✅ Job Validator</b>", id="validator_tab"):
+                with gr.TabItem("✅ Job Validator", id="validator_tab"):
                     with gr.Row():
                         jd_date = gr.Textbox(
                             label="📅 Posting Date (Best Guess, Anyway.)", 
@@ -748,7 +748,7 @@ and the next to begin:
                     validate_btn = gr.Button("🤖 Whip Up the Job Validator", variant="primary")
                     validation_output = gr.Markdown()
 
-                with gr.TabItem("<b style='font-size: 1.1em;'>🎯 Resume Optimizer</b>", id="optimizer_tab"):
+                with gr.TabItem("🎯 Resume Optimizer", id="optimizer_tab"):
                     run_resume = gr.Button("🪄 Whip Up Some Resume Magic!", variant="primary")
                     resume_md = gr.Markdown(label="Preview")
                     resume_edit = gr.Textbox(
@@ -761,7 +761,7 @@ and the next to begin:
                         export_resume_btn = gr.Button("Download PDF ➡️")
                         export_resume_result = gr.File()
 
-                with gr.TabItem("<b style='font-size: 1.1em;'>📝 Cover Letter Writer</b>", id="cover_tab"):
+                with gr.TabItem("📝 Cover Letter Writer", id="cover_tab"):
                     run_cover = gr.Button("📝 Whip Up My Cover Letter", variant="primary")
                     cover_output = gr.Textbox(
                         label="Here's Your Cover Letter. Edit To Give It Your Voice.", 
