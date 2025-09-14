@@ -411,79 +411,169 @@ sticky_buy_button = """
 # Custom CSS for colored tabs and better styling
 custom_css = """
 <style>
-/* === Fix for Colored Tabs (Gradio v4+) === */
+/* === ENHANCED TAB VISIBILITY === */
+
+/* Make the tab container more prominent */
+.tabitem-container {
+    border: 3px solid #ff7f50 !important;
+    border-radius: 15px !important;
+    padding: 10px !important;
+    margin: 20px 0 !important;
+    background: linear-gradient(135deg, #fff9f5 0%, #ffe8e0 100%) !important;
+    box-shadow: 0 8px 25px rgba(255, 127, 80, 0.2) !important;
+}
+
+/* Make tab navigation bar much more visible */
+.tab-nav {
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%) !important;
+    padding: 15px !important;
+    border-radius: 12px !important;
+    margin-bottom: 25px !important;
+    box-shadow: 0 6px 20px rgba(44, 62, 80, 0.3) !important;
+}
+
+/* Enhanced tab buttons - bigger, bolder, more colorful */
 .tab-nav button {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     color: white !important;
-    font-weight: bold !important;
-    border-radius: 8px !important;
-    margin: 2px !important;
-    padding: 12px 20px !important;
-    border: none !important;
-    transition: all 0.3s ease !important;
+    font-weight: 800 !important;
+    font-size: 1.3em !important;
+    border-radius: 10px !important;
+    margin: 5px !important;
+    padding: 18px 30px !important;
+    border: 3px solid transparent !important;
+    transition: all 0.4s ease !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    min-width: 200px !important;
+    position: relative !important;
 }
 
+/* Hover effects for tabs */
 .tab-nav button:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
+    transform: translateY(-4px) scale(1.05) !important;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5) !important;
+    border: 3px solid #fff !important;
+    background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%) !important;
 }
 
+/* Active/Selected tab styling */
 .tab-nav button.selected {
     background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%) !important;
-    box-shadow: 0 4px 16px rgba(255, 127, 80, 0.5) !important;
+    box-shadow: 0 6px 20px rgba(255, 127, 80, 0.6) !important;
+    border: 3px solid #fff !important;
+    transform: translateY(-2px) !important;
 }
 
-/* === Download Buttons (Resume + Cover Letter) === */
+/* Add pulsing animation to draw attention */
+.tab-nav button:not(.selected) {
+    animation: subtle-pulse 3s ease-in-out infinite !important;
+}
 
+@keyframes subtle-pulse {
+    0%, 100% { box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
+    50% { box-shadow: 0 6px 18px rgba(102, 126, 234, 0.5); }
+}
+
+/* Add icons/emojis before tab text */
+.tab-nav button:nth-child(1)::before {
+    content: "✅ ";
+    font-size: 1.2em;
+    margin-right: 8px;
+}
+
+.tab-nav button:nth-child(2)::before {
+    content: "🎯 ";
+    font-size: 1.2em;
+    margin-right: 8px;
+}
+
+.tab-nav button:nth-child(3)::before {
+    content: "📝 ";
+    font-size: 1.2em;
+    margin-right: 8px;
+}
+
+/* === CALL-TO-ACTION SECTION BEFORE TABS === */
+.tools-header {
+    background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%) !important;
+    color: white !important;
+    padding: 25px !important;
+    border-radius: 15px !important;
+    text-align: center !important;
+    margin: 30px 0 20px 0 !important;
+    box-shadow: 0 8px 25px rgba(255, 127, 80, 0.3) !important;
+    border: 3px solid #fff !important;
+}
+
+.tools-header h2 {
+    font-size: 2.2em !important;
+    margin: 0 0 10px 0 !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+}
+
+.tools-header p {
+    font-size: 1.2em !important;
+    margin: 0 !important;
+    font-weight: 600 !important;
+}
+
+/* === DOWNLOAD BUTTONS === */
 button:has(span:contains("Download PDF")) {
     background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
     color: white !important;
     border: none !important;
     font-weight: bold !important;
-    border-radius: 8px !important;
-    padding: 10px 20px !important;
+    font-size: 1.1em !important;
+    border-radius: 10px !important;
+    padding: 15px 25px !important;
     transition: all 0.3s ease !important;
 }
 
 button:has(span:contains("Download PDF")):hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4) !important;
 }
 
-/* === Hide Footer Links (Use via API, Settings, Built with Gradio) === */
+/* === ACTION BUTTONS === */
+button:contains("Whip Up"), button[variant="primary"] {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+    color: white !important;
+    font-size: 1.2em !important;
+    font-weight: 700 !important;
+    padding: 18px 35px !important;
+    border-radius: 12px !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+button:contains("Whip Up"):hover, button[variant="primary"]:hover {
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4) !important;
+}
+
+/* === HIDE FOOTER LINKS === */
 #footer, .gradio-container .svelte-1ipelgc {
     display: none !important;
 }
 
-/* === Optional: Fix Footer Alignment if you add your own Footer === */
-footer {
-    text-align: center;
-    margin-top: 40px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-top: 1px solid #dee2e6;
-    color: #6c757d;
-    font-size: 0.9em;
-}
-
-/* === Enlarge & Bold Tab Labels === */
-.tab-nav button {
-    font-size: 1.1em !important;   /* make text larger */
-    font-weight: 700 !important;   /* make it bold */
-    color: #333 !important;        /* keep text dark for good contrast */
-    text-transform: none !important;
-    letter-spacing: 0.5px !important;
-}
-
-/* Optional: Add a subtle underline on hover for interactivity */
-.tab-nav button:hover {
-    text-decoration: underline;
-}
-
-/* Optional: Make active tab even bolder */
-.tab-nav button.selected {
-    font-weight: 800 !important;
-    text-decoration: underline;
+/* === RESPONSIVE DESIGN === */
+@media (max-width: 768px) {
+    .tab-nav button {
+        font-size: 1.1em !important;
+        padding: 15px 20px !important;
+        min-width: 150px !important;
+    }
+    
+    .tools-header h2 {
+        font-size: 1.8em !important;
+    }
+    
+    .tools-header p {
+        font-size: 1em !important;
+    }
 }
 
 </style>
