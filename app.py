@@ -409,6 +409,8 @@ sticky_buy_button = """
 """
 
 # Custom CSS for colored tabs and better styling
+# Replace your existing custom_css variable with this enhanced version:
+
 custom_css = """
 <style>
 /* === ENHANCED TAB VISIBILITY === */
@@ -892,8 +894,11 @@ and the next to begin:
                             🏎️💨 ResumeWhip - The AI Resume Optimizer That Actually Works
                         </h3>
                         <p style="font-size: 1.1em; line-height: 1.4; max-width: 600px; margin: 0 auto;">
-                            We help job seekers beat ATS systems and get more interviews with our 
-                            personalized AI resume optimizer that crushes other optimizers in head-to-head competition.
+                            **About Us:** We were job seekers proficient in our fields and great with people,
+                            but also job seekers who had an extremely hard time getting past ATS Systems. 
+                            So, we created a resume optimizer that consistently outperforms 
+                            Premium Job Platform Services by over 40%. 
+                            **We're in the business of getting people past machines.**
                         </p>
                     </div>
             
