@@ -822,7 +822,130 @@ and the next to begin:
                 access_status = gr.Markdown()
 
             # Tools Available
-            gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Tools In the Toolkit</h2>")
+            # gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Tools In the Toolkit</h2>")
+            gr.HTML("""
+            <div style="
+                background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%);
+                color: white;
+                padding: 40px 30px;
+                border-radius: 20px;
+                text-align: center;
+                margin: 40px 0 30px 0;
+                box-shadow: 0 15px 35px rgba(255, 127, 80, 0.4);
+                border: 4px solid #fff;
+                position: relative;
+                overflow: hidden;
+            ">
+                <!-- Animated background elements -->
+                <div style="
+                    position: absolute;
+                    top: -50%;
+                    left: -50%;
+                    width: 200%;
+                    height: 200%;
+                    background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+                    background-size: 50px 50px;
+                    animation: float 20s ease-in-out infinite;
+                    pointer-events: none;
+                "></div>
+                
+                <h1 style="
+                    font-size: 3.2em;
+                    margin: 0 0 20px 0;
+                    text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+                    font-weight: 900;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    position: relative;
+                    z-index: 2;
+                ">
+                    🧰 YOUR AI JOB SEARCH ARSENAL
+                </h1>
+                
+                <p style="
+                    font-size: 1.6em;
+                    margin: 0 0 25px 0;
+                    font-weight: 600;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+                    position: relative;
+                    z-index: 2;
+                    max-width: 800px;
+                    margin-left: auto;
+                    margin-right: auto;
+                ">
+                    Choose your weapon below - each tool gives you an unfair advantage!
+                </p>
+                
+                <div style="
+                    display: flex;
+                    justify-content: center;
+                    gap: 30px;
+                    flex-wrap: wrap;
+                    position: relative;
+                    z-index: 2;
+                    margin-top: 25px;
+                ">
+                    <div style="
+                        background: rgba(255,255,255,0.2);
+                        padding: 15px 25px;
+                        border-radius: 25px;
+                        border: 2px solid rgba(255,255,255,0.3);
+                        backdrop-filter: blur(10px);
+                    ">
+                        <span style="font-size: 1.3em; font-weight: 700;">
+                            ✅ JOB VALIDATOR
+                        </span>
+                    </div>
+                    <div style="
+                        background: rgba(255,255,255,0.2);
+                        padding: 15px 25px;
+                        border-radius: 25px;
+                        border: 2px solid rgba(255,255,255,0.3);
+                        backdrop-filter: blur(10px);
+                    ">
+                        <span style="font-size: 1.3em; font-weight: 700;">
+                            🎯 RESUME OPTIMIZER
+                        </span>
+                    </div>
+                    <div style="
+                        background: rgba(255,255,255,0.2);
+                        padding: 15px 25px;
+                        border-radius: 25px;
+                        border: 2px solid rgba(255,255,255,0.3);
+                        backdrop-filter: blur(10px);
+                    ">
+                        <span style="font-size: 1.3em; font-weight: 700;">
+                            📝 COVER LETTER WRITER
+                        </span>
+                    </div>
+                </div>
+                
+                <div style="
+                    margin-top: 20px;
+                    font-size: 1.2em;
+                    font-weight: 600;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+                    position: relative;
+                    z-index: 2;
+                ">
+                    👇 Click the tabs below to get started! 👇
+                </div>
+            </div>
+
+            <style>
+            @keyframes float {
+                0%, 100% { transform: translateY(0px) rotate(0deg); }
+                50% { transform: translateY(-20px) rotate(180deg); }
+            }
+
+            /* Make sure this section is always visible above other content */
+            .gradio-container {
+                position: relative;
+                z-index: 1;
+            }
+            </style>
+            """
+            )
 
             # Tools tabs
             with gr.Tabs():
@@ -863,6 +986,23 @@ and the next to begin:
                     with gr.Row():
                         export_cover_btn = gr.Button("Download PDF ➡️")
                         export_cover_result = gr.File()
+                
+                gr.HTML("""
+                    <div style="
+                        text-align: center;
+                        margin: 20px 0;
+                        padding: 15px;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        border-radius: 15px;
+                        color: white;
+                        font-size: 1.1em;
+                        font-weight: 600;
+                        border: 3px solid #fff;
+                        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+                    ">
+                        ⚡ Pro Tip: Start with the Job Validator to check if the posting is legit, then optimize your resume! ⚡
+                    </div>
+                    """)  
 
     # Footer for SEO
     gr.HTML("""
