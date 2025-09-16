@@ -413,172 +413,284 @@ sticky_buy_button = """
 
 custom_css = """
 <style>
-/* === ENHANCED TAB VISIBILITY === */
+        /* === HERO SECTION === */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
 
-/* Make the tab container more prominent */
-.tabitem-container {
-    border: 3px solid #ff7f50 !important;
-    border-radius: 15px !important;
-    padding: 10px !important;
-    margin: 20px 0 !important;
-    background: linear-gradient(135deg, #fff9f5 0%, #ffe8e0 100%) !important;
-    box-shadow: 0 8px 25px rgba(255, 127, 80, 0.2) !important;
-}
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+        }
 
-/* Make tab navigation bar much more visible */
-.tab-nav {
-    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%) !important;
-    padding: 15px !important;
-    border-radius: 12px !important;
-    margin-bottom: 25px !important;
-    box-shadow: 0 6px 20px rgba(44, 62, 80, 0.3) !important;
-}
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
 
-/* Enhanced tab buttons - bigger, bolder, more colorful */
-.tab-nav button {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    color: white !important;
-    font-weight: 800 !important;
-    font-size: 1.3em !important;
-    border-radius: 10px !important;
-    margin: 5px !important;
-    padding: 18px 30px !important;
-    border: 3px solid transparent !important;
-    transition: all 0.4s ease !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
-    min-width: 200px !important;
-    position: relative !important;
-}
+        .hero-title {
+            font-size: 3.5em;
+            font-weight: 900;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
 
-/* Hover effects for tabs */
-.tab-nav button:hover {
-    transform: translateY(-4px) scale(1.05) !important;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5) !important;
-    border: 3px solid #fff !important;
-    background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%) !important;
-}
+        .hero-subtitle {
+            font-size: 2em;
+            color: #ff7f50;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+        }
 
-/* Active/Selected tab styling */
-.tab-nav button.selected {
-    background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%) !important;
-    box-shadow: 0 6px 20px rgba(255, 127, 80, 0.6) !important;
-    border: 3px solid #fff !important;
-    transform: translateY(-2px) !important;
-}
+        .hero-offer {
+            font-size: 1.8em;
+            color: #ff7f50;
+            font-weight: 600;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 2;
+        }
 
-/* Add pulsing animation to draw attention */
-.tab-nav button:not(.selected) {
-    animation: subtle-pulse 3s ease-in-out infinite !important;
-}
+        .hero-description {
+            font-size: 1.3em;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+            margin-bottom: 0;
+        }
 
-@keyframes subtle-pulse {
-    0%, 100% { box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
-    50% { box-shadow: 0 6px 18px rgba(102, 126, 234, 0.5); }
-}
+        /* === SIDEBAR === */
+        .sidebar {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+            border-right: 3px solid #dee2e6;
+        }
 
-/* Add icons/emojis before tab text */
-.tab-nav button:nth-child(1)::before {
-    content: "✅ ";
-    font-size: 1.2em;
-    margin-right: 8px;
-}
+        .btn-upgrade {
+            background: linear-gradient(135deg, #635BFF 0%, #5a67d8 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(99, 91, 255, 0.3);
+        }
 
-.tab-nav button:nth-child(2)::before {
-    content: "🎯 ";
-    font-size: 1.2em;
-    margin-right: 8px;
-}
+        .btn-upgrade:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(99, 91, 255, 0.4);
+            color: white;
+            text-decoration: none;
+        }
 
-.tab-nav button:nth-child(3)::before {
-    content: "📝 ";
-    font-size: 1.2em;
-    margin-right: 8px;
-}
+        .privacy-note {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(40, 167, 69, 0.1);
+            border-radius: 10px;
+            border: 2px solid rgba(40, 167, 69, 0.2);
+        }
 
-/* === CALL-TO-ACTION SECTION BEFORE TABS === */
-.tools-header {
-    background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%) !important;
-    color: white !important;
-    padding: 25px !important;
-    border-radius: 15px !important;
-    text-align: center !important;
-    margin: 30px 0 20px 0 !important;
-    box-shadow: 0 8px 25px rgba(255, 127, 80, 0.3) !important;
-    border: 3px solid #fff !important;
-}
+        /* === MAIN CONTENT === */
+        .main-content {
+            padding: 30px;
+        }
 
-.tools-header h2 {
-    font-size: 2.2em !important;
-    margin: 0 0 10px 0 !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
-}
+        .form-control {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
 
-.tools-header p {
-    font-size: 1.2em !important;
-    margin: 0 !important;
-    font-weight: 600 !important;
-}
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
 
-/* === DOWNLOAD BUTTONS === */
-button:has(span:contains("Download PDF")) {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
-    color: white !important;
-    border: none !important;
-    font-weight: bold !important;
-    font-size: 1.1em !important;
-    border-radius: 10px !important;
-    padding: 15px 25px !important;
-    transition: all 0.3s ease !important;
-}
+        .credits-counter {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1.2em;
+        }
 
-button:has(span:contains("Download PDF")):hover {
-    transform: translateY(-3px) !important;
-    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4) !important;
-}
+        /* === SIMPLE TOOLS HEADER === */
+        .tools-header {
+            text-align: center;
+            margin: 40px 0 30px 0;
+            padding: 20px;
+        }
 
-/* === ACTION BUTTONS === */
-button:contains("Whip Up"), button[variant="primary"] {
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
-    color: white !important;
-    font-size: 1.2em !important;
-    font-weight: 700 !important;
-    padding: 18px 35px !important;
-    border-radius: 12px !important;
-    border: none !important;
-    transition: all 0.3s ease !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-}
+        .tools-header h2 {
+            font-size: 2.2em;
+            color: #495057;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
 
-button:contains("Whip Up"):hover, button[variant="primary"]:hover {
-    transform: translateY(-3px) scale(1.02) !important;
-    box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4) !important;
-}
+        .tools-header p {
+            font-size: 1.1em;
+            color: #6c757d;
+            margin-bottom: 0;
+        }
 
-/* === HIDE FOOTER LINKS === */
-#footer, .gradio-container .svelte-1ipelgc {
-    display: none !important;
-}
+        /* === MAIN TOOL BUTTONS (These replace the tabs) === */
+        .tool-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
 
-/* === RESPONSIVE DESIGN === */
-@media (max-width: 768px) {
-    .tab-nav button {
-        font-size: 1.1em !important;
-        padding: 15px 20px !important;
-        min-width: 150px !important;
-    }
-    
-    .tools-header h2 {
-        font-size: 1.8em !important;
-    }
-    
-    .tools-header p {
-        font-size: 1em !important;
-    }
-}
+        .tool-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: 800;
+            font-size: 1.4em;
+            border-radius: 12px;
+            padding: 25px 40px;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 240px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+            position: relative;
+        }
 
-</style>
+        .tool-button:hover {
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.5);
+            background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+        }
+
+        .tool-button.active {
+            background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%);
+            box-shadow: 0 8px 25px rgba(255, 127, 80, 0.6);
+            transform: translateY(-3px);
+        }
+
+        .tool-button:not(.active) {
+            animation: subtle-pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes subtle-pulse {
+            0%, 100% { box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3); }
+            50% { box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); }
+        }
+
+        /* === TOOL CONTENT AREAS === */
+        .tool-content {
+            display: none;
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+
+        .tool-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tool-content h3 {
+            color: #495057;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.8em;
+        }
+
+        /* === ACTION BUTTONS === */
+        .whip-button {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            font-size: 1.3em;
+            font-weight: 700;
+            padding: 20px 40px;
+            border-radius: 12px;
+            border: none;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 6px 15px rgba(231, 76, 60, 0.3);
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .whip-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.5);
+        }
+
+        /* === RESULTS SECTIONS === */
+        .results-section {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .results-section h4 {
+            color: #495057;
+            font-weight: 700;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 10px;
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5em; }
+            .hero-subtitle { font-size: 1.5em; }
+            .tool-button {
+                font-size: 1.2em;
+                padding: 20px 30px;
+                min-width: 200px;
+                margin: 8px;
+            }
+            .tools-header h2 { font-size: 1.8em; }
+        }
+    </style>
 """
 
 # Create Gradio interface
@@ -919,7 +1031,7 @@ and the next to begin:
                         </span>
                     </div>
                 </div>
-                
+               
                 <div style="
                     margin-top: 20px;
                     font-size: 1.2em;
@@ -1034,11 +1146,11 @@ and the next to begin:
                             🏎️💨 ResumeWhip - The AI Resume Optimizer That Actually Works
                         </h3>
                         <p style="font-size: 1.1em; line-height: 1.4; max-width: 600px; margin: 0 auto;">
-                            **About Us:** We were job seekers proficient in our fields and great with people,
+                            <span class="bold-text">About Us:</span> We were job seekers proficient in our fields and great with people,
                             but also job seekers who had an extremely hard time getting past ATS Systems. 
                             So, we created a resume optimizer that consistently outperforms 
                             Premium Job Platform Services by over 40%. 
-                            **We're in the business of getting people past machines.**
+                            <span class="bold-text">We're in the business of getting people past machines.</span>
                         </p>
                     </div>
             
