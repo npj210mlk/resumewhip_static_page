@@ -936,128 +936,213 @@ and the next to begin:
             # Tools Available
             # gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Tools In the Toolkit</h2>")
             gr.HTML("""
-            <div style="
-                background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%);
-                color: white;
-                padding: 40px 30px;
-                border-radius: 20px;
-                text-align: center;
-                margin: 40px 0 30px 0;
-                box-shadow: 0 15px 35px rgba(255, 127, 80, 0.4);
-                border: 4px solid #fff;
-                position: relative;
-                overflow: hidden;
-            ">
-                <!-- Animated background elements -->
-                <div style="
-                    position: absolute;
-                    top: -50%;
-                    left: -50%;
-                    width: 200%;
-                    height: 200%;
-                    background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
-                    background-size: 50px 50px;
-                    animation: float 20s ease-in-out infinite;
-                    pointer-events: none;
-                "></div>
-                
-                <h1 style="
-                    font-size: 3.2em;
-                    margin: 0 0 20px 0;
-                    text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
-                    font-weight: 900;
-                    text-transform: uppercase;
-                    letter-spacing: 2px;
-                    position: relative;
-                    z-index: 2;
-                ">
-                    🧰 YOUR AI JOB SEARCH ARSENAL
-                </h1>
-                
-                <p style="
-                    font-size: 1.6em;
-                    margin: 0 0 25px 0;
-                    font-weight: 600;
-                    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-                    position: relative;
-                    z-index: 2;
-                    max-width: 800px;
-                    margin-left: auto;
-                    margin-right: auto;
-                ">
-                    Choose your weapon below - each tool gives you an unfair advantage!
+            <div style="text-align: center; margin: 30px 0;">
+                <h2 style="font-size: 2.2em; color: #495057; font-weight: 700; margin-bottom: 15px;">
+                    🧰 Tools In the Toolkit
+                </h2>
+                <p style="font-size: 1.1em; color: #6c757d; margin-bottom: 30px;">
+                    Choose your tool below - each one gives you an edge in today's job market
                 </p>
                 
-                <div style="
-                    display: flex;
-                    justify-content: center;
-                    gap: 30px;
-                    flex-wrap: wrap;
-                    position: relative;
-                    z-index: 2;
-                    margin-top: 25px;
-                ">
-                    <div style="
-                        background: rgba(255,255,255,0.2);
-                        padding: 15px 25px;
-                        border-radius: 25px;
-                        border: 2px solid rgba(255,255,255,0.3);
-                        backdrop-filter: blur(10px);
+                <!-- TOOL NAVIGATION BUTTONS -->
+                <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin: 30px 0;">
+                    <button onclick="switchToGradioTab('validator')" style="
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        border: none;
+                        font-weight: 800;
+                        font-size: 1.4em;
+                        border-radius: 12px;
+                        padding: 25px 40px;
+                        transition: all 0.4s ease;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        min-width: 240px;
+                        cursor: pointer;
+                        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+                        animation: subtle-pulse 4s ease-in-out infinite;
+                    " onmouseover="
+                        this.style.transform='translateY(-6px) scale(1.03)';
+                        this.style.boxShadow='0 15px 35px rgba(102, 126, 234, 0.5)';
+                        this.style.background='linear-gradient(135deg, #5a67d8 0%, #667eea 100%)';
+                    " onmouseout="
+                        this.style.transform='translateY(0px) scale(1)';
+                        this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.3)';
+                        this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
                     ">
-                        <span style="font-size: 1.3em; font-weight: 700;">
-                            ✅ JOB VALIDATOR
-                        </span>
-                    </div>
-                    <div style="
-                        background: rgba(255,255,255,0.2);
-                        padding: 15px 25px;
-                        border-radius: 25px;
-                        border: 2px solid rgba(255,255,255,0.3);
-                        backdrop-filter: blur(10px);
+                        ✅ JOB VALIDATOR
+                    </button>
+                    
+                    <button onclick="switchToGradioTab('optimizer')" style="
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        border: none;
+                        font-weight: 800;
+                        font-size: 1.4em;
+                        border-radius: 12px;
+                        padding: 25px 40px;
+                        transition: all 0.4s ease;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        min-width: 240px;
+                        cursor: pointer;
+                        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+                        animation: subtle-pulse 4s ease-in-out infinite;
+                    " onmouseover="
+                        this.style.transform='translateY(-6px) scale(1.03)';
+                        this.style.boxShadow='0 15px 35px rgba(102, 126, 234, 0.5)';
+                        this.style.background='linear-gradient(135deg, #5a67d8 0%, #667eea 100%)';
+                    " onmouseout="
+                        this.style.transform='translateY(0px) scale(1)';
+                        this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.3)';
+                        this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
                     ">
-                        <span style="font-size: 1.3em; font-weight: 700;">
-                            🎯 RESUME OPTIMIZER
-                        </span>
-                    </div>
-                    <div style="
-                        background: rgba(255,255,255,0.2);
-                        padding: 15px 25px;
-                        border-radius: 25px;
-                        border: 2px solid rgba(255,255,255,0.3);
-                        backdrop-filter: blur(10px);
+                        🎯 RESUME OPTIMIZER
+                    </button>
+                    
+                    <button onclick="switchToGradioTab('cover')" style="
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        border: none;
+                        font-weight: 800;
+                        font-size: 1.4em;
+                        border-radius: 12px;
+                        padding: 25px 40px;
+                        transition: all 0.4s ease;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        min-width: 240px;
+                        cursor: pointer;
+                        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+                        animation: subtle-pulse 4s ease-in-out infinite;
+                    " onmouseover="
+                        this.style.transform='translateY(-6px) scale(1.03)';
+                        this.style.boxShadow='0 15px 35px rgba(102, 126, 234, 0.5)';
+                        this.style.background='linear-gradient(135deg, #5a67d8 0%, #667eea 100%)';
+                    " onmouseout="
+                        this.style.transform='translateY(0px) scale(1)';
+                        this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.3)';
+                        this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
                     ">
-                        <span style="font-size: 1.3em; font-weight: 700;">
-                            📝 COVER LETTER WRITER
-                        </span>
-                    </div>
-                </div>
-               
-                <div style="
-                    margin-top: 20px;
-                    font-size: 1.2em;
-                    font-weight: 600;
-                    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-                    position: relative;
-                    z-index: 2;
-                ">
-                    👇 Click the tabs below to get started! 👇
+                        📝 COVER LETTER WRITER
+                    </button>
                 </div>
             </div>
 
             <style>
-            @keyframes float {
-                0%, 100% { transform: translateY(0px) rotate(0deg); }
-                50% { transform: translateY(-20px) rotate(180deg); }
+            @keyframes subtle-pulse {
+                0%, 100% { box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3) !important; }
+                50% { box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4) !important; }
             }
 
-            /* Make sure this section is always visible above other content */
-            .gradio-container {
-                position: relative;
-                z-index: 1;
+            /* Hide the default Gradio tabs since we're replacing them with buttons */
+            .gradio-container .tabs .tab-nav,
+            .gradio-container .tabitem .tab-nav,
+            div[data-testid="tabs"] .tab-nav,
+            .tab-nav {
+                display: none !important;
+            }
+
+            /* Make tab content areas more prominent when active */
+            .gradio-container .tab-pane.active,
+            .gradio-container .tabitem.active {
+                background: #f8f9fa !important;
+                border: 2px solid #dee2e6 !important;
+                border-radius: 15px !important;
+                padding: 30px !important;
+                margin-top: 20px !important;
+                animation: fadeIn 0.5s ease-in-out !important;
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            /* Style the action buttons to match */
+            button:contains("Whip Up") {
+                background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+                color: white !important;
+                font-size: 1.3em !important;
+                font-weight: 700 !important;
+                padding: 20px 40px !important;
+                border-radius: 12px !important;
+                border: none !important;
+                width: 100% !important;
+                margin-top: 20px !important;
+            }
+
+            @media (max-width: 768px) {
+                button[onclick*="switchToGradioTab"] {
+                    font-size: 1.2em !important;
+                    padding: 20px 30px !important;
+                    min-width: 200px !important;
+                    margin: 8px !important;
+                }
             }
             </style>
-            """
-            )
+
+            <script>
+            function switchToGradioTab(tabName) {
+                // Reset all tool buttons to default state
+                document.querySelectorAll('button[onclick*="switchToGradioTab"]').forEach(btn => {
+                    btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                    btn.style.transform = 'translateY(0px) scale(1)';
+                    btn.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.3)';
+                });
+                
+                // Highlight the clicked button
+                event.target.style.background = 'linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%)';
+                event.target.style.boxShadow = '0 8px 25px rgba(255, 127, 80, 0.6)';
+                event.target.style.transform = 'translateY(-3px)';
+                
+                // Try multiple methods to switch Gradio tabs
+                setTimeout(() => {
+                    // Method 1: Try clicking the actual Gradio tab button
+                    const gradioTabs = document.querySelectorAll('button[role="tab"]');
+                    gradioTabs.forEach(tab => {
+                        if (tab.textContent.toLowerCase().includes(tabName) || 
+                            tab.id.toLowerCase().includes(tabName)) {
+                            tab.click();
+                        }
+                    });
+                    
+                    // Method 2: Try finding by data attributes
+                    const tabButtons = document.querySelectorAll('[data-bs-target*="' + tabName + '"]');
+                    if (tabButtons.length > 0) {
+                        tabButtons[0].click();
+                    }
+                    
+                    // Method 3: Dispatch custom event for Gradio
+                    window.dispatchEvent(new CustomEvent('gradio:tab-switch', {
+                        detail: { tab: tabName }
+                    }));
+                }, 100);
+                
+                // Scroll to the content area
+                setTimeout(() => {
+                    const tabsContainer = document.querySelector('.gradio-container .tabs') || 
+                                        document.querySelector('[data-testid="tabs"]');
+                    if (tabsContainer) {
+                        tabsContainer.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }, 200);
+            }
+
+            // Initialize first button as active on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                const firstButton = document.querySelector('button[onclick*="switchToGradioTab"]');
+                if (firstButton) {
+                    firstButton.style.background = 'linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%)';
+                    firstButton.style.boxShadow = '0 8px 25px rgba(255, 127, 80, 0.6)';
+                    firstButton.style.transform = 'translateY(-3px)';
+                }
+            });
+            </script>
+            """)
 
             # Tools tabs
             with gr.Tabs():
