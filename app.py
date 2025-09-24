@@ -1145,22 +1145,24 @@ and the next to begin:
             """)
 
             # Tools tabs
+            # Replace your TabItem definitions with these:
+
             with gr.Tabs():
-                with gr.TabItem("✅ Job Validator", id="validator_tab"):
+                with gr.TabItem("validator", id="validator"):  # Remove emojis and extra text from the ID
                     with gr.Row():
                         jd_date = gr.Textbox(
-                            label="📅 Posting Date (Best Guess, Anyway.)", 
-                            placeholder="YYYY-MM-DD (e.g., 2024-12-01)"
+                        label="📅 Posting Date (Best Guess, Anyway.)", 
+                        placeholder="YYYY-MM-DD (e.g., 2024-12-01)"
                         )
                         jd_title = gr.Textbox(
                             label="💼 Job Title", 
                             placeholder="e.g., Data Scientist"
                         )
-                    
+        
                     validate_btn = gr.Button("🤖 Whip Up the Job Validator", variant="primary")
                     validation_output = gr.Markdown()
 
-                with gr.TabItem("🎯 Resume Optimizer", id="optimizer_tab"):
+                with gr.TabItem("optimizer", id="optimizer"):  # Match the JavaScript parameter
                     run_resume = gr.Button("🪄 Whip Up Some Resume Magic!", variant="primary")
                     resume_md = gr.Markdown(label="Preview")
                     resume_edit = gr.Textbox(
@@ -1173,7 +1175,7 @@ and the next to begin:
                         export_resume_btn = gr.Button("Download PDF ➡️")
                         export_resume_result = gr.File()
 
-                with gr.TabItem("📝 Cover Letter Writer", id="cover_tab"):
+                with gr.TabItem("cover", id="cover"):  # Match the JavaScript parameter
                     run_cover = gr.Button("📝 Whip Up My Cover Letter", variant="primary")
                     cover_output = gr.Textbox(
                         label="Here's Your Cover Letter. Edit To Give It Your Voice.", 
@@ -1181,10 +1183,10 @@ and the next to begin:
                     )
                     
                     with gr.Row():
-                        export_cover_btn = gr.Button("Download PDF ➡️")
+                        export_cover_btn = gr.Button("Download PDF There ➡️")
                         export_cover_result = gr.File()
                 
-                gr.HTML("""
+            gr.HTML("""
                     <div style="
                         text-align: center;
                         margin: 20px 0;
@@ -1197,7 +1199,7 @@ and the next to begin:
                         border: 3px solid #fff;
                         box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
                     ">
-                        ⚡ Pro Tip: Start with the Job Validator to check if the posting is legit, then optimize your resume! ⚡
+                        ⚡ Tip: If the job post seems suspicious, start with our Job Validator to check if the posting is legit, then optimize your resume! ⚡
                     </div>
                     """)  
 
