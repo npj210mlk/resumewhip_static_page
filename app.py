@@ -1185,12 +1185,8 @@ and the next to begin:
                     export_cover_btn = gr.Button("Download PDF ➡️")
                     export_cover_result = gr.File()
 
-            # Create invisible buttons to handle the tool switching
-            validator_switch = gr.Button(visible=False)
-            optimizer_switch = gr.Button(visible=False)
-            cover_switch = gr.Button(visible=False)
+            # Replace your JavaScript section with this simple, working approach:
 
-            # JavaScript to connect your big buttons to the invisible Gradio buttons
             gr.HTML("""
             <script>
             function switchToTool(toolName) {
@@ -1201,68 +1197,51 @@ and the next to begin:
                     btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
                     btn.style.transform = 'translateY(0px) scale(1)';
                     btn.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.3)';
+                    btn.style.animation = 'subtle-pulse 4s ease-in-out infinite';
                 });
                 
                 // Highlight the clicked button
                 event.target.style.background = 'linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%)';
                 event.target.style.boxShadow = '0 8px 25px rgba(255, 127, 80, 0.6)';
                 event.target.style.transform = 'translateY(-3px)';
+                event.target.style.animation = 'none';
                 
-                // Click the corresponding invisible Gradio button
-                const buttonMap = {
-                    'validator': 'validator_switch',
-                    'optimizer': 'optimizer_switch', 
-                    'cover': 'cover_switch'
-                };
-                
-                const targetButtonId = buttonMap[toolName];
-                if (targetButtonId) {
-                    // Find the Gradio button by looking for buttons and finding the right one
-                    const allButtons = document.querySelectorAll('button');
-                    let found = false;
+                // Direct DOM manipulation - hide all groups, show the target
+                setTimeout(() => {
+                    const allGroups = document.querySelectorAll('div[class*="gr-group"]');
+                    console.log('Found groups:', allGroups.length);
                     
-                    allButtons.forEach((btn, index) => {
-                        // Since Gradio generates dynamic IDs, we need to find by position or other means
-                        // This looks for buttons that are hidden (invisible Gradio buttons we created)
-                        if (btn.style.display === 'none' || btn.offsetParent === null) {
-                            const parent = btn.closest('.gradio-container');
-                            if (parent && !found) {
-                                // Check if this is roughly the right button by checking order
-                                if ((toolName === 'validator' && index % 3 === 0) ||
-                                    (toolName === 'optimizer' && index % 3 === 1) || 
-                                    (toolName === 'cover' && index % 3 === 2)) {
-                                    console.log('Clicking Gradio button for:', toolName);
-                                    btn.click();
-                                    found = true;
-                                }
-                            }
-                        }
+                    // Find our tool groups (they should be the last 3 groups)
+                    const toolGroups = Array.from(allGroups).slice(-3);
+                    console.log('Tool groups:', toolGroups.length);
+                    
+                    // Hide all tool groups
+                    toolGroups.forEach(group => {
+                        group.style.display = 'none';
                     });
                     
-                    if (!found) {
-                        console.log('Trying alternative method to find button');
-                        // Alternative: try to find by proximity to our tool content
+                    // Show the selected group
+                    const toolIndex = toolName === 'validator' ? 0 : toolName === 'optimizer' ? 1 : 2;
+                    if (toolGroups[toolIndex]) {
+                        toolGroups[toolIndex].style.display = 'block';
+                        console.log('Showing', toolName, 'group');
+                        
+                        // Scroll to the visible group
                         setTimeout(() => {
-                            const gradioButtons = document.querySelectorAll('button[style*="display: none"], button[style*="visibility: hidden"]');
-                            if (gradioButtons.length >= 3) {
-                                const buttonIndex = toolName === 'validator' ? 0 : toolName === 'optimizer' ? 1 : 2;
-                                if (gradioButtons[buttonIndex]) {
-                                    gradioButtons[buttonIndex].click();
-                                }
-                            }
+                            toolGroups[toolIndex].scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
                         }, 100);
                     }
-                }
+                }, 50);
             }
 
-            // Initialize first button as active on page load
+            // Initialize on page load
             document.addEventListener('DOMContentLoaded', function() {
-                const firstButton = document.querySelector('button[onclick*="switchToTool"]');
-                if (firstButton) {
-                    firstButton.style.background = 'linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%)';
-                    firstButton.style.boxShadow = '0 8px 25px rgba(255, 127, 80, 0.6)';
-                    firstButton.style.transform = 'translateY(-3px)';
-                }
+                setTimeout(() => {
+                    switchToTool('validator');
+                }, 1000);
             });
             </script>
             """)
@@ -1346,21 +1325,7 @@ and the next to begin:
             </footer>
             """)
     # Event handlers
-
-    validator_switch.click(
-        fn=lambda: [gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)],
-        outputs=[validator_group, optimizer_group, cover_group]
-    )
-
-    optimizer_switch.click(
-        fn=lambda: [gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)],
-        outputs=[validator_group, optimizer_group, cover_group]
-    )
-
-    cover_switch.click(
-        fn=lambda: [gr.update(visible=False), gr.update(visible=False), gr.update(visible=True)],
-        outputs=[validator_group, optimizer_group, cover_group]
-    )
+    
     validate_btn.click(
         fn=validate_job_posting,
         inputs=[job_input, jd_date, company_input, jd_title],
