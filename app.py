@@ -443,7 +443,7 @@ sticky_buy_button = """
 """
 
 # Create Gradio interface
-with gr.Blocks(css=custom_css, title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Builder") as app:
+with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Builder", theme=gr.themes.Soft(), css=custom_css) as app:
     
     gr.HTML("<head><link rel='icon' href='favicon.png' type='image/png'></head>")
     
@@ -665,7 +665,7 @@ and the next to begin:
                 )
                 company_input = gr.Textbox(
                     label="🏢 Enter the Company's Name", 
-                    placeholder="e.g., Google, Microsoft"
+                    placeholder="e.g., Amazon, Barnes & Noble"
                 )
             
             job_input = gr.Textbox(
@@ -696,210 +696,21 @@ and the next to begin:
                 <p style="font-size: 1.1em; color: #6c757d; margin-bottom: 30px;">
                     Choose your tool below - each one gives you an edge in today's job market
                 </p>
-                
-                <!-- TOOL NAVIGATION BUTTONS -->
-                <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin: 30px 0;">
-                    <button onclick="switchToTool('validator')" style="
-                        background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%);
-                        color: white;
-                        border: none;
-                        font-weight: 800;
-                        font-size: 1.4em;
-                        border-radius: 12px;
-                        padding: 25px 40px;
-                        transition: all 0.4s ease;
-                        text-transform: uppercase;
-                        letter-spacing: 1px;
-                        min-width: 240px;
-                        cursor: pointer;
-                        box-shadow: 0 8px 25px rgba(255, 127, 80, 0.6);
-                        transform: translateY(-3px);
-                    " onmouseover="
-                        this.style.transform='translateY(-6px) scale(1.03)';
-                        this.style.boxShadow='0 15px 35px rgba(255, 127, 80, 0.7)';
-                    " onmouseout="
-                        if (!this.classList.contains('active-tool')) {
-                            this.style.transform='translateY(0px) scale(1)';
-                            this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.3)';
-                            this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                        } else {
-                            this.style.transform='translateY(-3px)';
-                            this.style.boxShadow='0 8px 25px rgba(255, 127, 80, 0.6)';
-                        }
-                    ">
-                        ✅ JOB VALIDATOR
-                    </button>
-                    
-                    <button onclick="switchToTool('optimizer')" style="
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        color: white;
-                        border: none;
-                        font-weight: 800;
-                        font-size: 1.4em;
-                        border-radius: 12px;
-                        padding: 25px 40px;
-                        transition: all 0.4s ease;
-                        text-transform: uppercase;
-                        letter-spacing: 1px;
-                        min-width: 240px;
-                        cursor: pointer;
-                        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-                        animation: subtle-pulse 4s ease-in-out infinite;
-                    " onmouseover="
-                        this.style.transform='translateY(-6px) scale(1.03)';
-                        this.style.boxShadow='0 15px 35px rgba(102, 126, 234, 0.5)';
-                        this.style.background='linear-gradient(135deg, #5a67d8 0%, #667eea 100%)';
-                    " onmouseout="
-                        if (!this.classList.contains('active-tool')) {
-                            this.style.transform='translateY(0px) scale(1)';
-                            this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.3)';
-                            this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                        } else {
-                            this.style.transform='translateY(-3px)';
-                            this.style.boxShadow='0 8px 25px rgba(255, 127, 80, 0.6)';
-                        }
-                    ">
-                        🎯 RESUME OPTIMIZER
-                    </button>
-                    
-                    <button onclick="switchToTool('cover')" style="
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        color: white;
-                        border: none;
-                        font-weight: 800;
-                        font-size: 1.4em;
-                        border-radius: 12px;
-                        padding: 25px 40px;
-                        transition: all 0.4s ease;
-                        text-transform: uppercase;
-                        letter-spacing: 1px;
-                        min-width: 240px;
-                        cursor: pointer;
-                        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-                        animation: subtle-pulse 4s ease-in-out infinite;
-                    " onmouseover="
-                        this.style.transform='translateY(-6px) scale(1.03)';
-                        this.style.boxShadow='0 15px 35px rgba(102, 126, 234, 0.5)';
-                        this.style.background='linear-gradient(135deg, #5a67d8 0%, #667eea 100%)';
-                    " onmouseout="
-                        if (!this.classList.contains('active-tool')) {
-                            this.style.transform='translateY(0px) scale(1)';
-                            this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.3)';
-                            this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                        } else {
-                            this.style.transform='translateY(-3px)';
-                            this.style.boxShadow='0 8px 25px rgba(255, 127, 80, 0.6)';
-                        }
-                    ">
-                        📝 COVER LETTER WRITER
-                    </button>
-                </div>
             </div>
-
-            <style>
-            @keyframes subtle-pulse {
-                0%, 100% { box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3) !important; }
-                50% { box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4) !important; }
-            }
-
-            @media (max-width: 768px) {
-                button[onclick*="switchToTool"] {
-                    font-size: 1.2em !important;
-                    padding: 20px 30px !important;
-                    min-width: 200px !important;
-                    margin: 8px !important;
-                }
-            }
-            </style>
-
-            <script>
-            function switchToTool(toolName) {
-                console.log('Switching to tool:', toolName);
-                
-                // Reset all tool buttons to default state
-                document.querySelectorAll('button[onclick*="switchToTool"]').forEach(btn => {
-                    btn.classList.remove('active-tool');
-                    btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                    btn.style.transform = 'translateY(0px) scale(1)';
-                    btn.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.3)';
-                    btn.style.animation = 'subtle-pulse 4s ease-in-out infinite';
-                });
-                
-                // Highlight the clicked button
-                event.target.classList.add('active-tool');
-                event.target.style.background = 'linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%)';
-                event.target.style.boxShadow = '0 8px 25px rgba(255, 127, 80, 0.6)';
-                event.target.style.transform = 'translateY(-3px)';
-                event.target.style.animation = 'none';
-                
-                // Find and click the corresponding invisible Gradio button
-                // We'll look for buttons that are hidden (the ones we created as invisible)
-                setTimeout(() => {
-                    const allButtons = document.querySelectorAll('button');
-                    const hiddenButtons = Array.from(allButtons).filter(btn => 
-                        btn.style.display === 'none' || 
-                        btn.offsetParent === null ||
-                        btn.style.visibility === 'hidden' ||
-                        btn.getAttribute('style')?.includes('display: none')
-                    );
-                    
-                    // Map tool names to button indices
-                    const toolIndex = {
-                        'validator': 0,
-                        'optimizer': 1,
-                        'cover': 2
-                    };
-                    
-                    const targetIndex = toolIndex[toolName];
-                    if (hiddenButtons[targetIndex]) {
-                        console.log('Clicking invisible button for:', toolName);
-                        hiddenButtons[targetIndex].click();
-                    } else {
-                        console.log('Could not find invisible button for:', toolName);
-                        // Alternative approach: look for buttons near our content groups
-                        const possibleButtons = Array.from(allButtons).filter(btn => 
-                            !btn.onclick && !btn.getAttribute('onclick') && btn.type === 'button'
-                        );
-                        if (possibleButtons[targetIndex]) {
-                            possibleButtons[targetIndex].click();
-                        }
-                    }
-                }, 50);
-                
-                // Scroll to show the content
-                setTimeout(() => {
-                    const toolContent = document.querySelector('.gradio-container .gr-group');
-                    if (toolContent) {
-                        toolContent.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                }, 200);
-            }
-
-            // Initialize first button as active on page load
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(() => {
-                    const firstButton = document.querySelector('button[onclick*="switchToTool"]');
-                    if (firstButton) {
-                        firstButton.classList.add('active-tool');
-                        firstButton.style.background = 'linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%)';
-                        firstButton.style.boxShadow = '0 8px 25px rgba(255, 127, 80, 0.6)';
-                        firstButton.style.transform = 'translateY(-3px)';
-                        firstButton.style.animation = 'none';
-                    }
-                }, 100);
-            });
-            </script>
-            """)
+        """)
 
             # Tools tabs
-        with gr.Blocks(css=custom_css) as app:
             with gr.Tabs():
                 with gr.TabItem("✅ JOB VALIDATOR"):
-                    jd_date = gr.Textbox(label="📅 Posting Date (Best Guess, Anyway.)", placeholder="YYYY-MM-DD (e.g., 2024-12-01)")
-                    jd_title = gr.Textbox(label="💼 Job Title", placeholder="e.g., Data Scientist, Welder")
+                    with gr.Row():
+                        jd_date = gr.Textbox(
+                            label="📅 Posting Date (Best Guess, Anyway.)", 
+                            placeholder="YYYY-MM-DD (e.g., 2024-12-01)"
+                        )
+                    jd_title = gr.Textbox(
+                            label="💼 Job Title", 
+                            placeholder="e.g., Data Scientist, Welder"
+                        )
                     validate_btn = gr.Button("🤖 Whip Up the Job Validator!", variant="primary")
                     validation_output = gr.Markdown()
 
@@ -909,14 +720,17 @@ and the next to begin:
                     resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
                     suggestions = gr.Markdown(label="Suggestions & Tips")
                     with gr.Row():
-                        export_resume_btn = gr.Button("Download PDF ➡️")
+                        export_resume_btn = gr.Button("Download Your Resume As PDF ➡️")
                         export_resume_result = gr.File()
 
                 with gr.TabItem("📝 COVER LETTER WRITER"):
                     run_cover = gr.Button("📝 Whip Up the Cover Letter Writer!", variant="primary")
-                    cover_output = gr.Textbox(label="Here's Your Cover Letter. Edit Where Needed To Give It Your Voice.", lines=15)
+                    cover_output = gr.Textbox(
+                            label="Here's Your Cover Letter. Edit Where Needed To Give It Your Voice.", 
+                            lines=15
+                        )
                     with gr.Row():
-                            export_cover_btn = gr.Button("Download Your PDF ➡️")
+                            export_cover_btn = gr.Button("Download Your Cover Letter As PDF ➡️")
                             export_cover_result = gr.File()
 
             gr.HTML("""
@@ -934,7 +748,7 @@ and the next to begin:
                     ">
                         ⚡ Tip: If the job post seems suspicious, start with our Job Validator to check if the posting is legit, then optimize your resume! ⚡
                     </div>
-                    """)  
+                 """)  
 
     # Footer for SEO
     gr.HTML("""
@@ -997,6 +811,7 @@ and the next to begin:
                 </div>
             </footer>
             """)
+    
     # Event handlers
 
     validate_btn.click(
