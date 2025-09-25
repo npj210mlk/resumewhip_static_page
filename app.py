@@ -896,27 +896,27 @@ and the next to begin:
             """)
 
             # Tools tabs
-            with gr.Blocks(css=custom_css) as app:
-                with gr.Tabs():
-                    with gr.TabItem("✅ JOB VALIDATOR"):
-                        jd_date = gr.Textbox(label="📅 Posting Date (Best Guess, Anyway.)", placeholder="YYYY-MM-DD (e.g., 2024-12-01)")
-                        jd_title = gr.Textbox(label="💼 Job Title", placeholder="e.g., Data Scientist, Welder")
-                        validate_btn = gr.Button("🤖 Whip Up the Job Validator!", variant="primary")
-                        validation_output = gr.Markdown()
+        with gr.Blocks(css=custom_css) as app:
+            with gr.Tabs():
+                with gr.TabItem("✅ JOB VALIDATOR"):
+                    jd_date = gr.Textbox(label="📅 Posting Date (Best Guess, Anyway.)", placeholder="YYYY-MM-DD (e.g., 2024-12-01)")
+                    jd_title = gr.Textbox(label="💼 Job Title", placeholder="e.g., Data Scientist, Welder")
+                    validate_btn = gr.Button("🤖 Whip Up the Job Validator!", variant="primary")
+                    validation_output = gr.Markdown()
 
-                    with gr.TabItem("🎯 RESUME OPTIMIZER"):
-                        run_resume = gr.Button("🪄 Whip Up the Resume Optimizer!", variant="primary")
-                        resume_md = gr.Markdown(label="Preview")
-                        resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
-                        suggestions = gr.Markdown(label="Suggestions & Tips")
-                        with gr.Row():
-                            export_resume_btn = gr.Button("Download PDF ➡️")
-                            export_resume_result = gr.File()
+                with gr.TabItem("🎯 RESUME OPTIMIZER"):
+                    run_resume = gr.Button("🪄 Whip Up the Resume Optimizer!", variant="primary")
+                    resume_md = gr.Markdown(label="Preview")
+                    resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
+                    suggestions = gr.Markdown(label="Suggestions & Tips")
+                    with gr.Row():
+                        export_resume_btn = gr.Button("Download PDF ➡️")
+                        export_resume_result = gr.File()
 
-                    with gr.TabItem("📝 COVER LETTER WRITER"):
-                        run_cover = gr.Button("📝 Whip Up the Cover Letter Writer!", variant="primary")
-                        cover_output = gr.Textbox(label="Here's Your Cover Letter. Edit Where Needed To Give It Your Voice.", lines=15)
-                        with gr.Row():
+                with gr.TabItem("📝 COVER LETTER WRITER"):
+                    run_cover = gr.Button("📝 Whip Up the Cover Letter Writer!", variant="primary")
+                    cover_output = gr.Textbox(label="Here's Your Cover Letter. Edit Where Needed To Give It Your Voice.", lines=15)
+                    with gr.Row():
                             export_cover_btn = gr.Button("Download Your PDF ➡️")
                             export_cover_result = gr.File()
 
