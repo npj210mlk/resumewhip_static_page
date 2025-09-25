@@ -7,6 +7,8 @@ import pdfplumber
 import uuid
 import json
 import threading
+# ...and because fastapi is asynchronous, we need a server:
+import uvicorn
 
 from datetime import datetime
 from new_functions import (
@@ -28,9 +30,6 @@ from new_functions import (
 # for handling the api stuff
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
-
-# ...and because fastapi is asynchronous, we need a server:
-import uvicorn
 
 # button styling
 custom_css = """
@@ -79,7 +78,7 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 PRICE_ID = os.getenv("PRICE_ID")
 
-# Fastapi for the webhooks
+# initialize Fastapi for the webhooks
 fastapi_app = FastAPI()
 
 # Simple in-memory storage - but sync with database
@@ -444,7 +443,7 @@ sticky_buy_button = """
 """
 
 # Create Gradio interface
-with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Builder", theme=gr.themes.Soft(), css=custom_css) as app:
+with gr.Blocks(css=custom_css, title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Builder") as app:
     
     gr.HTML("<head><link rel='icon' href='favicon.png' type='image/png'></head>")
     
@@ -1093,9 +1092,9 @@ if __name__ == "__main__":
     # Initialize the database
     init_database()
     uvicorn.run(
-        "app:fastapi_app", 
+        fastapi_app, 
         host = "0.0.0.0",
-        port = int(os.environ.get("PORT", 7860))
+        port = int(os.environ.get("PORT", 8000))
         )
     # # Verify environment variables
     # required_env_vars = ["STRIPE_SECRET_KEY", "PRICE_ID", "STRIPE_WEBHOOK_SECRET"]
