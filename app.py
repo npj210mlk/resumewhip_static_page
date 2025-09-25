@@ -32,6 +32,42 @@ from fastapi.responses import JSONResponse
 # ...and because fastapi is asynchronous, we need a server:
 import uvicorn
 
+# button styling
+custom_css = """
+<style>
+.tab-nav {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.tab-nav button {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    font-weight: bold;
+    font-size: 1.1em;
+    border-radius: 12px;
+    margin: 5px;
+    padding: 12px 24px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tab-nav button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.tab-nav button.selected {
+    background: linear-gradient(135deg, #ff7f50, #ff6b35);
+    box-shadow: 0 6px 20px rgba(255, 127, 80, 0.5);
+    transform: translateY(-1px);
+}
+</style>
+"""
+
+
 # get new SQLite connection for each request
 def get_db_connection():
     """ Function to let FastAPI handle multiple requests to prevent db lockup"""
@@ -406,291 +442,6 @@ sticky_buy_button = """
         Trusted by 200+ job seekers
     </div>
 </div>
-"""
-
-# Custom CSS for colored tabs and better styling
-# Replace your existing custom_css variable with this enhanced version:
-
-custom_css = """
-<style>
-        /* === HERO SECTION === */
-        .hero-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 60px 0;
-            margin-bottom: 40px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: float 20s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .hero-title {
-            font-size: 3.5em;
-            font-weight: 900;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
-            margin-bottom: 20px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .hero-subtitle {
-            font-size: 2em;
-            color: #ff7f50;
-            font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            margin-bottom: 15px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .hero-offer {
-            font-size: 1.8em;
-            color: #ff7f50;
-            font-weight: 600;
-            margin-bottom: 10px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .hero-description {
-            font-size: 1.3em;
-            font-weight: 500;
-            position: relative;
-            z-index: 2;
-            margin-bottom: 0;
-        }
-
-        /* === SIDEBAR === */
-        .sidebar {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            min-height: 100vh;
-            padding: 30px 20px;
-            border-right: 3px solid #dee2e6;
-        }
-
-        .btn-upgrade {
-            background: linear-gradient(135deg, #635BFF 0%, #5a67d8 100%);
-            color: white;
-            border: none;
-            padding: 15px 25px;
-            border-radius: 12px;
-            font-size: 1.1em;
-            font-weight: 700;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 20px rgba(99, 91, 255, 0.3);
-        }
-
-        .btn-upgrade:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(99, 91, 255, 0.4);
-            color: white;
-            text-decoration: none;
-        }
-
-        .privacy-note {
-            text-align: center;
-            margin-top: 30px;
-            padding: 20px;
-            background: rgba(40, 167, 69, 0.1);
-            border-radius: 10px;
-            border: 2px solid rgba(40, 167, 69, 0.2);
-        }
-
-        /* === MAIN CONTENT === */
-        .main-content {
-            padding: 30px;
-        }
-
-        .form-control {
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            padding: 12px 15px;
-            font-size: 1em;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
-
-        .credits-counter {
-            text-align: center;
-            padding: 15px;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 1.2em;
-        }
-
-        /* === SIMPLE TOOLS HEADER === */
-        .tools-header {
-            text-align: center;
-            margin: 40px 0 30px 0;
-            padding: 20px;
-        }
-
-        .tools-header h2 {
-            font-size: 2.2em;
-            color: #495057;
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-
-        .tools-header p {
-            font-size: 1.1em;
-            color: #6c757d;
-            margin-bottom: 0;
-        }
-
-        /* === MAIN TOOL BUTTONS (These replace the tabs) === */
-        .tool-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin: 30px 0;
-        }
-
-        .tool-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            font-weight: 800;
-            font-size: 1.4em;
-            border-radius: 12px;
-            padding: 25px 40px;
-            transition: all 0.4s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            min-width: 240px;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-            position: relative;
-        }
-
-        .tool-button:hover {
-            transform: translateY(-6px) scale(1.03);
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.5);
-            background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
-        }
-
-        .tool-button.active {
-            background: linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%);
-            box-shadow: 0 8px 25px rgba(255, 127, 80, 0.6);
-            transform: translateY(-3px);
-        }
-
-        .tool-button:not(.active) {
-            animation: subtle-pulse 4s ease-in-out infinite;
-        }
-
-        @keyframes subtle-pulse {
-            0%, 100% { box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3); }
-            50% { box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); }
-        }
-
-        /* === TOOL CONTENT AREAS === */
-        .tool-content {
-            display: none;
-            background: #f8f9fa;
-            border: 2px solid #dee2e6;
-            border-radius: 15px;
-            padding: 30px;
-            margin-top: 30px;
-        }
-
-        .tool-content.active {
-            display: block;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .tool-content h3 {
-            color: #495057;
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: 1.8em;
-        }
-
-        /* === ACTION BUTTONS === */
-        .whip-button {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-            color: white;
-            font-size: 1.3em;
-            font-weight: 700;
-            padding: 20px 40px;
-            border-radius: 12px;
-            border: none;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 6px 15px rgba(231, 76, 60, 0.3);
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        .whip-button:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.5);
-        }
-
-        /* === RESULTS SECTIONS === */
-        .results-section {
-            background: white;
-            border: 2px solid #dee2e6;
-            border-radius: 12px;
-            padding: 25px;
-            margin-top: 20px;
-        }
-
-        .results-section h4 {
-            color: #495057;
-            font-weight: 700;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #dee2e6;
-            padding-bottom: 10px;
-        }
-
-        /* === RESPONSIVE === */
-        @media (max-width: 768px) {
-            .hero-title { font-size: 2.5em; }
-            .hero-subtitle { font-size: 1.5em; }
-            .tool-button {
-                font-size: 1.2em;
-                padding: 20px 30px;
-                min-width: 200px;
-                margin: 8px;
-            }
-            .tools-header h2 { font-size: 1.8em; }
-        }
-    </style>
 """
 
 # Create Gradio interface
@@ -1147,105 +898,29 @@ and the next to begin:
 
             # Tools tabs
 
-            with gr.Group(visible=True) as validator_group:
-                gr.Markdown("### ✅ Job Validator")
-                with gr.Row():
-                    jd_date = gr.Textbox(
-                        label="📅 Posting Date (Best Guess, Anyway.)", 
-                        placeholder="YYYY-MM-DD (e.g., 2024-12-01)"
-                    )
-                    jd_title = gr.Textbox(
-                        label="💼 Job Title", 
-                        placeholder="e.g., Data Scientist"
-                    )
-                validate_btn = gr.Button("🤖 Whip Up the Job Validator", variant="primary")
-                validation_output = gr.Markdown()
+            with gr.Tabs():
+                with gr.TabItem("✅ Job Validator"):
+                    jd_date = gr.Textbox(label="📅 Posting Date (Best Guess, Anyway.)", placeholder="YYYY-MM-DD (e.g., 2024-12-01)")
+                    jd_title = gr.Textbox(label="💼 Job Title", placeholder="e.g., Data Scientist, Welder")
+                    validate_btn = gr.Button("🤖 Whip Up the Job Validator!", variant="primary")
+                    validation_output = gr.Markdown()
 
-            with gr.Group(visible=False) as optimizer_group:
-                gr.Markdown("### 🎯 Resume Optimizer")
-                run_resume = gr.Button("🪄 Whip Up Some Resume Magic!", variant="primary")
-                resume_md = gr.Markdown(label="Preview")
-                resume_edit = gr.Textbox(
-                    label="✏️ Edit Your Resume Here (optional)", 
-                    lines=15
-                )
-                suggestions = gr.Markdown(label="Suggestions & Tips")
-                with gr.Row():
-                    export_resume_btn = gr.Button("Download PDF ➡️")
-                    export_resume_result = gr.File()
+                with gr.TabItem("🎯 Resume Optimizer"):
+                    run_resume = gr.Button("🪄 Whip Up the Resume Optimizer!", variant="primary")
+                    resume_md = gr.Markdown(label="Preview")
+                    resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
+                    suggestions = gr.Markdown(label="Suggestions & Tips")
+                    with gr.Row():
+                        export_resume_btn = gr.Button("Download PDF ➡️")
+                        export_resume_result = gr.File()
 
-            with gr.Group(visible=False) as cover_group:
-                gr.Markdown("### 📝 Cover Letter Writer")
-                run_cover = gr.Button("📝 Whip Up My Cover Letter", variant="primary")
-                cover_output = gr.Textbox(
-                    label="Here's Your Cover Letter. Edit To Give It Your Voice.", 
-                    lines=15
-                )
-                with gr.Row():
-                    export_cover_btn = gr.Button("Download PDF ➡️")
-                    export_cover_result = gr.File()
+                with gr.TabItem("📝 Cover Letter Writer"):
+                    run_cover = gr.Button("📝 Whip Up the Cover Letter Writer!", variant="primary")
+                    cover_output = gr.Textbox(label="Here's Your Cover Letter. Edit Where Needed To Give It Your Voice.", lines=15)
+                    with gr.Row():
+                        export_cover_btn = gr.Button("Download Your PDF ➡️")
+                        export_cover_result = gr.File()
 
-            # Replace your JavaScript section with this simple, working approach:
-
-            gr.HTML("""
-            <script>
-            function switchToTool(toolName) {
-                console.log('Switching to tool:', toolName);
-                
-                // Reset all tool buttons to default state
-                document.querySelectorAll('button[onclick*="switchToTool"]').forEach(btn => {
-                    btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                    btn.style.transform = 'translateY(0px) scale(1)';
-                    btn.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.3)';
-                    btn.style.animation = 'subtle-pulse 4s ease-in-out infinite';
-                });
-                
-                // Highlight the clicked button
-                event.target.style.background = 'linear-gradient(135deg, #ff7f50 0%, #ff6b35 100%)';
-                event.target.style.boxShadow = '0 8px 25px rgba(255, 127, 80, 0.6)';
-                event.target.style.transform = 'translateY(-3px)';
-                event.target.style.animation = 'none';
-                
-                // Direct DOM manipulation - hide all groups, show the target
-                setTimeout(() => {
-                    const allGroups = document.querySelectorAll('div[class*="gr-group"]');
-                    console.log('Found groups:', allGroups.length);
-                    
-                    // Find our tool groups (they should be the last 3 groups)
-                    const toolGroups = Array.from(allGroups).slice(-3);
-                    console.log('Tool groups:', toolGroups.length);
-                    
-                    // Hide all tool groups
-                    toolGroups.forEach(group => {
-                        group.style.display = 'none';
-                    });
-                    
-                    // Show the selected group
-                    const toolIndex = toolName === 'validator' ? 0 : toolName === 'optimizer' ? 1 : 2;
-                    if (toolGroups[toolIndex]) {
-                        toolGroups[toolIndex].style.display = 'block';
-                        console.log('Showing', toolName, 'group');
-                        
-                        // Scroll to the visible group
-                        setTimeout(() => {
-                            toolGroups[toolIndex].scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'start'
-                            });
-                        }, 100);
-                    }
-                }, 50);
-            }
-
-            // Initialize on page load
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(() => {
-                    switchToTool('validator');
-                }, 1000);
-            });
-            </script>
-            """)
-                
             gr.HTML("""
                     <div style="
                         text-align: center;
@@ -1325,7 +1000,7 @@ and the next to begin:
             </footer>
             """)
     # Event handlers
-    
+
     validate_btn.click(
         fn=validate_job_posting,
         inputs=[job_input, jd_date, company_input, jd_title],
