@@ -39,17 +39,18 @@ custom_css = """
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
+    border-bottom: none !important;
 }
 
 .tab-nav button {
     background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
+    color: white !important;
     font-weight: bold;
-    font-size: 1.1em;
+    font-size: 1.2em;
     border-radius: 12px;
-    margin: 5px;
-    padding: 12px 24px;
-    border: none;
+    margin: 0 8px;
+    padding: 14px 28px;
+    border: none !important;
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -62,11 +63,9 @@ custom_css = """
 .tab-nav button.selected {
     background: linear-gradient(135deg, #ff7f50, #ff6b35);
     box-shadow: 0 6px 20px rgba(255, 127, 80, 0.5);
-    transform: translateY(-1px);
 }
 </style>
 """
-
 
 # get new SQLite connection for each request
 def get_db_connection():
@@ -897,29 +896,29 @@ and the next to begin:
             """)
 
             # Tools tabs
+            with gr.Blocks(css=custom_css) as app:
+                with gr.Tabs():
+                    with gr.TabItem("✅ JOB VALIDATOR"):
+                        jd_date = gr.Textbox(label="📅 Posting Date (Best Guess, Anyway.)", placeholder="YYYY-MM-DD (e.g., 2024-12-01)")
+                        jd_title = gr.Textbox(label="💼 Job Title", placeholder="e.g., Data Scientist, Welder")
+                        validate_btn = gr.Button("🤖 Whip Up the Job Validator!", variant="primary")
+                        validation_output = gr.Markdown()
 
-            with gr.Tabs():
-                with gr.TabItem("✅ Job Validator"):
-                    jd_date = gr.Textbox(label="📅 Posting Date (Best Guess, Anyway.)", placeholder="YYYY-MM-DD (e.g., 2024-12-01)")
-                    jd_title = gr.Textbox(label="💼 Job Title", placeholder="e.g., Data Scientist, Welder")
-                    validate_btn = gr.Button("🤖 Whip Up the Job Validator!", variant="primary")
-                    validation_output = gr.Markdown()
+                    with gr.TabItem("🎯 RESUME OPTIMIZER"):
+                        run_resume = gr.Button("🪄 Whip Up the Resume Optimizer!", variant="primary")
+                        resume_md = gr.Markdown(label="Preview")
+                        resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
+                        suggestions = gr.Markdown(label="Suggestions & Tips")
+                        with gr.Row():
+                            export_resume_btn = gr.Button("Download PDF ➡️")
+                            export_resume_result = gr.File()
 
-                with gr.TabItem("🎯 Resume Optimizer"):
-                    run_resume = gr.Button("🪄 Whip Up the Resume Optimizer!", variant="primary")
-                    resume_md = gr.Markdown(label="Preview")
-                    resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
-                    suggestions = gr.Markdown(label="Suggestions & Tips")
-                    with gr.Row():
-                        export_resume_btn = gr.Button("Download PDF ➡️")
-                        export_resume_result = gr.File()
-
-                with gr.TabItem("📝 Cover Letter Writer"):
-                    run_cover = gr.Button("📝 Whip Up the Cover Letter Writer!", variant="primary")
-                    cover_output = gr.Textbox(label="Here's Your Cover Letter. Edit Where Needed To Give It Your Voice.", lines=15)
-                    with gr.Row():
-                        export_cover_btn = gr.Button("Download Your PDF ➡️")
-                        export_cover_result = gr.File()
+                    with gr.TabItem("📝 COVER LETTER WRITER"):
+                        run_cover = gr.Button("📝 Whip Up the Cover Letter Writer!", variant="primary")
+                        cover_output = gr.Textbox(label="Here's Your Cover Letter. Edit Where Needed To Give It Your Voice.", lines=15)
+                        with gr.Row():
+                            export_cover_btn = gr.Button("Download Your PDF ➡️")
+                            export_cover_result = gr.File()
 
             gr.HTML("""
                     <div style="
