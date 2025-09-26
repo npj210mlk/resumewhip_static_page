@@ -34,37 +34,134 @@ from fastapi.responses import JSONResponse
 # button styling
 custom_css = """
 <style>
+/* === IMPROVED COLOR VARIABLES === */
+:root {
+    --primary-blue: #4f46e5;      /* Modern indigo - more professional than purple */
+    --primary-blue-hover: #3730a3; 
+    --accent-orange: #f59e0b;      /* Warmer orange - better contrast */
+    --accent-orange-hover: #d97706;
+    --success-green: #10b981;      /* Modern green */
+    --success-green-hover: #059669;
+    --neutral-gray: #6b7280;       /* Better readability */
+    --light-gray: #f9fafb;
+    --border-gray: #e5e7eb;
+}
+
 .tab-nav {
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
     border-bottom: none !important;
+    background: var(--light-gray);
+    border-radius: 12px;
+    padding: 8px;
 }
 
 .tab-nav button {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-hover));
     color: white !important;
-    font-weight: bold;
-    font-size: 1.2em;
-    border-radius: 12px;
-    margin: 0 8px;
-    padding: 14px 28px;
+    font-weight: 700;
+    font-size: 1.3em;
+    border-radius: 8px;
+    margin: 0 4px;
+    padding: 16px 32px;
     border: none !important;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
 }
 
 .tab-nav button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);
+    background: linear-gradient(135deg, var(--primary-blue-hover), var(--primary-blue));
 }
 
 .tab-nav button.selected {
-    background: linear-gradient(135deg, #ff7f50, #ff6b35);
-    box-shadow: 0 6px 20px rgba(255, 127, 80, 0.5);
+    background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-hover));
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+    transform: translateY(-1px);
+}
+
+/* === IMPROVED BUTTON STYLING === */
+button[variant="primary"], .whip-button {
+    background: linear-gradient(135deg, var(--success-green), var(--success-green-hover)) !important;
+    color: white !important;
+    font-weight: 700 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 14px 28px !important;
+    font-size: 1.1em !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2) !important;
+}
+
+button[variant="primary"]:hover, .whip-button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3) !important;
+}
+
+/* === SUBSCRIPTION BUTTONS - HIGH VISIBILITY === */
+.btn-upgrade, a[href*="stripe.com"] {
+    background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-hover)) !important;
+    color: white !important;
+    border: 2px solid transparent !important;
+    border-radius: 12px !important;
+    padding: 16px 24px !important;
+    font-weight: 700 !important;
+    font-size: 1.1em !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3) !important;
+    display: inline-block !important;
+}
+
+.btn-upgrade:hover, a[href*="stripe.com"]:hover {
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4) !important;
+    border-color: white !important;
+}
+
+/* === CLEANER TIP SECTION === */
+div[style*="linear-gradient(135deg, #66ea92"] {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-hover)) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
 }
 </style>
 """
+# custom_css = """
+# <style>
+# .tab-nav {
+#     display: flex;
+#     justify-content: center;
+#     margin-bottom: 20px;
+#     border-bottom: none !important;
+# }
+
+# .tab-nav button {
+#     background: linear-gradient(135deg, #667eea, #764ba2);
+#     color: white !important;
+#     font-weight: bold;
+#     font-size: 1.2em;
+#     border-radius: 12px;
+#     margin: 0 8px;
+#     padding: 14px 28px;
+#     border: none !important;
+#     cursor: pointer;
+#     transition: transform 0.2s ease, box-shadow 0.2s ease;
+# }
+
+# .tab-nav button:hover {
+#     transform: translateY(-2px);
+#     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+# }
+
+# .tab-nav button.selected {
+#     background: linear-gradient(135deg, #ff7f50, #ff6b35);
+#     box-shadow: 0 6px 20px rgba(255, 127, 80, 0.5);
+# }
+# </style>
+# """
 
 # get new SQLite connection for each request
 def get_db_connection():
@@ -121,20 +218,16 @@ def get_user_credits(user_id):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # check to see if user already exists
+    cursor.execute("""
+                   INSERT INTO users (user_id, credits_remaining, subscription_status)
+                   VALUES (?, 3, 'free')
+                   ON CONFLICT(user_id) DO NOTHING
+                   """, (user_id,))
+
+    # get current values
     cursor.execute("SELECT credits_remaining, subscription_status FROM users WHERE user_id = ?", (user_id,))
     row = cursor.fetchone()
-        
-    # if they are new / don't already exist
-    if row is None:
-            default_credits = 3
-            cursor.execute(
-                "INSERT INTO users (user_id, credits_remaining, subscription_status) VALUES (?, ?, ?)", 
-                (user_id, default_credits, 'free')
-            )
-            conn.commit()
-            conn.close()
-            return default_credits, 'free'
+    conn.commit()
 
     # since they alreay exist, return their current credits  
     conn.close()
@@ -144,7 +237,10 @@ def update_user_credits(user_id, credits, subscription_status='free'):
     """ update user credits """
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE users SET credits_remaining = ? WHERE user_id = ?", (credits, user_id))
+    cursor.execute(
+        "UPDATE users SET credits_remaining = ?, subscription_status = ? WHERE user_id = ?", 
+        (credits, subscription_status, user_id)
+        )
     conn.commit()
     conn.close()
 
@@ -427,20 +523,20 @@ def admin_grant_access(user_email_or_id):
     grant_unlimited_access(user_id)
     return f"Granted unlimited access to user: {user_id}"
 
-# Sticky buy button + banner (add before "with gr.Blocks()")
-sticky_buy_button = """
-<div style="position:fixed; top:10px; right:20px; z-index:9999; text-align:center;">
-    <a href="https://buy.stripe.com/cNi9ASgWl6C614l3Ja1Jm00" target="_blank" 
-       style="background-color:#ff7f50; color:white; padding:12px 20px; 
-              text-decoration:none; border-radius:8px; font-size:1em; 
-              font-weight:bold; box-shadow:0px 2px 6px rgba(0,0,0,0.2);">
-        ♾️ Unlimited Resume Optimization — $5.99/mo
-    </a>
-    <div style="font-size:0.8em; color:#333; margin-top:4px;">
-        Trusted by 200+ job seekers
-    </div>
-</div>
-"""
+# # Sticky buy button + banner (add before "with gr.Blocks()")
+# sticky_buy_button = """
+# <div style="position:fixed; top:10px; right:20px; z-index:9999; text-align:center;">
+#     <a href="https://buy.stripe.com/cNi9ASgWl6C614l3Ja1Jm00" target="_blank" 
+#        style="background-color:#ff7f50; color:white; padding:12px 20px; 
+#               text-decoration:none; border-radius:8px; font-size:1em; 
+#               font-weight:bold; box-shadow:0px 2px 6px rgba(0,0,0,0.2);">
+#         ♾️ Unlimited Resume Optimization — $5.99/mo
+#     </a>
+#     <div style="font-size:0.8em; color:#333; margin-top:4px;">
+#         Trusted by 200+ job seekers
+#     </div>
+# </div>
+# """
 
 # Create Gradio interface
 with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Builder", theme=gr.themes.Soft(), css=custom_css) as app:
