@@ -694,7 +694,7 @@ and the next to begin:
                     🧰 Tools In the Toolkit
                 </h2>
                 <p style="font-size: 1.1em; color: #6c757d; margin-bottom: 30px;">
-                    Choose your tool below - each one gives you an edge in today's job market
+                    <b>Choose your tool using the tabs below - each one gives your resume an edge in today's job search.</b>
                 </p>
             </div>
         """)
@@ -738,7 +738,7 @@ and the next to begin:
                         text-align: center;
                         margin: 20px 0;
                         padding: 15px;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background: linear-gradient(135deg, #66ea92 0%, #66eac0 100%);
                         border-radius: 15px;
                         color: white;
                         font-size: 1.1em;
@@ -746,7 +746,7 @@ and the next to begin:
                         border: 3px solid #fff;
                         box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
                     ">
-                        ⚡ Tip: If the job post seems suspicious, start with our Job Validator to check if the posting is legit, then optimize your resume! ⚡
+                        ⚡ Tip: Job post sound fishy? Use our Job Validator to check if it's legit before worrying about applying! ⚡
                     </div>
                  """)  
 
