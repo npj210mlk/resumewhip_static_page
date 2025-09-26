@@ -103,7 +103,7 @@ button[variant="primary"]:hover, .whip-button:hover {
 
 /* === SUBSCRIPTION BUTTONS - HIGH VISIBILITY === */
 .btn-upgrade, a[href*="stripe.com"] {
-    background: linear-gradient(135deg, var(--accent-orange), var(--accent-orange-hover)) !important;
+    background: linear-gradient(135deg, #ff6e5b, #ff815b) !important;
     color: white !important;
     border: 2px solid transparent !important;
     border-radius: 12px !important;
@@ -124,7 +124,7 @@ button[variant="primary"]:hover, .whip-button:hover {
 
 /* === CLEANER TIP SECTION === */
 div[style*="linear-gradient(135deg, #66ea92"] {
-    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-hover)) !important;
+    background: linear-gradient(135deg, #87ff5b, #5bff81) !important;
     border: 2px solid rgba(255, 255, 255, 0.2) !important;
 }
 </style>
