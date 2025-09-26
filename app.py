@@ -336,12 +336,12 @@ def grant_unlimited_access(user_id):
     if cursor.fetchone() is None:
         cursor.execute(
             "INSERT INTO users (user_id, credits_remaining, subscription_status) VALUES (?, ?, ?)",
-            (user_id, -1, 'paid')
+            (user_id, -1, 'premium')
         )
 
     else:
         cursor.execute(
-            "UPDATE users SET credits_remaining = -1, subscription_status = 'paid' WHERE user_id = ?",
+            "UPDATE users SET credits_remaining = -1, subscription_status = 'premium' WHERE user_id = ?",
             (user_id,)
         )
 
@@ -429,7 +429,7 @@ def run_resume_with_credits(resume_file, job_input):
     credits, subscription_status = get_user_credits(user_id)
     
     # Double-check with Stripe for premium users
-    if subscription_status == 'premium' or check_payment_status(user_id):
+    if subscription_status in ['paid', 'premium'] or check_payment_status(user_id):
         credits = float("inf")
         if subscription_status != 'premium':
             update_user_credits(user_id, float("inf"), 'premium')
