@@ -260,10 +260,18 @@ def get_stripe_customer_id_from_db(user_id):
     cursor.execute(
         "SELECT stripe_customer_id FROM users WHERE user_id = ?",
         (user_id,)
-    )
+        )
     row = cursor.fetchone()
     conn.close()
     return row["stripe_customer_id"] if row else None
+
+def get_user_email_from_db(user_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT email FROM users WHERE user_id = ?", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return row["email"] if row else None
 
 def store_stripe_customer_id(user_id, customer_id):
     """Store Stripe customer ID in SQLite when they first subscribe"""
@@ -278,8 +286,12 @@ def store_stripe_customer_id(user_id, customer_id):
 def create_checkout_session():
     try:
         user_id = get_user_id()
+        user_email = get_user_email_from_db(user_id)
+        customer_id = get_stripe_customer_id_from_db(user_id)
         session = stripe.checkout.Session.create(
             client_reference_id=user_id,
+            customer = customer_id if customer_id else None,
+            customer_email = user_email if not customer_id else None,
             payment_method_types=['card'],
             line_items=[{
                 'price': PRICE_ID,
@@ -325,6 +337,26 @@ def check_payment_status(user_id):
     except Exception as e:
         print(f"Error in checking your payment status: {e}")
         return False
+    
+def create_billing_portal_session(user_id):
+    try:
+        customer_id = get_stripe_customer_id_from_db(user_id)
+        if not customer_id:
+            return None  # No customer yet, so nothing to manage
+
+        session = stripe.billing_portal.Session.create(
+            customer=customer_id,
+            return_url="https://www.resumewhip.com"  # Where to send users after they're done
+        )
+        return session.url
+    except Exception as e:
+        print(f"Error creating billing portal session: {e}")
+        return None
+
+def open_billing_portal():
+    user_id = get_user_id()
+    portal_url = create_billing_portal_session(user_id)
+    return portal_url if portal_url else "No billing account found."
 
 def grant_unlimited_access(user_id):
     """If they've paid, they get full access"""
@@ -388,9 +420,10 @@ async def stripe_webhook(request: Request):
             session = event["data"]["object"]
             user_id = session.get("client_reference_id")
             customer_id = session.get("customer")
-
+            email = session.get("customer_details", {}).get("email")
+            
             if user_id and customer_id:
-                store_stripe_customer_id(user_id, customer_id)
+                store_stripe_customer_id(user_id, customer_id, email)
                 grant_unlimited_access(user_id)
                 print(f"✅ Granted unlimited access to user: {user_id}")
 
@@ -637,11 +670,11 @@ and the next to begin:
                    style="background-color:#635BFF; color:white; padding:15px 25px; 
                           text-decoration:none; border-radius:8px; font-size:1.1em; 
                           font-weight:bold; display:inline-block;">
-                    ♾️ Get Unlimited AI-Powered Resume Optimizaton for Just  $5.99/Month!
+                    ♾️ Get Unlimited AI-Powered Resume Optimization for Just $5.99/Month!
                 </a>
             </div>
             """)
-            
+
             gr.Markdown("### 🛡️ We will never sell your data. Ever.")
 
             gr.Markdown("### 🔥 Share the love - help friends skip the job search struggle!")
@@ -776,6 +809,7 @@ and the next to begin:
             # Access granter
             with gr.Accordion("My Admin Access", open=False, visible=False):
                 grant_access_btn = gr.Button("🟢 Grant Unlimited Access", variant="secondary")
+                manage_billing_btn = gr.Button("Manage Billing", variant="secondary")
                 access_status = gr.Markdown()
 
             # Tools Available
@@ -909,6 +943,13 @@ and the next to begin:
             """)
     
     # Event handlers
+
+    manage_billing_btn.click(
+        fn=open_billing_portal,
+        inputs=[],
+        outputs=[],
+        _js="(url) => { if (url && url.startsWith('http')) { window.open(url, '_blank'); } }"
+)
 
     validate_btn.click(
         fn=validate_job_posting,
