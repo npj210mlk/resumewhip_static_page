@@ -213,6 +213,24 @@ def get_user_id():
     gr.current_user_id = user_id
     return user_id
 
+def get_user_status():
+    user_id = get_user_id()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT subscription_status, credits_remaining FROM users WHERE user_id = ?", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        return "Free User – You've Got 3 Free Resumes Remaining"
+    
+    status, credits = row["subscription_status"], row["credits_remaining"]
+    if status in ["paid", "premium"] or credits == -1:
+        return "🌟 Premium User – Unlimited Resumes Granted!"
+    else:
+        return f"Free User – {credits if credits is not None else 3} Free Resumes Remaining"
+
+
 def get_user_credits(user_id):
     """ Retrieve user credits from database"""
     conn = get_db_connection()
@@ -272,6 +290,34 @@ def get_user_email_from_db(user_id):
     row = cursor.fetchone()
     conn.close()
     return row["email"] if row else None
+
+def log_request(user_id, ip_address):
+    """ prevent endless account creation """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS requests_log (
+            user_id TEXT,
+            ip_address TEXT,
+            request_date DATE
+        )
+    """)
+    cursor.execute("INSERT INTO requests_log (user_id, ip_address, request_date) VALUES (?, ?, date('now'))",
+                   (user_id, ip_address))
+    conn.commit()
+    conn.close()
+
+def check_rate_limit(ip_address):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT COUNT(*) as count FROM requests_log
+        WHERE ip_address = ? AND request_date = date('now')
+    """, (ip_address,))
+    row = cursor.fetchone()
+    conn.close()
+    return row["count"] < 3  # e.g., 3 free resumes per day
+
 
 def store_stripe_customer_id(user_id, customer_id):
     """Store Stripe customer ID in SQLite when they first subscribe"""
@@ -457,7 +503,11 @@ def run_resume_with_credits(resume_file, job_input):
         return ("⚠️ Please upload your resume and paste the job description they've provided.", "", "", "Free resumes left: -")
     
     user_id = get_user_id()
-    
+
+    ip_address = request.remote_addr if request else "unknown"
+    if not check_rate_limit(ip_address):
+        return "Daily free limit reached. Upgrade to Premium for unlimited access!"
+     
     # Check subscription status from database
     credits, subscription_status = get_user_credits(user_id)
     
@@ -466,6 +516,7 @@ def run_resume_with_credits(resume_file, job_input):
         credits = float("inf")
         if subscription_status != 'premium':
             update_user_credits(user_id, float("inf"), 'premium')
+            user_status.update(get_user_status())
     
     # Generate unique resume ID for tracking
     resume_name = getattr(resume_file, "name", "unknown")
@@ -484,12 +535,15 @@ def run_resume_with_credits(resume_file, job_input):
                 )
             credits -= 1
             update_user_credits(user_id, credits)
+            user_status.update(get_user_status())
         
         user_sessions[f"{user_id}_current_resume"] = new_resume_id
     
     # Process resume
     try:
         result = process_resume(resume_file, job_input)
+        # log successful request so free runs are counted
+        log_request(user_id, ip_address)
         credits_display = '∞' if credits == float('inf') else str(credits)
         return (*result, f"Free resumes left: {credits_display}")
     except Exception as e:
@@ -511,6 +565,14 @@ def generate_cover_letter(resume_file, job_input):
         return get_cover_response(prompt)
     except Exception as e:
         return f"🚩 Unexpected error in generating cover letter: {e}"
+    
+def quick_job_summary(score):
+    if score >= 80:
+        return "✅ Job post looks legit! It scored 80% or higher on our validation run."
+    elif score >= 50:
+        return "⚠️ Only scored between a 50 and 79% on the validation run. Proceed with caution."
+    else:
+        return "❌ Waste of time. Couldn't even score a 49% on our validation run. Just an attempt to harvest your data."
 
 def validate_job_posting(job_input_text, posting_date, company, job_title):
     """Validate job posting legitimacy"""
@@ -544,7 +606,9 @@ def validate_job_posting(job_input_text, posting_date, company, job_title):
         report += f"- [Search on X/Twitter]({social_links['x']})\n"
         report += f"- [Search on LinkedIn]({social_links['linkedin']})\n"
         
-        return report
+        summary = quick_job_summary(job_score)
+        return f"### {summary}\n\nFull Report:\n{report}"
+
         
     except Exception as e:
         return f"🚩 Error validating job posting: {e}"
@@ -587,6 +651,9 @@ with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Bui
     with gr.Row():
         # Sidebar
         with gr.Column(scale=1):
+
+            user_status = gr.Markdown(get_user_status(), elem_id="user-status")
+
             with gr.Accordion("🦮 How To Use", open=False):
                 gr.Markdown("""
                          1.) Crank Your Existing Resume Up To 11 - list every single skill and experience you have
@@ -604,7 +671,7 @@ If you're not happy with the default resume
 format, you can make adjustments using the 
 simple copy and pastes below:
                         
-Want To Change Fonts:
+Want To Change Fonts?  
 # = Biggest  
 ## = Smaller  
 ### = Smallest
@@ -613,24 +680,26 @@ Want To Change Fonts:
 <u>text</u> = Underline
 (⬆️ Can Be Combined As Needed)
                         
-Making A List?
+Making A List?  
 - = Bullet Point  
 1. = Numbered List
 
-Want To Link A Website?
+Want To Link A Website? 
+Write it into your resume like this: 
 [Your Website](https://www.yourwebsite.com)
 
-Too "clumpy?" Break things up into separate lines
-with two spaces where you want the line break
-(after a period, for example). 
+Resume too "clumpy?"  
+Double-space where you want the 
+line to break (after a period, 
+for example). 
                         
-Or, if you want to create a section break with
-a line, just enter three dashes (---) where you 
-want that break to happen (eg: between 'Summary' 
-and 'Experience').
+"I want a visible line between my resume sections!"  
+Hit 'Enter' twice at the end of the section, 
+type three dashes (---), hit 'Enter' two 
+more times, and BOOM! Line between sections.
 
 "But my resume cuts off where I don't want it to!"
-Simple - just force a new page by copy/pasting this entire 
+Bummer. Wait! Just  force a new page by copy/pasting this entire 
 line (below), and put it where you want one page to end
 and the next to begin:
 <div style="page-break-after: always; break-after: page;"></div>
@@ -640,7 +709,7 @@ and the next to begin:
                 gr.Markdown("""
         ### Common Questions About Resume Optimization
         
-        **Q: What is an ATS?**
+        **Q: What is an ATS?**  
         A: "Applicant Tracking System." It's an automated filter Recruiters use to sift through the deluge of resumes they receive for open job positions.
                             
         **Q: How does your Resume Optimizer and Cover Letter Writer work?**  
@@ -658,7 +727,7 @@ and the next to begin:
         **Q: How many resumes can I optimize for free?**  
         A: You get 3 free resume optimizations to try our service, then unlimited access for $5.99/month.
 
-        **Q: Why is the format of the resume I download look so plain?**
+        **Q: Why is the format of the resume I download look so plain?**  
         A: That's by design - ATS systems don't like a lot of formatting. (Tables and multiple columns? Nightmares for them.)
         """)
                 
@@ -844,6 +913,7 @@ and the next to begin:
                         )
                     validate_btn = gr.Button("🤖 Whip Up the Job Validator!", variant="primary")
                     validation_output = gr.Markdown()
+
 
                 with gr.TabItem("🎯 RESUME OPTIMIZER"):
                     run_resume = gr.Button("🪄 Whip Up the Resume Optimizer!", variant="primary")
