@@ -811,6 +811,7 @@ and the next to begin:
                 grant_access_btn = gr.Button("🟢 Grant Unlimited Access", variant="secondary")
                 manage_billing_btn = gr.Button("Manage Billing", variant="secondary")
                 access_status = gr.Markdown()
+                billing_url_output = gr.Markdown()
 
             # Tools Available
             # gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Tools In the Toolkit</h2>")
@@ -943,14 +944,7 @@ and the next to begin:
             """)
     
     # Event handlers
-
-    manage_billing_btn.click(
-        fn=open_billing_portal,
-        inputs=[],
-        outputs=[],
-        _js="(url) => { if (url && url.startsWith('http')) { window.open(url, '_blank'); } }"
-)
-
+   
     validate_btn.click(
         fn=validate_job_posting,
         inputs=[job_input, jd_date, company_input, jd_title],
@@ -961,6 +955,12 @@ and the next to begin:
         fn=run_resume_with_credits,
         inputs=[resume_input, job_input],
         outputs=[resume_md, resume_edit, suggestions, resume_counter]
+    )
+
+    manage_billing_btn.click(
+        fn=open_billing_portal,
+        inputs=[],
+        outputs=billing_url_output
     )
     
     export_resume_btn.click(
