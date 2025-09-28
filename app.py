@@ -484,7 +484,7 @@ def get_sidebar_content():
                       border-radius: 12px; font-size: 1.1em; font-weight: 700;
                       display: inline-block; transition: all 0.3s ease;
                       box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);">
-                ♾️ Get Unlimited Access - $5.99/Month!
+                ♾️ Get Unlimited AI-Powered Resume Optimization for Just $5.99/Month!
             </a>
         </div>
         """)
@@ -689,7 +689,7 @@ async def stripe_webhook(request: Request):
 #=========================================================================================
 
 def run_resume_with_credits(resume_file, job_input):
-    """Handle resume processing with premium user experience"""
+    """Handle resume processing with premium and free user experience"""
     if not resume_file or not job_input.strip():
         return ("⚠️ Please upload your resume and paste the job description.", "", "", 
                 get_credits_display())
@@ -698,7 +698,7 @@ def run_resume_with_credits(resume_file, job_input):
     is_premium = is_premium_user(user_id)
     
     if is_premium:
-        # Premium user - no credit checking
+        # Premium user - unlimited access
         try:
             result = process_resume(resume_file, job_input)
             premium_display = gr.Markdown("""
@@ -713,7 +713,21 @@ def run_resume_with_credits(resume_file, job_input):
             return (f"Error processing resume: {e}", "", "", get_credits_display())
     else:
         # Free user - existing credit logic
-        return run_resume_with_credits(resume_file, job_input)
+        credits, status = get_user_credits(user_id)
+
+        if credits <= 0:
+            checkout_url = create_checkout_session()
+            return(
+                f"⏰ You've used your 3 free resumes! [Subscribe here]({checkout_url}) for unlimited access.",
+                "", "", get_credits_display()
+            )
+        
+        try:
+            result = process_resume(resume_file, job_input)
+            update_user_credits(user_id, credits -1)
+            return (*result, get_credits_display())
+        except Exception as e:
+            return (f"😩 Error processing your resume: {e}", "", "", get_credits_display())
 
 def show_premium_welcome():
     """Show welcome message for new premium users"""
@@ -914,19 +928,6 @@ and the next to begin:
         **Q: Why is the format of the resume I download look so plain?**  
         A: That's by design - ATS systems don't like a lot of formatting. (Tables and multiple columns? Nightmares for them.)
         """)
-                
-            # Subscribe button
-            gr.HTML("""
-            <div style="text-align:center; margin:20px 0;">
-                <a href="https://buy.stripe.com/cNi9ASgWl6C614l3Ja1Jm00" 
-                   target="_blank" 
-                   style="background-color:#635BFF; color:white; padding:15px 25px; 
-                          text-decoration:none; border-radius:8px; font-size:1.1em; 
-                          font-weight:bold; display:inline-block;">
-                    ♾️ Get Unlimited AI-Powered Resume Optimization for Just $5.99/Month!
-                </a>
-            </div>
-            """)
 
             sidebar_content = get_sidebar_content()
             
