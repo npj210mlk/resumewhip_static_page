@@ -830,49 +830,58 @@ def quick_job_summary(score):
 #         return f"🚩 Error validating job posting: {e}"
 # ===============================================================================
 
+# Score box
+
+def quick_job_summary(score):
+    if score >= 80:
+        color = "#10b981"  # Green
+        text = "✅ Job post looks legit!"
+    elif score >= 50:
+        color = "#f59e0b"  # Orange
+        text = "⚠️ Some concerns detected."
+    else:
+        color = "#ef4444"  # Red
+        text = "❌ High risk – proceed with caution!"
+    
+    return f"""
+    <div style="background:{color}; color:white; padding:10px; 
+                border-radius:8px; text-align:center; 
+                font-weight:bold; font-size:1.1em; margin-bottom:10px;">
+        {text}
+    </div>
+    """
+
 # New Validate Job Posting
 
 def validate_job_posting(job_description, company_name=None, job_title=None):
-    """
-    Analyze job description for red flags, legitimacy indicators, and provide a quick summary.
-    Returns a formatted Markdown report with quick summary + detailed analysis.
-    """
     if not job_description.strip():
-        return "⚠️ Please paste a job description before validating."
+        return "⚠️ Please paste a job description before validating.", ""
 
-    # --- Scoring Logic (Basic Example) ---
-    score = 100  # Start with a perfect score
+    # --- Scoring Logic ---
+    score = 100
     warnings = []
 
-    # Red flag checks
     if "wire money" in job_description.lower() or "gift cards" in job_description.lower():
         score -= 50
-        warnings.append("🚩 Mentions money transfer or gift cards (common scam tactic).")
-
+        warnings.append("🚩 Mentions money transfer or gift cards.")
     if "no experience required" in job_description.lower():
         score -= 15
         warnings.append("⚠️ Very low barrier to entry may be suspicious.")
-
     if "urgent hire" in job_description.lower() or "act fast" in job_description.lower():
         score -= 10
         warnings.append("⚠️ Excessive urgency language detected.")
-
     if "training fee" in job_description.lower():
         score -= 30
         warnings.append("🚩 Mentions paying fees for training.")
-
-    # Generic buzzword/template detection
     if job_description.lower().count("team player") > 2:
         score -= 5
         warnings.append("⚠️ Too many generic phrases like 'team player'.")
 
-    # Final score floor
     score = max(score, 0)
 
-    # --- Quick Summary at Top ---
-    summary = quick_job_summary(score)
+    # --- Outputs ---
+    summary_html = quick_job_summary(score)
 
-    # --- Build Full Report ---
     report_lines = []
     if company_name:
         report_lines.append(f"**Company:** {company_name}")
@@ -883,11 +892,11 @@ def validate_job_posting(job_description, company_name=None, job_title=None):
     if warnings:
         report_lines.append("\n".join(warnings))
     else:
-        report_lines.append("✅ Great news!  No major red flags found - Whip Away!")
+        report_lines.append("✅ No major red flags found.")
 
-    # --- Return formatted Markdown ---
     full_report = "\n".join(report_lines)
-    return f"### {summary}\n\n{full_report}"
+
+    return summary_html, full_report
 
 # Admin for granting access
 def admin_grant_access(user_email_or_id):
@@ -1167,7 +1176,9 @@ and the next to begin:
                             placeholder="e.g., Data Scientist, Welder"
                         )
                     validate_btn = gr.Button("🤖 Whip Up the Job Validator!", variant="primary")
-                    validation_output = gr.Markdown()
+                    summary_output = gr.HTML()
+                    report_output = gr.Markdown()
+                    # validation_output = gr.Markdown()
 
 
                 with gr.TabItem("🎯 RESUME OPTIMIZER"):
@@ -1272,8 +1283,8 @@ and the next to begin:
 
     validate_btn.click(
         fn=validate_job_posting,
-        inputs=[job_input, jd_date, company_input, jd_title],
-        outputs=validation_output
+        inputs=[job_description, company_name, job_title],
+        outputs=[summary_output, report_output]
     )
     
     run_resume.click(
