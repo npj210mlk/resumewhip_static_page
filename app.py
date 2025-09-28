@@ -127,6 +127,82 @@ div[style*="linear-gradient(135deg, #66ea92"] {
     background: linear-gradient(135deg, #5b63ff, #845bff) !important;
     border: 2px solid rgba(255, 255, 255, 0.2) !important;
 }
+
+/* Hide upgrade elements for premium users */
+body[data-user-status="premium"] .upgrade-prompt,
+body[data-user-status="premium"] .subscription-cta,
+body[data-user-status="premium"] a[href*="stripe.com"] {
+    display: none !important;
+}
+
+/* Premium user badge styling */
+.premium-badge {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 0.9em;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    margin: 10px 0;
+}
+
+/* Premium status indicators */
+.premium-status {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 15px;
+    font-weight: 600;
+    font-size: 1.2em;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+}
+
+/* Premium welcome message */
+.premium-welcome {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 15px;
+    text-align: center;
+    margin: 20px 0;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.premium-welcome h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.8em;
+}
+
+.premium-welcome p {
+    margin: 0;
+    font-size: 1.2em;
+    opacity: 0.9;
+}
+
+/* Subtle premium indicators throughout the interface */
+body[data-user-status="premium"] .tool-section::before {
+    content: "✨ Premium";
+    position: absolute;
+    top: -10px;
+    right: 15px;
+    background: #10b981;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 700;
+}
+
+/* Enhanced tab styling for premium users */
+body[data-user-status="premium"] .tab-nav button.selected {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+}
 </style>
 """
 # get new SQLite connection for each request
@@ -233,6 +309,29 @@ def update_user_credits(user_id, credits, subscription_status='free'):
         )
     conn.commit()
     conn.close()
+
+def get_credits_display():
+    """Return credits display based on user status"""
+    user_id = get_user_id()
+    is_premium = is_premium_user(user_id)
+    
+    if is_premium:
+        return gr.Markdown("""
+        <div style="text-align: center; padding: 15px; 
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
+            <strong>✨ Premium: Unlimited Resumes</strong>
+        </div>
+        """)
+    else:
+        credits, _ = get_user_credits(user_id)
+        return gr.Markdown(f"""
+        <div style="text-align: center; padding: 15px; 
+                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                    color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
+            <strong>Free Resumes Left: {credits}</strong>
+        </div>
+        """)
 
 def get_user_id_by_customer_id(customer_id):
     """Get user_id from database using customer_id"""
@@ -442,11 +541,11 @@ def revoke_unlimited_access(user_id):
     if cursor.fetchone() is None:
         cursor.execute(
             "INSERT INTO users (user_id, credits_remaining, subscription_status) VALUES (?, ?, ?)",
-            (user_id, 3, 'free')
+            (user_id, 1, 'free') # 1 more courtesy resume
         )
     else:
         cursor.execute(
-        "UPDATE users SET subscription_status = 'free' WHERE user_id = ?",
+        "UPDATE users SET credits_remaining = 1, subscription_status = 'free' WHERE user_id = ?",
         (user_id,) 
     )
     conn.commit()
@@ -472,14 +571,39 @@ async def stripe_webhook(request: Request):
             session = event["data"]["object"]
             user_id = session.get("client_reference_id")
             customer_id = session.get("customer")
-            email = session.get("customer_details", {}).get("email")
+            # email = session.get("customer_details", {}).get("email")
             
             if user_id and customer_id:
-                store_stripe_customer_id(user_id, customer_id, email)
+                # if using email 
+                # store_stripe_customer_id(user_id, customer_id, email)
+                # without email (what Claude's recommending)
+                store_stripe_customer_id(user_id, customer_id)
+                # grant unlimisted access
                 grant_unlimited_access(user_id)
                 print(f"✅ Granted unlimited access to user: {user_id}")
+        
+        # 🔄 Handle successful subscription RENEWALS
+        elif event["type"] == "invoice.payment_succeeded":
+            invoice = event["data"]["object"]
+            customer_id = invoice["customer"]
+            
+            # Find user and ensure they have premium access
+            user_id = get_user_id_by_customer_id(customer_id)
+            if user_id:
+                grant_unlimited_access_premium(user_id)
+                print(f"✅ Renewed premium access for user: {user_id}")
 
-        # ❌ Handle subscription cancellations
+        # ⚠️ Handle PAYMENT FAILURES
+        elif event["type"] == "invoice.payment_failed":
+            invoice = event["data"]["object"]
+            customer_id = invoice["customer"]
+            user_id = get_user_id_by_customer_id(customer_id)
+            
+            if user_id:
+                # Don't immediately revoke - give grace period
+                print(f"⚠️ Payment failed for user: {user_id} - grace period active")
+
+        # ❌ Handle subscription CANCELLATIONS
         elif event["type"] == "customer.subscription.deleted":
             subscription = event["data"]["object"]
             customer_id = subscription["customer"]
@@ -489,72 +613,138 @@ async def stripe_webhook(request: Request):
                 revoke_unlimited_access(user_id)
                 print(f"❌ Revoked access for user: {user_id}")
 
-        else:
-            print(f"ℹ️ Unhandled event type: {event['type']}")
+        # commented out per claude
+        # else:
+        #     print(f"ℹ️ Unhandled event type: {event['type']}")
 
         # Return success so Stripe stops retrying
         return JSONResponse(content={"status": "success"}, status_code=200)
 
-    except stripe.error.SignatureVerificationError as e:
-        print(f"🚨 Invalid signature: {e}")
-        raise HTTPException(status_code=400, detail="Invalid signature")
+    # comment out per claude
+    # except stripe.error.SignatureVerificationError as e:
+    #     print(f"🚨 Invalid signature: {e}")
+    #     raise HTTPException(status_code=400, detail="Invalid signature")
 
     except Exception as e:
         print(f"🚨 Webhook error: {e}")
         return JSONResponse(content={"status": "error", "message": str(e)}, status_code=400)
+#=========================================================================================
+
+# Original below - Worked, but trying Claude's. If not happy, uncomment 
+
+#=========================================================================================
+
+# def run_resume_with_credits(resume_file, job_input):
+#     """Handle resume processing with credit system - abuse prevent"""
+#     if not resume_file or not job_input.strip():
+#         return (
+#             "⚠️ Please upload your resume and paste the job description they've provided.", "", 
+#             "", "Free resumes left: -")
+    
+#     user_id = get_user_id()
+
+#     ip_address = request.remote_addr if request else "unknown"
+#     if not check_rate_limit(ip_address):
+#         return "Daily free limit reached. Upgrade to Premium for unlimited access!"
+     
+#     # Check subscription status from database
+#     credits, subscription_status = get_user_credits(user_id)
+    
+#     # Double-check with Stripe for premium users
+#     if subscription_status in ['paid', 'premium'] or check_payment_status(user_id):
+#         credits = float("inf")
+#         if subscription_status != 'premium':
+#             update_user_credits(user_id, float("inf"), 'premium')
+    
+#     # Generate unique resume ID for tracking
+#     resume_name = getattr(resume_file, "name", "unknown")
+#     new_resume_id = f"{resume_name}_{hash(job_input)}"
+    
+#     # Check if this is a new resume (consumes credit) or edit of existing one
+#     current_resume = user_sessions.get(f"{user_id}_current_resume")
+    
+#     if current_resume != new_resume_id:
+#         if credits != float("inf"):
+#             if credits <= 0:
+#                 checkout_url = create_checkout_session()
+#                 return (
+#                     f"⏰ You've used your 3 free resumes! Ready for unlimited access? [Subscribe here]({checkout_url}) for just $5.99/month!",
+#                     "", "", "Free resumes left: 0"
+#                 )
+#             credits -= 1
+#             update_user_credits(user_id, credits)
+        
+#         user_sessions[f"{user_id}_current_resume"] = new_resume_id
+    
+#     # Process resume
+#     try:
+#         result = process_resume(resume_file, job_input)
+#         # log successful request so free runs are counted
+#         log_request(user_id, ip_address)
+#         credits_display = '∞' if credits == float('inf') else str(credits)
+#         return (*result, f"Free resumes left: {credits_display}")
+#     except Exception as e:
+#         print(f"Resume processing error: {e}")
+#         return (f"Error processing resume: {e}", "", "", f"Free resumes left: {credits}")
+#=========================================================================================
 
 def run_resume_with_credits(resume_file, job_input):
-    """Handle resume processing with credit system - abuse prevent"""
+    """Handle resume processing with premium user experience"""
     if not resume_file or not job_input.strip():
-        return (
-            "⚠️ Please upload your resume and paste the job description they've provided.", "", 
-            "", "Free resumes left: -")
+        return ("⚠️ Please upload your resume and paste the job description.", "", "", 
+                get_credits_display())
     
     user_id = get_user_id()
+    is_premium = is_premium_user(user_id)
+    
+    if is_premium:
+        # Premium user - no credit checking
+        try:
+            result = process_resume(resume_file, job_input)
+            premium_display = gr.Markdown("""
+            <div style="text-align: center; padding: 15px; 
+                        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                        color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
+                <strong>✨ You're Premium! Thanks for Choosing Us!</strong>
+            </div>
+            """)
+            return (*result, premium_display)
+        except Exception as e:
+            return (f"Error processing resume: {e}", "", "", get_credits_display())
+    else:
+        # Free user - existing credit logic
+        return run_resume_with_credits(resume_file, job_input)
 
-    ip_address = request.remote_addr if request else "unknown"
-    if not check_rate_limit(ip_address):
-        return "Daily free limit reached. Upgrade to Premium for unlimited access!"
-     
-    # Check subscription status from database
-    credits, subscription_status = get_user_credits(user_id)
+def show_premium_welcome():
+    """Show welcome message for new premium users"""
+    return gr.HTML("""
+    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white; padding: 25px; border-radius: 15px; text-align: center;
+                margin: 20px 0; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);">
+        <h3 style="margin: 0 0 10px 0; font-size: 1.8em;">🎉 Welcome to Premium - We're Honored To Have You Here!</h3>
+        <p style="margin: 0; font-size: 1.2em; opacity: 0.9;">
+            Thank you for your subscription! You now have unlimited access to all ResumeWhip tools.
+        </p>
+    </div>
+    """)
+
+def refresh_user_interface():
+    """ After payment, refresh interface based on current user status"""
+    user_id = get_user_id()
+    is_premium = is_premium_user(user_id)
     
-    # Double-check with Stripe for premium users
-    if subscription_status in ['paid', 'premium'] or check_payment_status(user_id):
-        credits = float("inf")
-        if subscription_status != 'premium':
-            update_user_credits(user_id, float("inf"), 'premium')
-    
-    # Generate unique resume ID for tracking
-    resume_name = getattr(resume_file, "name", "unknown")
-    new_resume_id = f"{resume_name}_{hash(job_input)}"
-    
-    # Check if this is a new resume (consumes credit) or edit of existing one
-    current_resume = user_sessions.get(f"{user_id}_current_resume")
-    
-    if current_resume != new_resume_id:
-        if credits != float("inf"):
-            if credits <= 0:
-                checkout_url = create_checkout_session()
-                return (
-                    f"⏰ You've used your 3 free resumes! Ready for unlimited access? [Subscribe here]({checkout_url}) for just $5.99/month!",
-                    "", "", "Free resumes left: 0"
-                )
-            credits -= 1
-            update_user_credits(user_id, credits)
-        
-        user_sessions[f"{user_id}_current_resume"] = new_resume_id
-    
-    # Process resume
-    try:
-        result = process_resume(resume_file, job_input)
-        # log successful request so free runs are counted
-        log_request(user_id, ip_address)
-        credits_display = '∞' if credits == float('inf') else str(credits)
-        return (*result, f"Free resumes left: {credits_display}")
-    except Exception as e:
-        print(f"Resume processing error: {e}")
-        return (f"Error processing resume: {e}", "", "", f"Free resumes left: {credits}")
+    if is_premium:
+        return (
+            get_credits_display(),
+            show_premium_welcome(),
+            gr.update(visible=False)  # Hide upgrade prompts
+        )
+    else:
+        return (
+            get_credits_display(), 
+            gr.update(visible=False),  # Hide welcome message
+            gr.update(visible=True)   # Show upgrade prompts
+        )
 
 def generate_cover_letter(resume_file, job_input):
     """Generate cover letter from resume and job description"""
@@ -621,13 +811,16 @@ def validate_job_posting(job_input_text, posting_date, company, job_title):
 
 # Admin for granting access
 def admin_grant_access(user_email_or_id):
-    """ Function to grant unlimited access """
+    """ Function to grant unlimited access for testing, marketing, etc. """
     user_id = get_user_id()
     grant_unlimited_access(user_id)
     return f"Granted unlimited access to user: {user_id}"
 
+# for paid unlimited access
+
 # Create Gradio interface
-with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Builder", theme=gr.themes.Soft(), css=custom_css) as app:
+with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Builder", 
+               theme=gr.themes.Soft(), css=custom_css) as app:
     
     gr.HTML("<head><link rel='icon' href='favicon.png' type='image/png'></head>")
     
@@ -735,6 +928,8 @@ and the next to begin:
             </div>
             """)
 
+            sidebar_content = get_sidebar_content()
+            
             gr.Markdown("### 🛡️ We will never sell your data. Ever.")
 
             gr.Markdown("### 🔥 Share the love - help friends skip the job search struggle!")
@@ -864,7 +1059,9 @@ and the next to begin:
             )
             
             # Credit counter
-            resume_counter = gr.Markdown("### Free Resumes Left: 3")
+            # resume_counter = gr.Markdown("### Free Resumes Left: 3")
+            # just a visual check here. if I don't like it, go back to the resume_counter above
+            resume_counter = get_credits_display()
 
             # Access granter
             with gr.Accordion("My Admin Access", open=False, visible=False):
@@ -1005,7 +1202,7 @@ and the next to begin:
             """)
     
     # Event handlers
-   
+
     validate_btn.click(
         fn=validate_job_posting,
         inputs=[job_input, jd_date, company_input, jd_title],
