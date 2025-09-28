@@ -1165,21 +1165,33 @@ and the next to begin:
 
             # Tools tabs
             with gr.Tabs():
-                with gr.TabItem("✅ JOB VALIDATOR"):
-                    with gr.Row():
-                        jd_date = gr.Textbox(
-                            label="📅 Posting Date (Best Guess, Anyway.)", 
-                            placeholder="YYYY-MM-DD (e.g., 2024-12-01)"
-                        )
-                    jd_title = gr.Textbox(
-                            label="💼 Job Title", 
-                            placeholder="e.g., Data Scientist, Welder"
-                        )
-                    validate_btn = gr.Button("🤖 Whip Up the Job Validator!", variant="primary")
-                    summary_output = gr.HTML()
-                    report_output = gr.Markdown()
-                    # validation_output = gr.Markdown()
+                with gr.TabItem("✅ Job Validator"):
+                    job_description = gr.Textbox(label="Job Description", lines=6)
+                    company_name = gr.Textbox(label="Company Name")
+                    job_title = gr.Textbox(label="Job Title")
+                    validate_btn = gr.Button("Whip Up the Job Validator!")
 
+    # Two separate outputs now
+    summary_output = gr.HTML()
+    report_output = gr.Markdown()
+
+            #==================== Old Validator Code ============
+            # with gr.Tabs():
+            #     with gr.TabItem("✅ JOB VALIDATOR"):
+            #         with gr.Row():
+            #             jd_date = gr.Textbox(
+            #                 label="📅 Posting Date (Best Guess, Anyway.)", 
+            #                 placeholder="YYYY-MM-DD (e.g., 2024-12-01)"
+            #             )
+            #         jd_title = gr.Textbox(
+            #                 label="💼 Job Title", 
+            #                 placeholder="e.g., Data Scientist, Welder"
+            #             )
+            #         validate_btn = gr.Button("🤖 Whip Up the Job Validator!", variant="primary")
+            #         summary_output = gr.HTML()
+            #         report_output = gr.Markdown()
+            #         # validation_output = gr.Markdown()
+            #======================================================
 
                 with gr.TabItem("🎯 RESUME OPTIMIZER"):
                     run_resume = gr.Button("🪄 Whip Up the Resume Optimizer!", variant="primary")
