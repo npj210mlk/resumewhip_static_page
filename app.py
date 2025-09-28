@@ -124,7 +124,7 @@ button[variant="primary"]:hover, .whip-button:hover {
 
 /* === CLEANER TIP SECTION === */
 div[style*="linear-gradient(135deg, #66ea92"] {
-    background: linear-gradient(135deg, #87ff5b, #5bff81) !important;
+    background: linear-gradient(135deg, #5b63ff, #845bff) !important;
     border: 2px solid rgba(255, 255, 255, 0.2) !important;
 }
 </style>
@@ -498,7 +498,7 @@ async def stripe_webhook(request: Request):
         return JSONResponse(content={"status": "error", "message": str(e)}, status_code=400)
 
 def run_resume_with_credits(resume_file, job_input):
-    """Handle resume processing with credit system - fixed version"""
+    """Handle resume processing with credit system - abuse prevent"""
     if not resume_file or not job_input.strip():
         return ("⚠️ Please upload your resume and paste the job description they've provided.", "", "", "Free resumes left: -")
     
@@ -939,7 +939,7 @@ and the next to begin:
                         text-align: center;
                         margin: 20px 0;
                         padding: 15px;
-                        background: linear-gradient(135deg, #66ea92 0%, #66eac0 100%);
+                        background: linear-gradient(135deg, #5b63ff 0%, #845bff 100%);
                         border-radius: 15px;
                         color: white;
                         font-size: 1.1em;
