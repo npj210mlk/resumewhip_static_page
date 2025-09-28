@@ -1171,9 +1171,9 @@ and the next to begin:
                     job_title = gr.Textbox(label="Job Title")
                     validate_btn = gr.Button("Whip Up the Job Validator!")
 
-    # Two separate outputs now
-    summary_output = gr.HTML()
-    report_output = gr.Markdown()
+                    # Two separate outputs now
+                    summary_output = gr.HTML()
+                    report_output = gr.Markdown()
 
             #==================== Old Validator Code ============
             # with gr.Tabs():
