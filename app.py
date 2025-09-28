@@ -784,44 +784,110 @@ def quick_job_summary(score):
     else:
         return "❌ Waste of time. Couldn't even score a 49% on our validation run. Just an attempt to harvest your data."
 
-def validate_job_posting(job_input_text, posting_date, company, job_title):
-    """Validate job posting legitimacy"""
-    # Fixed logic - check if fields are empty (not inverted)
-    if not company.strip():
-        return "⚠️ Please enter a company name to validate the job posting."
+# ===============================================================================
+
+# OG validate_job_posting below. 
+
+# ===============================================================================
+
+# def validate_job_posting(job_input_text, posting_date, company, job_title):
+#     """Validate job posting legitimacy"""
+#     # Fixed logic - check if fields are empty (not inverted)
+#     if not company.strip():
+#         return "⚠️ Please enter a company name to validate the job posting."
     
-    if not job_input_text.strip():
-        return "⚠️ Please paste the job description to validate."
+#     if not job_input_text.strip():
+#         return "⚠️ Please paste the job description to validate."
     
-    if not posting_date.strip():
-        return "⚠️ Please provide a job posting date (YYYY-MM-DD format)."
+#     if not posting_date.strip():
+#         return "⚠️ Please provide a job posting date (YYYY-MM-DD format)."
     
-    try:
-        # Validate job posting
-        recent = is_posting_recent(posting_date)
-        template_flag = template_detector(job_input_text)
-        urgency_flag = detect_urgency_language(job_input_text)
-        social_links = mentioned_on_socials(company, job_title or "")
+#     try:
+#         # Validate job posting
+#         recent = is_posting_recent(posting_date)
+#         template_flag = template_detector(job_input_text)
+#         urgency_flag = detect_urgency_language(job_input_text)
+#         social_links = mentioned_on_socials(company, job_title or "")
         
-        report = "### 🕐 Posting Date Check:\n"
-        report += "✅ Yup, the job looks recent (posted within 60 days).\nIn this market, jobs don't stay open for more than that." if recent else "⚠️ Warning: Job may be outdated (older than 60 days).\nCould be they're just harvesting candidates."
+#         report = "### 🕐 Posting Date Check:\n"
+#         report += "✅ Yup, the job looks recent (posted within 60 days).\nIn this market, jobs don't stay open for more than that." if recent else "⚠️ Warning: Job may be outdated (older than 60 days).\nCould be they're just harvesting candidates."
         
-        report += "\n### 🤖 Template Language Check:\n"
-        report += "⚠️ Generic/template language detected - proceed with caution.\nCould be just a cattle call for info to keep on file." if template_flag else "✅ Posting appears specific and legitimate - as if an actual person wrote it and they have an actual need.\n"
+#         report += "\n### 🤖 Template Language Check:\n"
+#         report += "⚠️ Generic/template language detected - proceed with caution.\nCould be just a cattle call for info to keep on file." if template_flag else "✅ Posting appears specific and legitimate - as if an actual person wrote it and they have an actual need.\n"
         
-        report += "\n### ⚡ Urgency Language Check:\n"
-        report += "⚠️ Urgency language detected - be cautious of scams.\nCheck the post for poor grammar, unrealistic salary / work expectations, and that 'too good to be true' feel." if urgency_flag else "✅ No suspicious urgency language found.\nSeems like a real job posting."
+#         report += "\n### ⚡ Urgency Language Check:\n"
+#         report += "⚠️ Urgency language detected - be cautious of scams.\nCheck the post for poor grammar, unrealistic salary / work expectations, and that 'too good to be true' feel." if urgency_flag else "✅ No suspicious urgency language found.\nSeems like a real job posting."
         
-        report += "\n### 🔍 Verify the Job / Company on Social Media:\n"
-        report += f"- [Search on X/Twitter]({social_links['x']})\n"
-        report += f"- [Search on LinkedIn]({social_links['linkedin']})\n"
+#         report += "\n### 🔍 Verify the Job / Company on Social Media:\n"
+#         report += f"- [Search on X/Twitter]({social_links['x']})\n"
+#         report += f"- [Search on LinkedIn]({social_links['linkedin']})\n"
         
-        summary = quick_job_summary(score)
-        return f"### {summary}\n\nFull Report:\n{report}"
+#         summary = quick_job_summary(score)
+#         return f"### {summary}\n\nFull Report:\n{report}"
 
         
-    except Exception as e:
-        return f"🚩 Error validating job posting: {e}"
+#     except Exception as e:
+#         return f"🚩 Error validating job posting: {e}"
+# ===============================================================================
+
+# New Validate Job Posting
+
+def validate_job_posting(job_description, company_name=None, job_title=None):
+    """
+    Analyze job description for red flags, legitimacy indicators, and provide a quick summary.
+    Returns a formatted Markdown report with quick summary + detailed analysis.
+    """
+    if not job_description.strip():
+        return "⚠️ Please paste a job description before validating."
+
+    # --- Scoring Logic (Basic Example) ---
+    score = 100  # Start with a perfect score
+    warnings = []
+
+    # Red flag checks
+    if "wire money" in job_description.lower() or "gift cards" in job_description.lower():
+        score -= 50
+        warnings.append("🚩 Mentions money transfer or gift cards (common scam tactic).")
+
+    if "no experience required" in job_description.lower():
+        score -= 15
+        warnings.append("⚠️ Very low barrier to entry may be suspicious.")
+
+    if "urgent hire" in job_description.lower() or "act fast" in job_description.lower():
+        score -= 10
+        warnings.append("⚠️ Excessive urgency language detected.")
+
+    if "training fee" in job_description.lower():
+        score -= 30
+        warnings.append("🚩 Mentions paying fees for training.")
+
+    # Generic buzzword/template detection
+    if job_description.lower().count("team player") > 2:
+        score -= 5
+        warnings.append("⚠️ Too many generic phrases like 'team player'.")
+
+    # Final score floor
+    score = max(score, 0)
+
+    # --- Quick Summary at Top ---
+    summary = quick_job_summary(score)
+
+    # --- Build Full Report ---
+    report_lines = []
+    if company_name:
+        report_lines.append(f"**Company:** {company_name}")
+    if job_title:
+        report_lines.append(f"**Job Title:** {job_title}")
+
+    report_lines.append(f"**Score:** {score}/100")
+    if warnings:
+        report_lines.append("\n".join(warnings))
+    else:
+        report_lines.append("✅ Great news!  No major red flags found - Whip Away!")
+
+    # --- Return formatted Markdown ---
+    full_report = "\n".join(report_lines)
+    return f"### {summary}\n\n{full_report}"
 
 # Admin for granting access
 def admin_grant_access(user_email_or_id):
