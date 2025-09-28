@@ -816,7 +816,7 @@ def validate_job_posting(job_input_text, posting_date, company, job_title):
         report += f"- [Search on X/Twitter]({social_links['x']})\n"
         report += f"- [Search on LinkedIn]({social_links['linkedin']})\n"
         
-        summary = quick_job_summary(job_score)
+        summary = quick_job_summary(score)
         return f"### {summary}\n\nFull Report:\n{report}"
 
         
