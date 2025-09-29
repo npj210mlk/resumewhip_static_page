@@ -835,13 +835,13 @@ def quick_job_summary(score):
 def quick_job_summary(score):
     if score >= 80:
         color = "#10b981"  # Green
-        text = "✅ Job post looks legit!"
+        text = "✅ Go for it! A real person from a real company has real needs."
     elif score >= 50:
         color = "#f59e0b"  # Orange
-        text = "⚠️ Some concerns detected."
+        text = "⚠️ Some concerns detected - templated lingo, ghost-post maybe? Proceed with caution."
     else:
         color = "#ef4444"  # Red
-        text = "❌ High risk – proceed with caution!"
+        text = "❌ High risk! We don't like it. Don't waste your time on this one."
     
     return f"""
     <div style="background:{color}; color:white; padding:10px; 
@@ -1177,7 +1177,7 @@ and the next to begin:
 
             #==================== Old Validator Code ============
             with gr.Tabs():
-                with gr.TabItem("✅ JOB VALIDATOR"):
+                with gr.TabItem("✅ <b>JOB VALIDATOR</b>"):
                     with gr.Row():
                         jd_date = gr.Textbox(
                             label="📅 Posting Date (Best Guess, Anyway.)", 
@@ -1193,7 +1193,7 @@ and the next to begin:
                     # validation_output = gr.Markdown()
             #======================================================
 
-                with gr.TabItem("🎯 RESUME OPTIMIZER"):
+                with gr.TabItem("🎯 <b>RESUME OPTIMIZER</b>"):
                     run_resume = gr.Button("🪄 Whip Up the Resume Optimizer!", variant="primary")
                     resume_md = gr.Markdown(label="Preview")
                     resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
@@ -1202,7 +1202,7 @@ and the next to begin:
                         export_resume_btn = gr.Button("Download Your Resume As PDF ➡️")
                         export_resume_result = gr.File()
 
-                with gr.TabItem("📝 COVER LETTER WRITER"):
+                with gr.TabItem("📝 <b>COVER LETTER WRITER</b>"):
                     run_cover = gr.Button("📝 Whip Up the Cover Letter Writer!", variant="primary")
                     cover_output = gr.Textbox(
                             label="Here's Your Cover Letter. Edit Where Needed To Give It Your Voice.", 
