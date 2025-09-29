@@ -1183,7 +1183,7 @@ and the next to begin:
                             label="📅 Posting Date (Best Guess, Anyway.)", 
                             placeholder="YYYY-MM-DD (e.g., 2024-12-01)"
                         )
-                    jd_title = gr.Textbox(
+                        jd_title = gr.Textbox(
                             label="💼 Job Title", 
                             placeholder="e.g., Data Scientist, Welder"
                         )
@@ -1295,7 +1295,7 @@ and the next to begin:
 
     validate_btn.click(
         fn=validate_job_posting,
-        inputs=[job_description, company_name, job_title],
+        inputs=[jd_date, jd_title],
         outputs=[summary_output, report_output]
     )
     
