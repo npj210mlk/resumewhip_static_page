@@ -1177,7 +1177,7 @@ and the next to begin:
 
             #==================== Old Validator Code ============
             with gr.Tabs():
-                with gr.TabItem("✅ <b>JOB VALIDATOR</b>"):
+                with gr.TabItem("✅ JOB VALIDATOR"):
                     with gr.Row():
                         jd_date = gr.Textbox(
                             label="📅 Posting Date (Best Guess, Anyway.)", 
@@ -1193,7 +1193,7 @@ and the next to begin:
                     # validation_output = gr.Markdown()
             #======================================================
 
-                with gr.TabItem("🎯 <b>RESUME OPTIMIZER</b>"):
+                with gr.TabItem("🎯 RESUME OPTIMIZER"):
                     run_resume = gr.Button("🪄 Whip Up the Resume Optimizer!", variant="primary")
                     resume_md = gr.Markdown(label="Preview")
                     resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
@@ -1202,7 +1202,7 @@ and the next to begin:
                         export_resume_btn = gr.Button("Download Your Resume As PDF ➡️")
                         export_resume_result = gr.File()
 
-                with gr.TabItem("📝 <b>COVER LETTER WRITER</b>"):
+                with gr.TabItem("📝 COVER LETTER WRITER"):
                     run_cover = gr.Button("📝 Whip Up the Cover Letter Writer!", variant="primary")
                     cover_output = gr.Textbox(
                             label="Here's Your Cover Letter. Edit Where Needed To Give It Your Voice.", 
