@@ -628,67 +628,8 @@ async def stripe_webhook(request: Request):
     except Exception as e:
         print(f"🚨 Webhook error: {e}")
         return JSONResponse(content={"status": "error", "message": str(e)}, status_code=400)
-#=========================================================================================
 
-# Original below - Worked, but trying Claude's. If not happy, uncomment 
-
-#=========================================================================================
-
-# def run_resume_with_credits(resume_file, job_input):
-#     """Handle resume processing with credit system - abuse prevent"""
-#     if not resume_file or not job_input.strip():
-#         return (
-#             "⚠️ Please upload your resume and paste the job description they've provided.", "", 
-#             "", "Free resumes left: -")
-    
-#     user_id = get_user_id()
-
-#     ip_address = request.remote_addr if request else "unknown"
-#     if not check_rate_limit(ip_address):
-#         return "Daily free limit reached. Upgrade to Premium for unlimited access!"
-     
-#     # Check subscription status from database
-#     credits, subscription_status = get_user_credits(user_id)
-    
-#     # Double-check with Stripe for premium users
-#     if subscription_status in ['paid', 'premium'] or check_payment_status(user_id):
-#         credits = float("inf")
-#         if subscription_status != 'premium':
-#             update_user_credits(user_id, float("inf"), 'premium')
-    
-#     # Generate unique resume ID for tracking
-#     resume_name = getattr(resume_file, "name", "unknown")
-#     new_resume_id = f"{resume_name}_{hash(job_input)}"
-    
-#     # Check if this is a new resume (consumes credit) or edit of existing one
-#     current_resume = user_sessions.get(f"{user_id}_current_resume")
-    
-#     if current_resume != new_resume_id:
-#         if credits != float("inf"):
-#             if credits <= 0:
-#                 checkout_url = create_checkout_session()
-#                 return (
-#                     f"⏰ You've used your 3 free resumes! Ready for unlimited access? [Subscribe here]({checkout_url}) for just $5.99/month!",
-#                     "", "", "Free resumes left: 0"
-#                 )
-#             credits -= 1
-#             update_user_credits(user_id, credits)
-        
-#         user_sessions[f"{user_id}_current_resume"] = new_resume_id
-    
-#     # Process resume
-#     try:
-#         result = process_resume(resume_file, job_input)
-#         # log successful request so free runs are counted
-#         log_request(user_id, ip_address)
-#         credits_display = '∞' if credits == float('inf') else str(credits)
-#         return (*result, f"Free resumes left: {credits_display}")
-#     except Exception as e:
-#         print(f"Resume processing error: {e}")
-#         return (f"Error processing resume: {e}", "", "", f"Free resumes left: {credits}")
-#=========================================================================================
-
-def run_resume_with_credits(resume_file, job_input):
+def run_resume_with_credits_with_scoring(resume_file, job_input):
     """Handle resume processing with premium and free user experience"""
     if not resume_file or not job_input.strip():
         return ("⚠️ Please upload your resume and paste the job description.", "", "", 
@@ -700,7 +641,26 @@ def run_resume_with_credits(resume_file, job_input):
     if is_premium:
         # Premium user - unlimited access
         try:
+            # extract the original resume's text
+            original_text = extract_resume_text(resume_file)
+
+            # calculate original score
+            original_score, original_feedback = calculate_resume_score(original_text, job_input)
+
+            # process the existing resume
             result = process_resume(resume_file, job_input)
+            # editable text output:
+            optimized_text = result[1]
+
+            # calculate the optimized score
+            optimized_score, optimized_feedback = calculate_resume_score(optimized_text, job_input)
+
+            # now for the comparison visualization
+            score_comparison = create_score_comparison(
+                original_score, optimized_score,
+                original_feedback, optimized_feedback
+            )
+
             premium_display = gr.Markdown("""
             <div style="text-align: center; padding: 15px; 
                         background: linear-gradient(135deg, #10b981 0%, #059669 100%);
@@ -708,7 +668,8 @@ def run_resume_with_credits(resume_file, job_input):
                 <strong>✨ You're Premium! Thanks for Choosing Us!</strong>
             </div>
             """)
-            return (*result, premium_display)
+            return (result[0], result[1], result[2], score_comparison, premium_display)
+        
         except Exception as e:
             return (f"Error processing resume: {e}", "", "", get_credits_display())
     else:
@@ -718,16 +679,36 @@ def run_resume_with_credits(resume_file, job_input):
         if credits <= 0:
             checkout_url = create_checkout_session()
             return(
-                f"⏰ You've used your 3 free resumes! [Subscribe here]({checkout_url}) for unlimited access.",
+                f"⏰ Unlock Unlimited Power! [Upgrade here]({checkout_url}) for unlimited optimization.",
                 "", "", get_credits_display()
             )
         
         try:
-            result = process_resume(resume_file, job_input)
+            # get the  original resume text
+            original_text = extract_resume_text(resume_file)
+
+            # score that o.g.
+            original_score, original_feedback = calculate_resume_score(original_text, job_input)
+
+            # process the resume
+            result = process_resume(resume_file, job_input)\
+            optimized_text = result[1]
+
+            # calculate optimized resume score
+            optimized_score, optimized_feedback = calculate_resume_score(optimized_text, job_input)
+
+            # create the comparison
+            score_comparison = create_score_comparison(
+                original_score, optimzed_score,
+                original_feedback, optimized_feedback
+            )
+            
             update_user_credits(user_id, credits -1)
-            return (*result, get_credits_display())
+            # return (*result, get_credits_display())
+            return (result[0], result[1], result[2], score_comparison, get_credits_display())
+        
         except Exception as e:
-            return (f"😩 Error processing your resume: {e}", "", "", get_credits_display())
+            return (f"😩 Apologies, but there was an error in  processing your resume: {e}", "", "", "", get_credits_display())
 
 def show_premium_welcome():
     """Show welcome message for new premium users"""
@@ -783,52 +764,6 @@ def quick_job_summary(score):
         return "⚠️ Only scored between a 50 and 79% on the validation run. Proceed with caution."
     else:
         return "❌ Waste of time. Couldn't even score a 49% on our validation run. Just an attempt to harvest your data."
-
-# ===============================================================================
-
-# OG validate_job_posting below. 
-
-# ===============================================================================
-
-# def validate_job_posting(job_input_text, posting_date, company, job_title):
-#     """Validate job posting legitimacy"""
-#     # Fixed logic - check if fields are empty (not inverted)
-#     if not company.strip():
-#         return "⚠️ Please enter a company name to validate the job posting."
-    
-#     if not job_input_text.strip():
-#         return "⚠️ Please paste the job description to validate."
-    
-#     if not posting_date.strip():
-#         return "⚠️ Please provide a job posting date (YYYY-MM-DD format)."
-    
-#     try:
-#         # Validate job posting
-#         recent = is_posting_recent(posting_date)
-#         template_flag = template_detector(job_input_text)
-#         urgency_flag = detect_urgency_language(job_input_text)
-#         social_links = mentioned_on_socials(company, job_title or "")
-        
-#         report = "### 🕐 Posting Date Check:\n"
-#         report += "✅ Yup, the job looks recent (posted within 60 days).\nIn this market, jobs don't stay open for more than that." if recent else "⚠️ Warning: Job may be outdated (older than 60 days).\nCould be they're just harvesting candidates."
-        
-#         report += "\n### 🤖 Template Language Check:\n"
-#         report += "⚠️ Generic/template language detected - proceed with caution.\nCould be just a cattle call for info to keep on file." if template_flag else "✅ Posting appears specific and legitimate - as if an actual person wrote it and they have an actual need.\n"
-        
-#         report += "\n### ⚡ Urgency Language Check:\n"
-#         report += "⚠️ Urgency language detected - be cautious of scams.\nCheck the post for poor grammar, unrealistic salary / work expectations, and that 'too good to be true' feel." if urgency_flag else "✅ No suspicious urgency language found.\nSeems like a real job posting."
-        
-#         report += "\n### 🔍 Verify the Job / Company on Social Media:\n"
-#         report += f"- [Search on X/Twitter]({social_links['x']})\n"
-#         report += f"- [Search on LinkedIn]({social_links['linkedin']})\n"
-        
-#         summary = quick_job_summary(score)
-#         return f"### {summary}\n\nFull Report:\n{report}"
-
-        
-#     except Exception as e:
-#         return f"🚩 Error validating job posting: {e}"
-# ===============================================================================
 
 # Score box
 
@@ -897,6 +832,137 @@ def validate_job_posting(job_description, company_name=None, job_title=None):
     full_report = "\n".join(report_lines)
 
     return summary_html, full_report
+
+# Job Scoring
+
+def calculate_resume_score(resume_text, job_description):
+    """Calculate a resume score based on various ATS factors"""
+    score = 0
+    max_score = 100
+    feedback = []
+    
+    # Extract job keywords (simple approach - you can enhance this)
+    job_keywords = set(word.lower() for word in job_description.split() 
+                      if len(word) > 4 and word.isalpha())
+    resume_words = set(word.lower() for word in resume_text.split() 
+                       if len(word) > 4 and word.isalpha())
+    
+    # 1. Keyword Match (40 points)
+    keyword_matches = job_keywords.intersection(resume_words)
+    keyword_score = min(40, int((len(keyword_matches) / max(len(job_keywords) * 0.3, 1)) * 40))
+    score += keyword_score
+    feedback.append(f"**Keyword Match:** {keyword_score}/40 - Found {len(keyword_matches)} relevant keywords")
+    
+    # 2. Action Verbs (20 points)
+    action_verbs = ['managed', 'developed', 'created', 'led', 'designed', 
+                   'implemented', 'achieved', 'improved', 'optimized', 'delivered',
+                   'analyzed', 'coordinated', 'executed', 'established', 'generated']
+    action_verb_count = sum(1 for verb in action_verbs if verb in resume_text.lower())
+    action_score = min(20, action_verb_count * 2)
+    score += action_score
+    feedback.append(f"**Action Verbs:** {action_score}/20 - Used {action_verb_count} strong action verbs")
+    
+    # 3. Quantifiable Achievements (20 points)
+    import re
+    numbers = re.findall(r'\d+[%$]?|\$\d+', resume_text)
+    quant_score = min(20, len(numbers) * 3)
+    score += quant_score
+    feedback.append(f"**Quantifiable Results:** {quant_score}/20 - Included {len(numbers)} measurable metrics")
+    
+    # 4. Length Appropriateness (10 points)
+    word_count = len(resume_text.split())
+    if 300 <= word_count <= 800:
+        length_score = 10
+        feedback.append(f"**Length:** 10/10 - Optimal length ({word_count} words)")
+    elif 200 <= word_count < 300 or 800 < word_count <= 1000:
+        length_score = 7
+        feedback.append(f"**Length:** 7/10 - Acceptable length ({word_count} words)")
+    else:
+        length_score = 4
+        feedback.append(f"**Length:** 4/10 - Consider adjusting length ({word_count} words)")
+    score += length_score
+    
+    # 5. Skills Section (10 points)
+    skills_indicators = ['skills:', 'proficient in', 'experience with', 'technical skills']
+    has_skills = any(indicator in resume_text.lower() for indicator in skills_indicators)
+    skills_score = 10 if has_skills else 5
+    score += skills_score
+    feedback.append(f"**Skills Section:** {skills_score}/10 - {'Clear skills section present' if has_skills else 'Skills section could be clearer'}")
+    
+    return score, feedback
+
+def create_score_comparison(original_score, optimized_score, original_feedback, optimized_feedback):
+    """Create a visual score comparison"""
+    
+    def get_grade(score):
+        if score >= 90: return "A+", "#10b981"
+        elif score >= 80: return "A", "#10b981"
+        elif score >= 70: return "B", "#f59e0b"
+        elif score >= 60: return "C", "#f59e0b"
+        else: return "D", "#ef4444"
+    
+    orig_grade, orig_color = get_grade(original_score)
+    opt_grade, opt_color = get_grade(optimized_score)
+    improvement = optimized_score - original_score
+    
+    comparison_html = f"""
+    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
+                padding: 25px; border-radius: 15px; margin: 20px 0;">
+        <h3 style="text-align: center; color: #495057; margin-bottom: 20px;">
+            📊 Resume Analysis Report
+        </h3>
+        
+        <div style="display: flex; justify-content: space-around; gap: 20px; margin-bottom: 25px;">
+            <!-- Original Score -->
+            <div style="flex: 1; background: white; padding: 20px; border-radius: 12px; 
+                        text-align: center; border: 2px solid {orig_color};">
+                <h4 style="color: #6b7280; margin: 0 0 10px 0;">Original Resume</h4>
+                <div style="font-size: 3em; font-weight: 800; color: {orig_color}; margin: 10px 0;">
+                    {original_score}
+                </div>
+                <div style="font-size: 1.2em; color: {orig_color}; font-weight: 700;">
+                    Grade: {orig_grade}
+                </div>
+            </div>
+            
+            <!-- Arrow & Improvement -->
+            <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                <div style="font-size: 2em; color: #10b981;">➡️</div>
+                <div style="background: #10b981; color: white; padding: 8px 16px; 
+                            border-radius: 20px; margin-top: 10px; font-weight: 700;">
+                    +{improvement} points
+                </div>
+            </div>
+            
+            <!-- Optimized Score -->
+            <div style="flex: 1; background: white; padding: 20px; border-radius: 12px; 
+                        text-align: center; border: 2px solid {opt_color};">
+                <h4 style="color: #6b7280; margin: 0 0 10px 0;">Optimized Resume</h4>
+                <div style="font-size: 3em; font-weight: 800; color: {opt_color}; margin: 10px 0;">
+                    {optimized_score}
+                </div>
+                <div style="font-size: 1.2em; color: {opt_color}; font-weight: 700;">
+                    Grade: {opt_grade}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Breakdown -->
+        <div style="background: white; padding: 20px; border-radius: 12px; margin-top: 20px;">
+            <h4 style="color: #495057; margin-bottom: 15px;">📈 What Improved:</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    <h5 style="color: #6b7280; margin-bottom: 10px;">Original Analysis:</h5>
+                    {'<br>'.join(original_feedback)}
+                </div>
+                <div>
+                    <h5 style="color: #10b981; margin-bottom: 10px;">Optimized Analysis:</h5>
+                    {'<br>'.join(optimized_feedback)}
+                </div>
+            </div>
+        </div>
+    </div>
+    """
 
 # Admin for granting access
 def admin_grant_access(user_email_or_id):
@@ -1195,6 +1261,10 @@ and the next to begin:
 
                 with gr.TabItem("🎯 RESUME OPTIMIZER"):
                     run_resume = gr.Button("🪄 Whip Up the Resume Optimizer!", variant="primary")
+                    
+                    # adding score comparison
+                    score_comparison = gr.HTML(label = "Resume Score Analysis"
+                                               )
                     resume_md = gr.Markdown(label="Preview")
                     resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
                     suggestions = gr.Markdown(label="Suggestions & Tips")
@@ -1295,14 +1365,14 @@ and the next to begin:
 
     validate_btn.click(
         fn=validate_job_posting,
-        inputs=[jd_date, jd_title],
+        inputs=[job_input, company_input, jd_title],
         outputs=[summary_output, report_output]
     )
     
     run_resume.click(
-        fn=run_resume_with_credits,
+        fn=run_resume_with_credits_with_scoring,
         inputs=[resume_input, job_input],
-        outputs=[resume_md, resume_edit, suggestions, resume_counter]
+        outputs=[resume_md, resume_edit, suggestions, score_comparison, resume_counter]
     )
 
     manage_billing_btn.click(

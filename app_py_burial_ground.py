@@ -1,3 +1,111 @@
+#=========================================================================================
+
+# Original below - Worked, but trying Claude's. If not happy, uncomment 
+
+#=========================================================================================
+
+# def run_resume_with_credits(resume_file, job_input):
+#     """Handle resume processing with credit system - abuse prevent"""
+#     if not resume_file or not job_input.strip():
+#         return (
+#             "⚠️ Please upload your resume and paste the job description they've provided.", "", 
+#             "", "Free resumes left: -")
+    
+#     user_id = get_user_id()
+
+#     ip_address = request.remote_addr if request else "unknown"
+#     if not check_rate_limit(ip_address):
+#         return "Daily free limit reached. Upgrade to Premium for unlimited access!"
+     
+#     # Check subscription status from database
+#     credits, subscription_status = get_user_credits(user_id)
+    
+#     # Double-check with Stripe for premium users
+#     if subscription_status in ['paid', 'premium'] or check_payment_status(user_id):
+#         credits = float("inf")
+#         if subscription_status != 'premium':
+#             update_user_credits(user_id, float("inf"), 'premium')
+    
+#     # Generate unique resume ID for tracking
+#     resume_name = getattr(resume_file, "name", "unknown")
+#     new_resume_id = f"{resume_name}_{hash(job_input)}"
+    
+#     # Check if this is a new resume (consumes credit) or edit of existing one
+#     current_resume = user_sessions.get(f"{user_id}_current_resume")
+    
+#     if current_resume != new_resume_id:
+#         if credits != float("inf"):
+#             if credits <= 0:
+#                 checkout_url = create_checkout_session()
+#                 return (
+#                     f"⏰ You've used your 3 free resumes! Ready for unlimited access? [Subscribe here]({checkout_url}) for just $5.99/month!",
+#                     "", "", "Free resumes left: 0"
+#                 )
+#             credits -= 1
+#             update_user_credits(user_id, credits)
+        
+#         user_sessions[f"{user_id}_current_resume"] = new_resume_id
+    
+#     # Process resume
+#     try:
+#         result = process_resume(resume_file, job_input)
+#         # log successful request so free runs are counted
+#         log_request(user_id, ip_address)
+#         credits_display = '∞' if credits == float('inf') else str(credits)
+#         return (*result, f"Free resumes left: {credits_display}")
+#     except Exception as e:
+#         print(f"Resume processing error: {e}")
+#         return (f"Error processing resume: {e}", "", "", f"Free resumes left: {credits}")
+#=========================================================================================
+
+
+# ===============================================================================
+
+# OG validate_job_posting below. 
+
+# ===============================================================================
+
+# def validate_job_posting(job_input_text, posting_date, company, job_title):
+#     """Validate job posting legitimacy"""
+#     # Fixed logic - check if fields are empty (not inverted)
+#     if not company.strip():
+#         return "⚠️ Please enter a company name to validate the job posting."
+    
+#     if not job_input_text.strip():
+#         return "⚠️ Please paste the job description to validate."
+    
+#     if not posting_date.strip():
+#         return "⚠️ Please provide a job posting date (YYYY-MM-DD format)."
+    
+#     try:
+#         # Validate job posting
+#         recent = is_posting_recent(posting_date)
+#         template_flag = template_detector(job_input_text)
+#         urgency_flag = detect_urgency_language(job_input_text)
+#         social_links = mentioned_on_socials(company, job_title or "")
+        
+#         report = "### 🕐 Posting Date Check:\n"
+#         report += "✅ Yup, the job looks recent (posted within 60 days).\nIn this market, jobs don't stay open for more than that." if recent else "⚠️ Warning: Job may be outdated (older than 60 days).\nCould be they're just harvesting candidates."
+        
+#         report += "\n### 🤖 Template Language Check:\n"
+#         report += "⚠️ Generic/template language detected - proceed with caution.\nCould be just a cattle call for info to keep on file." if template_flag else "✅ Posting appears specific and legitimate - as if an actual person wrote it and they have an actual need.\n"
+        
+#         report += "\n### ⚡ Urgency Language Check:\n"
+#         report += "⚠️ Urgency language detected - be cautious of scams.\nCheck the post for poor grammar, unrealistic salary / work expectations, and that 'too good to be true' feel." if urgency_flag else "✅ No suspicious urgency language found.\nSeems like a real job posting."
+        
+#         report += "\n### 🔍 Verify the Job / Company on Social Media:\n"
+#         report += f"- [Search on X/Twitter]({social_links['x']})\n"
+#         report += f"- [Search on LinkedIn]({social_links['linkedin']})\n"
+        
+#         summary = quick_job_summary(score)
+#         return f"### {summary}\n\nFull Report:\n{report}"
+
+        
+#     except Exception as e:
+#         return f"🚩 Error validating job posting: {e}"
+# ===============================================================================
+
+
 # # Sticky buy button + banner (add before "with gr.Blocks()")
 # sticky_buy_button = """
 # <div style="position:fixed; top:10px; right:20px; z-index:9999; text-align:center;">
