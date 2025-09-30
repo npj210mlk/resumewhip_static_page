@@ -632,7 +632,7 @@ async def stripe_webhook(request: Request):
 def run_resume_with_credits_with_scoring(resume_file, job_input):
     """Handle resume processing with premium and free user experience"""
     if not resume_file or not job_input.strip():
-        return ("⚠️ Please upload your resume and paste the job description.", "", "", 
+        return ("⚠️ Please upload your resume and paste the job description.", "", "", "",
                 get_credits_display())
     
     user_id = get_user_id()
@@ -671,7 +671,7 @@ def run_resume_with_credits_with_scoring(resume_file, job_input):
             return (result[0], result[1], result[2], score_comparison, premium_display)
         
         except Exception as e:
-            return (f"Error processing resume: {e}", "", "", get_credits_display())
+            return (f"Error processing resume: {e}", "", "", "", get_credits_display())
     else:
         # Free user - existing credit logic
         credits, status = get_user_credits(user_id)
@@ -691,7 +691,7 @@ def run_resume_with_credits_with_scoring(resume_file, job_input):
             original_score, original_feedback = calculate_resume_score(original_text, job_input)
 
             # process the resume
-            result = process_resume(resume_file, job_input)\
+            result = process_resume(resume_file, job_input)
             optimized_text = result[1]
 
             # calculate optimized resume score
@@ -699,7 +699,7 @@ def run_resume_with_credits_with_scoring(resume_file, job_input):
 
             # create the comparison
             score_comparison = create_score_comparison(
-                original_score, optimzed_score,
+                original_score, optimized_score,
                 original_feedback, optimized_feedback
             )
             
