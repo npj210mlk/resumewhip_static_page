@@ -69,18 +69,7 @@ def sanitize_input(text: str) -> str:
 
 def prompt_creator(resume_string: str, job_desc_string: str) -> str:
     """
-    Using the prompt engineered in the scratchpad 'lambda' function, this function uses the power of ChatGPT's 4o-mini-mini engine to
-    act as a professional resume optimizer to take my existing resume and:
-        1.) Use action-verbs and job posting keywords to optimize it for Applicant Tracking Systems;
-        2.) Provide us with feedback on any changes that can be made to strengthen the resume; and 
-        3.) Format the adjusted, AI-assisted resume in a clean Markdown format
-
-    Args:
-        resume_string (str): our existing resume text input
-        job_desc_string (str): The target job description text
-
-    Returns:
-        str: A formatted prompt string containing instructions for resume optimization
+    Optimized prompt that prioritizes ATS compatibility and measurable impact.
     """
     # Protect the prompt engineering / LLM instructions
     resume_string = sanitize_input(resume_string)
@@ -88,42 +77,52 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
 
     return f"""
     ### Role: 
-    You are a professional resume optimization expert. Your task is to tailor my resume to align with a specific job description.
-
-    My career goals emphasize collaboration, problem-solving, and helping businesses extract value from their data. Your output should be a **targeted, one-page resume** optimized for recruiters and Applicant Tracking Systems (ATS).
+    You are an ATS optimization expert. Your task is to rewrite this resume to maximize compatibility with Applicant Tracking Systems while showcasing measurable impact.
 
     ---
 
-    ### Guidelines
+    ### Critical Requirements (MUST FOLLOW):
 
-    **1. Relevance**
-    - Prioritize **my most relevant skills and experiences** based on the job description.
-    - De-emphasize or omit unrelated content to keep the resume **concise and focused**.
-    - Limit to **2–3 most relevant roles** with **2–3 key bullet points** per role.
-    - Highlight only the **core competencies** matching the job requirements.
+    **1. Keyword Integration (HIGHEST PRIORITY)**
+    - Extract the 20-30 most important technical terms, skills, and phrases from the job description.
+    - Incorporate at LEAST 60% of these keywords naturally throughout the resume.
+    - Use the EXACT terminology from the job posting (e.g., if they say "machine learning," don't say "ML").
+    - Keywords must appear in context, not just listed.
 
-    **2. Impactful Results**
-    - Use **strong action verbs** and **quantifiable outcomes** (%, $, time saved, etc).
-    - Emphasize how my experience **adds measurable value**.
-    - Customize the Experience section to directly reflect the responsibilities and outcomes in the job posting.
+    **2. Quantifiable Achievements (MANDATORY)**
+    - KEEP ALL existing numbers, percentages, dollar amounts, and metrics from the original resume.
+    - Every bullet point must include at least ONE measurable result:
+      * Percentages (increased by X%, reduced by Y%)
+      * Dollar amounts (saved $X, generated $Y revenue)
+      * Scale metrics (served X users, managed Y projects)
+      * Time metrics (delivered X weeks early, reduced time by Y%)
+    - If the original resume lacks metrics, ADD realistic ones based on typical role impact.
+    - Examples: "Led 5-person team," "Improved efficiency by 25%," "Managed $500K budget"
 
-    **3. Summary Section**
-    - Tailor the Summary to the job description and recruiter expectations.
-    - Clearly articulate how my experience enables me to succeed quickly in this role.
+    **3. Action Verbs (REQUIRED)**
+    - Start EVERY bullet point with a strong action verb from this list:
+      * Achieved, Improved, Increased, Reduced, Optimized, Generated
+      * Led, Managed, Directed, Coordinated, Supervised
+      * Developed, Created, Designed, Implemented, Built, Engineered
+      * Analyzed, Evaluated, Assessed, Identified
+      * Delivered, Executed, Established, Launched
+    - Never start with weak verbs like "Responsible for" or "Helped with"
 
-    **4. Keyword Optimization**
-    - Naturally integrate **keywords and phrases** from the job posting to improve ATS compatibility.
+    **4. Relevant Experience Focus**
+    - Include 2-4 most relevant roles (not just 2-3).
+    - Each role should have 3-5 bullet points (not just 2-3) that directly relate to the job description.
+    - Reframe existing experience to emphasize skills mentioned in the job posting.
 
-    **5. Recommendations (if gaps exist)**
-    If the resume doesn't fully match the job:
-    - Suggest **additional skills** to highlight.
-    - Recommend **certifications or courses** (completed or worth pursuing).
-    - Propose **project ideas** that better align with the role.
-    - Recommend edits to improve the Summary based on the job's intent.
+    **5. Summary Section**
+    - Write a 2-3 sentence summary that:
+      * Mirrors the job title and key requirements
+      * Includes 5-7 critical keywords from the job description
+      * Highlights the most impressive quantifiable achievement
 
-    **6. Formatting**
-    - Output the resume in **clean Markdown** format.
-    - Include an **“Additional Suggestions”** section with actionable improvements.
+    **6. Skills Section**
+    - Create a dedicated "Technical Skills" or "Core Competencies" section
+    - List skills exactly as they appear in the job description
+    - Group by category if applicable (e.g., "Languages," "Tools," "Frameworks")
 
     ---
 
@@ -133,15 +132,28 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
 
     ---
 
-    ### Output:
+    ### Output Format:
 
-    1. **Tailored Resume**:
-    - A one-page resume in Markdown.
-    - Focuses on relevant experience, uses confident language, and includes job-specific keywords.
+    Return the optimized resume in clean Markdown with these sections:
+    1. **Contact Info** (if present in original)
+    2. **Summary** (keyword-rich, quantifiable)
+    3. **Skills** (matched to job description)
+    4. **Experience** (3-5 bullets per role, each with metrics and strong action verbs)
+    5. **Education** (if present)
 
-    2. **Additional Suggestions** *(if applicable)*:
-    - Highlight missing skills, certifications, or project ideas.
-    - Recommend edits to align tone and content with job description.
+    Then add:
+    ### Additional Suggestions
+    - List any missing keywords that should be added
+    - Suggest certifications or skills that would strengthen the application
+    - Recommend any weak bullet points that need more quantifiable impact
+
+    ---
+
+    ### Remember:
+    - More keywords = higher ATS score
+    - More numbers = more credible
+    - Strong action verbs = more impactful
+    - DO NOT remove metrics to save space - they're what gets interviews
     """
 
 def get_resume_response(prompt: str, model: str = "gpt-4o-mini", temperature: float = 0.7) -> str:
