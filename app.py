@@ -648,9 +648,9 @@ def run_resume_with_credits_with_scoring(resume_file, job_input):
             original_score, original_feedback = calculate_resume_score(original_text, job_input)
 
             # process the existing resume
-            result = process_resume(resume_file, job_input)
+            optimized_preview, suggestions, match_info, optimized_text = process_resume(resume_file, job_input)
             # editable text output:
-            optimized_text = result[1]
+            # optimized_text = result[1]
 
             # calculate the optimized score
             optimized_score, optimized_feedback = calculate_resume_score(optimized_text, job_input)
@@ -668,7 +668,7 @@ def run_resume_with_credits_with_scoring(resume_file, job_input):
                 <strong>✨ You're Premium! Thanks for Choosing Us!</strong>
             </div>
             """)
-            return (result[0], result[1], result[2], score_comparison, premium_display)
+            return (optimized_preview, optimized_text, suggestions, score_comparison, premium_display)
         
         except Exception as e:
             return (f"Error processing resume: {e}", "", "", "", get_credits_display())
@@ -691,8 +691,8 @@ def run_resume_with_credits_with_scoring(resume_file, job_input):
             original_score, original_feedback = calculate_resume_score(original_text, job_input)
 
             # process the resume
-            result = process_resume(resume_file, job_input)
-            optimized_text = result[1]
+            optimized_preview, suggestions, match_info, optimized_text = process_resume(resume_file, job_input)
+            # optimized_text = result[1]
 
             # calculate optimized resume score
             optimized_score, optimized_feedback = calculate_resume_score(optimized_text, job_input)
@@ -705,7 +705,7 @@ def run_resume_with_credits_with_scoring(resume_file, job_input):
             
             update_user_credits(user_id, credits -1)
             # return (*result, get_credits_display())
-            return (result[0], result[1], result[2], score_comparison, get_credits_display())
+            return (optimized_preview, optimized_text, suggestions, score_comparison, get_credits_display())
         
         except Exception as e:
             return (f"😩 Apologies, but there was an error in  processing your resume: {e}", "", "", "", get_credits_display())
@@ -1262,12 +1262,11 @@ and the next to begin:
                 with gr.TabItem("🎯 RESUME OPTIMIZER"):
                     run_resume = gr.Button("🪄 Whip Up the Resume Optimizer!", variant="primary")
                     
-                    # adding score comparison
-                    score_comparison = gr.HTML(label = "Resume Score Analysis"
-                                               )
-                    resume_md = gr.Markdown(label="Preview")
-                    resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
+                    # process_resume outputs
+                    resume_md = gr.Markdown(label="Here's A Preview of Your Optimized Resume")
                     suggestions = gr.Markdown(label="Suggestions & Tips")
+                    score_output = gr.Markdown(label = "📊 Resume Match Score")
+                    resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
                     with gr.Row():
                         export_resume_btn = gr.Button("Download Your Resume As PDF ➡️")
                         export_resume_result = gr.File()

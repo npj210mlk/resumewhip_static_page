@@ -163,22 +163,29 @@ def process_resume(resume_file_path, job_desc_string):
     try:
         resume_txt = extract_resume_text(resume_file_path)
         if not resume_txt:
-            return ["⚠️ Empty resume file.", "", ""]
+            return ["⚠️ Empty resume file.", "", "", ""]
 
-        similarity = calculate_resume_job_similarity(resume_txt, job_desc_string)
+        # score resume before optimization
+        before_score = calculate_resume_job_similarity(resume_txt, job_desc_string)
+        
+        # generate the optimized resume
         prompt = prompt_creator(resume_txt, job_desc_string)
         response = get_resume_response(prompt)
 
-        # Split suggestions if present
+        # split out any suggestions
         parts = re.split(r"^#+ Additional Suggestions", response, flags = re.IGNORECASE | re.MULTILINE)
         optimized = parts[0].strip() if parts else response
         suggestions = parts[1].strip() if len(parts) > 1 else "No additional suggestions."
 
-        match_info = f"### Resume-Job Match Score: {similarity * 100:.1f}%"
-        return [optimized, optimized, f"## Additional Suggestions\n{suggestions}\n{match_info}"]
+        # score after optimization
+        after_score = calculate_resume_job_similarity(optimized, job_desc_string)
+
+        # quick output build - we need the og optimized resume, suggestions, the score, and an editable optimized
+        match_info = f"### 📊 Resume Match Score\n- Before: {before_score * 100:.1f}%\n- After: {after_score * 100:.1f}%"
+        return [optimized, suggestions, match_info, optimized]
     except Exception as e:
         logging.error(f"process_resume failed: {e}")
-        return [f"Error: {e}", "", ""]
+        return [f"Error: {e}", "", "", ""]
 
 def export_resume(new_resume, company_name):
     company_slug = re.sub(r"[^a-zA-Z0-9_-]", "", company_name.lower())
