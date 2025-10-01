@@ -1265,8 +1265,9 @@ and the next to begin:
                     # process_resume outputs
                     resume_md = gr.Markdown(label="Here's A Preview of Your Optimized Resume")
                     suggestions = gr.Markdown(label="Suggestions & Tips")
-                    score_output = gr.Markdown(label = "📊 Resume Match Score")
+                    score_comparison = gr.Markdown(label = "📊 Resume Match Score")
                     resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
+                    resume_counter = gr.Markdown(label = "🫘 Resume Counter")
                     with gr.Row():
                         export_resume_btn = gr.Button("Download Your Resume As PDF ➡️")
                         export_resume_result = gr.File()
