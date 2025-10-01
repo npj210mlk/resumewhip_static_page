@@ -963,6 +963,7 @@ def create_score_comparison(original_score, optimized_score, original_feedback, 
         </div>
     </div>
     """
+    return comparison_html
 
 # Admin for granting access
 def admin_grant_access(user_email_or_id):
@@ -1263,10 +1264,15 @@ and the next to begin:
                     run_resume = gr.Button("🪄 Whip Up the Resume Optimizer!", variant="primary")
                     
                     # process_resume outputs
+                    # resume_md = gr.Markdown(label="Here's A Preview of Your Optimized Resume")
+                    # suggestions = gr.Markdown(label="Suggestions & Tips")
+                    # score_comparison = gr.Markdown(label = "📊 Resume Match Score")
+                    # resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
+                    # resume_counter = gr.Markdown(label = "🫘 Resume Counter")
                     resume_md = gr.Markdown(label="Here's A Preview of Your Optimized Resume")
-                    suggestions = gr.Markdown(label="Suggestions & Tips")
-                    score_comparison = gr.Markdown(label = "📊 Resume Match Score")
                     resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
+                    suggestions = gr.Markdown(label="Suggestions & Tips")
+                    score_comparison = gr.HTML(label = "📊 Resume Match Score")
                     resume_counter = gr.Markdown(label = "🫘 Resume Counter")
                     with gr.Row():
                         export_resume_btn = gr.Button("Download Your Resume As PDF ➡️")
