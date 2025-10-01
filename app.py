@@ -401,6 +401,9 @@ def store_stripe_customer_id(user_id, customer_id):
 
 def create_checkout_session():
     try:
+        # check to see our PRICE_ID exists
+        if not PRICE_ID or not PRICE_ID.strip():
+            return "⚠️ Payment system not fully configured. Please contact support."
         user_id = get_user_id()
         user_email = get_user_email_from_db(user_id)
         customer_id = get_stripe_customer_id_from_db(user_id)
@@ -420,7 +423,7 @@ def create_checkout_session():
         return session.url
     except Exception as e:
         print(f"Error creating checkout session: {e}")
-        return f"Error creating checkout session: {e}"
+        return f"⚠️ Unable to start checkout. Please try again later or contact support."
 
 def check_payment_status(user_id):
     """Function to check if the user has paid for the service using Stripe's API"""
@@ -680,7 +683,7 @@ def run_resume_with_credits_with_scoring(resume_file, job_input):
             checkout_url = create_checkout_session()
             return(
                 f"⏰ Unlock Unlimited Power! [Upgrade here]({checkout_url}) for unlimited optimization.",
-                "", "", get_credits_display()
+                "", "", "", get_credits_display()
             )
         
         try:
