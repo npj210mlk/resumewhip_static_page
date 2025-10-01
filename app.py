@@ -836,58 +836,57 @@ def validate_job_posting(job_description, company_name=None, job_title=None):
 # Job Scoring
 
 def calculate_resume_score(resume_text, job_description):
-    """Calculate a resume score based on various ATS factors"""
+    """Calculate a resume score based on ATS-relevant factors"""
     score = 0
     max_score = 100
     feedback = []
     
-    # Extract job keywords (simple approach - you can enhance this)
+    # Extract job keywords (filter out common words)
+    stop_words = {'the', 'and', 'for', 'with', 'this', 'that', 'from', 'have', 'will', 'your', 'our', 'their'}
     job_keywords = set(word.lower() for word in job_description.split() 
-                      if len(word) > 4 and word.isalpha())
+                      if len(word) > 4 and word.isalpha() and word.lower() not in stop_words)
     resume_words = set(word.lower() for word in resume_text.split() 
                        if len(word) > 4 and word.isalpha())
     
-    # 1. Keyword Match (40 points)
+    # 1. Critical Keyword Match (50 points) - MOST IMPORTANT
     keyword_matches = job_keywords.intersection(resume_words)
-    keyword_score = min(40, int((len(keyword_matches) / max(len(job_keywords) * 0.3, 1)) * 40))
+    match_rate = len(keyword_matches) / len(job_keywords) if job_keywords else 0
+    keyword_score = min(50, int(match_rate * 50))
     score += keyword_score
-    feedback.append(f"**Keyword Match:** {keyword_score}/40 - Found {len(keyword_matches)} relevant keywords")
+    feedback.append(f"**Critical Keywords:** {keyword_score}/50 - Matched {len(keyword_matches)} of {len(job_keywords)} key terms ({int(match_rate*100)}%)")
     
-    # 2. Action Verbs (20 points)
-    action_verbs = ['managed', 'developed', 'created', 'led', 'designed', 
-                   'implemented', 'achieved', 'improved', 'optimized', 'delivered',
-                   'analyzed', 'coordinated', 'executed', 'established', 'generated']
+    # 2. Impact Language (20 points)
+    action_verbs = ['achieved', 'improved', 'increased', 'reduced', 'led', 'managed', 
+                   'developed', 'created', 'designed', 'implemented', 'delivered', 
+                   'optimized', 'generated', 'established', 'coordinated', 'executed']
     action_verb_count = sum(1 for verb in action_verbs if verb in resume_text.lower())
-    action_score = min(20, action_verb_count * 2)
+    action_score = min(20, action_verb_count * 3)
     score += action_score
-    feedback.append(f"**Action Verbs:** {action_score}/20 - Used {action_verb_count} strong action verbs")
+    feedback.append(f"**Impact Language:** {action_score}/20 - {action_verb_count} strong action verbs")
     
-    # 3. Quantifiable Achievements (20 points)
+    # 3. Quantifiable Results (20 points)
     import re
-    numbers = re.findall(r'\d+[%$]?|\$\d+', resume_text)
-    quant_score = min(20, len(numbers) * 3)
+    # Look for percentages, dollar amounts, or numbers with context
+    metrics = re.findall(r'\d+[%$,]|\$\d+|\d+\+|\d+x', resume_text)
+    quant_score = min(20, len(metrics) * 4)
     score += quant_score
-    feedback.append(f"**Quantifiable Results:** {quant_score}/20 - Included {len(numbers)} measurable metrics")
+    feedback.append(f"**Quantifiable Results:** {quant_score}/20 - {len(metrics)} measurable achievements")
     
-    # 4. Length Appropriateness (10 points)
+    # 4. Optimal Length (10 points) - Reward conciseness
     word_count = len(resume_text.split())
-    if 300 <= word_count <= 800:
+    if 250 <= word_count <= 600:
         length_score = 10
-        feedback.append(f"**Length:** 10/10 - Optimal length ({word_count} words)")
-    elif 200 <= word_count < 300 or 800 < word_count <= 1000:
+        feedback.append(f"**Length:** 10/10 - Optimal ({word_count} words)")
+    elif 200 <= word_count < 250 or 600 < word_count <= 750:
         length_score = 7
-        feedback.append(f"**Length:** 7/10 - Acceptable length ({word_count} words)")
+        feedback.append(f"**Length:** 7/10 - Good ({word_count} words)")
+    elif 150 <= word_count < 200 or 750 < word_count <= 900:
+        length_score = 5
+        feedback.append(f"**Length:** 5/10 - Could be better ({word_count} words)")
     else:
-        length_score = 4
-        feedback.append(f"**Length:** 4/10 - Consider adjusting length ({word_count} words)")
+        length_score = 3
+        feedback.append(f"**Length:** 3/10 - Too {'short' if word_count < 150 else 'long'} ({word_count} words)")
     score += length_score
-    
-    # 5. Skills Section (10 points)
-    skills_indicators = ['skills:', 'proficient in', 'experience with', 'technical skills']
-    has_skills = any(indicator in resume_text.lower() for indicator in skills_indicators)
-    skills_score = 10 if has_skills else 5
-    score += skills_score
-    feedback.append(f"**Skills Section:** {skills_score}/10 - {'Clear skills section present' if has_skills else 'Skills section could be clearer'}")
     
     return score, feedback
 
