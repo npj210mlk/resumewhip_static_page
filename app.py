@@ -688,14 +688,14 @@ async def stripe_webhook(request: Request):
         print(f"🚨 Webhook error: {e}")
         return JSONResponse(content={"status": "error", "message": str(e)}, status_code=400)
 
-def run_resume_with_credits_with_scoring(resume_file, job_input):
+def run_resume_with_credits_with_scoring(resume_file, job_input, email):
     """Handle resume processing with premium and free user experience"""
     if not resume_file or not job_input.strip():
         return ("⚠️ Please upload your resume and paste the job description.", "", "", "",
                 get_credits_display())
     
     user_id = get_or_create_user(email)
-    is_premium = is_premium_user(user_id)
+    is_premium = (status in ["paid", "premium"])
     
     if is_premium:
         # Premium user - unlimited access
@@ -1287,6 +1287,13 @@ and the next to begin:
                 </p>
             </div>
         """)
+            
+            with gr.Row():
+                email_input = gr.Textbox(
+                    label="📧 Please enter your email to get started. Don't worry: it never leaves our database.",
+                    placeholder="you@example.com",
+                    lines=1
+                )
 
             # Tools tabs
             # with gr.Tabs():
@@ -1435,7 +1442,7 @@ and the next to begin:
     
     run_resume.click(
         fn=run_resume_with_credits_with_scoring,
-        inputs=[resume_input, job_input],
+        inputs=[resume_input, job_input, email_input],
         outputs=[resume_md, resume_edit, suggestions, score_comparison, resume_counter]
     )
 
