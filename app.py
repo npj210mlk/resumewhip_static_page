@@ -1262,6 +1262,12 @@ and the next to begin:
         with gr.Column(scale=5):
             # Input section
             with gr.Row():
+                email_input = gr.Textbox(
+                    label="📧 Please enter your email to get started. Don't worry: it never leaves our database.",
+                    placeholder="you@example.com",
+                    elem_id = "email-box"
+                    )
+                
                 resume_input = gr.File(
                     label="📄 Upload Resume Here", 
                     file_types=[".pdf", ".docx", ".md", ".txt"]
@@ -1277,11 +1283,11 @@ and the next to begin:
                 placeholder="Paste the complete job posting here..."
             )
 
-            email_input = gr.Textbox(
-                label="📧 Please enter your email to get started. Don't worry: it never leaves our database.",
-                placeholder="you@example.com",
-                elem_id = "email-box"
-                )
+            # email_input = gr.Textbox(
+            #     label="📧 Please enter your email to get started. Don't worry: it never leaves our database.",
+            #     placeholder="you@example.com",
+            #     elem_id = "email-box"
+            #     )
 
             # Credit counter
             resume_counter = gr.Markdown("### Free Resumes Left: --")
