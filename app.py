@@ -283,16 +283,17 @@ def get_or_create_user(email: str):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+    cursor.execute("SELECT user_id, credits_remaining, subscription_status FROM users WHERE email = ?", (email,))
     row = cursor.fetchone()
 
     if row:
-        return row["id"], row["credits"], row["subscription_status"]
+        conn.close()
+        return row["user_id"], row["credits_remaining"], row["subscription_status"]
 
     # Create a new user
     user_id = str(uuid.uuid4())
     cursor.execute(
-        "INSERT INTO users (id, email, credits, subscription_status) VALUES (?, ?, ?, ?)",
+        "INSERT INTO users (user_id, email, credits_remaining, subscription_status) VALUES (?, ?, ?, ?)",
         (user_id, email, 3, "free")
     )
     conn.commit()
@@ -311,8 +312,8 @@ def get_or_create_user(email: str):
 #     gr.current_user_id = user_id
 #     return user_id
 
-def get_user_status():
-    user_id = get_or_create_user(email)
+def get_user_status(email):
+    user_id, credits, status = get_or_create_user(email)
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT subscription_status, credits_remaining FROM users WHERE user_id = ?", (user_id,))
@@ -366,10 +367,10 @@ def update_user_credits(user_id, credits, subscription_status='free'):
     conn.commit()
     conn.close()
 
-def get_credits_display():
+def get_credits_display(email):
     """Return credits display based on user status"""
-    user_id = get_or_create_user(email)
-    is_premium = is_premium_user(user_id)
+    user_id, credits, status = get_or_create_user(email)
+    is_premium = (status in ['paid', 'premium'])
     
     if is_premium:
         return gr.Markdown("""
@@ -380,7 +381,7 @@ def get_credits_display():
         </div>
         """)
     else:
-        credits, _ = get_user_credits(user_id)
+        # credits, _ = get_user_credits(user_id)
         return gr.Markdown(f"""
         <div style="text-align: center; padding: 15px; 
                     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
@@ -513,10 +514,10 @@ def check_payment_status(user_id):
         print(f"Error in checking your payment status: {e}")
         return False
 
-def get_sidebar_content():
+def get_sidebar_content(email):
     """Return sidebar content based on user subscription status"""
-    user_id = get_or_create_user(email)
-    is_premium = is_premium_user(user_id)
+    user_id, credits, status = get_or_create_user(email)
+    is_premium = (status in ['paid', 'premium'])
     
     if is_premium:
         # Premium user sidebar - no upgrade prompts
@@ -563,8 +564,8 @@ def create_billing_portal_session(user_id):
         print(f"Error creating billing portal session: {e}")
         return None
 
-def open_billing_portal():
-    user_id = get_or_create_user(email)
+def open_billing_portal(email):
+    user_id, credits, status = get_or_create_user(email)
     portal_url = create_billing_portal_session(user_id)
     return portal_url if portal_url else "No billing account found."
 
@@ -649,7 +650,7 @@ async def stripe_webhook(request: Request):
             # Find user and ensure they have premium access
             user_id = get_user_id_by_customer_id(customer_id)
             if user_id:
-                grant_unlimited_access_premium(user_id)
+                grant_unlimited_access(user_id)
                 print(f"✅ Renewed premium access for user: {user_id}")
 
         # ⚠️ Handle PAYMENT FAILURES
@@ -692,9 +693,12 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
     """Handle resume processing with premium and free user experience"""
     if not resume_file or not job_input.strip():
         return ("⚠️ Please upload your resume and paste the job description.", "", "", "",
-                get_credits_display())
+                get_credits_display(email))
     
-    user_id = get_or_create_user(email)
+    if not email or not email.strip():
+        return ("🚨 Please enter your email address to continue.", "", "", "", gr.Markdown(""))
+    
+    user_id, credits, status = get_or_create_user(email)
     is_premium = (status in ["paid", "premium"])
     
     if is_premium:
@@ -782,9 +786,9 @@ def show_premium_welcome():
     </div>
     """)
 
-def refresh_user_interface():
+def refresh_user_interface(email):
     """ After payment, refresh interface based on current user status"""
-    user_id = get_or_create_user(email)
+    user_id, credits, status = get_or_create_user(email)
     is_premium = is_premium_user(user_id)
     
     if is_premium:
@@ -1024,9 +1028,9 @@ def create_score_comparison(original_score, optimized_score, original_feedback, 
     return comparison_html
 
 # Admin for granting access
-def admin_grant_access(user_email_or_id):
+def admin_grant_access(email):
     """ Function to grant unlimited access for testing, marketing, etc. """
-    user_id = get_or_create_user(email)
+    user_id, credits, status = get_or_create_user(email)
     grant_unlimited_access(user_id)
     return f"Granted unlimited access to user: {user_id}"
 
@@ -1050,7 +1054,8 @@ with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Bui
         # Sidebar
         with gr.Column(scale=1):
 
-            user_status = gr.Markdown(get_user_status(), elem_id="user-status")
+            #placeholder text
+            user_status = gr.Markdown("Please enter your email to get started:", elem_id="user-status")
 
             with gr.Accordion("🦮 How To Use", open=False):
                 gr.Markdown("""
@@ -1129,7 +1134,7 @@ and the next to begin:
         A: That's by design - ATS systems don't like a lot of formatting. (Tables and multiple columns? Nightmares for them.)
         """)
 
-            sidebar_content = get_sidebar_content()
+            sidebar_content = gr.HTML("")
             
             gr.Markdown("### 🛡️ We will never sell your data. Ever.")
 
@@ -1258,7 +1263,13 @@ and the next to begin:
                 lines=6,
                 placeholder="Paste the complete job posting here..."
             )
-            
+
+            email_input = gr.Textbox(
+                label="📧 Please enter your email to get started. Don't worry: it never leaves our database.",
+                placeholder="you@example.com",
+                lines=1
+                )
+
             # Credit counter
             # resume_counter = gr.Markdown("### Free Resumes Left: 3")
             # just a visual check here. if I don't like it, go back to the resume_counter above
@@ -1288,12 +1299,12 @@ and the next to begin:
             </div>
         """)
             
-            with gr.Row():
-                email_input = gr.Textbox(
-                    label="📧 Please enter your email to get started. Don't worry: it never leaves our database.",
-                    placeholder="you@example.com",
-                    lines=1
-                )
+            # with gr.Row():
+            #     email_input = gr.Textbox(
+            #         label="📧 Please enter your email to get started. Don't worry: it never leaves our database.",
+            #         placeholder="you@example.com",
+            #         lines=1
+            #     )
 
             # Tools tabs
             # with gr.Tabs():
@@ -1434,6 +1445,12 @@ and the next to begin:
     
     # Event handlers
 
+    email_input.change(
+        fn = lambda email: (get_user_status(email), get_credits_display(email), get_sidebar_content(email)),
+        inputs = [email_input],
+        outputs = [user_status, resume_counter, sidebar_content]
+    )
+    
     validate_btn.click(
         fn=validate_job_posting,
         inputs=[job_input, company_input, jd_title],
@@ -1448,7 +1465,7 @@ and the next to begin:
 
     manage_billing_btn.click(
         fn=open_billing_portal,
-        inputs=[],
+        inputs=[email_input],
         outputs=billing_url_output
     )
     
@@ -1477,7 +1494,7 @@ and the next to begin:
 # Add the code below for free access to users for testing (like Mia, etc.)
     # grant_access_btn.click(
     #     fn=admin_grant_access,
-    #     inputs=[admin_input],
+    #     inputs=[email_input],
     #     outputs=access_status
     # )
 # =========================================================================
