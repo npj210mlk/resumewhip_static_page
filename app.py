@@ -312,7 +312,7 @@ def get_or_create_user(email: str):
 #     return user_id
 
 def get_user_status():
-    user_id = get_user_id()
+    user_id = get_or_create_user(email)
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT subscription_status, credits_remaining FROM users WHERE user_id = ?", (user_id,))
