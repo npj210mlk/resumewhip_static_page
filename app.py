@@ -734,7 +734,7 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
             return (optimized_preview, optimized_text, suggestions, score_comparison, premium_display)
         
         except Exception as e:
-            return (f"Error processing resume: {e}", "", "", "", get_credits_display())
+            return (f"Error processing resume: {e}", "", "", "", get_credits_display(email))
     else:
         # Free user - existing credit logic
         credits, status = get_user_credits(user_id)
@@ -743,7 +743,7 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
             checkout_url = create_checkout_session()
             return(
                 f"⏰ Unlock Unlimited Power! [Upgrade here]({checkout_url}) for unlimited optimization.",
-                "", "", "", get_credits_display()
+                "", "", "", get_credits_display(email)
             )
         
         try:
@@ -767,11 +767,11 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
             )
             
             update_user_credits(user_id, credits -1)
-            # return (*result, get_credits_display())
-            return (optimized_preview, optimized_text, suggestions, score_comparison, get_credits_display())
+            # return (*result, get_credits_display(email))
+            return (optimized_preview, optimized_text, suggestions, score_comparison, get_credits_display(email))
         
         except Exception as e:
-            return (f"😩 Apologies, but there was an error in  processing your resume: {e}", "", "", "", get_credits_display())
+            return (f"😩 Apologies, but there was an error in  processing your resume: {e}", "", "", "", get_credits_display(email))
 
 def show_premium_welcome():
     """Show welcome message for new premium users"""
@@ -793,13 +793,13 @@ def refresh_user_interface(email):
     
     if is_premium:
         return (
-            get_credits_display(),
+            get_credits_display(email),
             show_premium_welcome(),
             gr.update(visible=False)  # Hide upgrade prompts
         )
     else:
         return (
-            get_credits_display(), 
+            get_credits_display(email), 
             gr.update(visible=False),  # Hide welcome message
             gr.update(visible=True)   # Show upgrade prompts
         )
@@ -1273,7 +1273,7 @@ and the next to begin:
             # Credit counter
             resume_counter = gr.Markdown("### Free Resumes Left: --")
             # just a visual check here. if I don't like it, go back to the resume_counter above
-            # resume_counter = get_credits_display()
+            # resume_counter = get_credits_display(email)
 
             # Access granter
             with gr.Accordion("My Admin Access", open=False, visible=False):
