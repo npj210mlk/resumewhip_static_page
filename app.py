@@ -1068,7 +1068,7 @@ with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Bui
         with gr.Column(scale=1):
 
             #placeholder text
-            user_status = gr.Markdown("""<h5 style='text-align:center; color:#ffb41e;'>"Please enter your email to get started</h5>""", elem_id="user-status")
+            user_status = gr.Markdown("""<h5 style='text-align:center; color:#ff621e;'>Please enter your email to get started</h5>""", elem_id="user-status")
 
             with gr.Accordion("🦮 How To Use", open=False):
                 gr.Markdown("""
