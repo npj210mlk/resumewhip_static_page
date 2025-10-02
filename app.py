@@ -228,11 +228,12 @@ def init_database():
     """Initialize SQLite database with required tables"""
     conn = sqlite3.connect('resumewhip.db')
     cursor = conn.cursor()
+    # email TEXT UNIQUE to tie users to email
     cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id TEXT UNIQUE NOT NULL,
-                email TEXT,
+                email TEXT UNIQUE,
                 subscription_status TEXT DEFAULT 'free',
                 credits_remaining INTEGER DEFAULT 3,
                 stripe_customer_id TEXT,
@@ -240,20 +241,75 @@ def init_database():
                 last_payment_date TIMESTAMP
             )
         ''')
+    
+    # IP usage table (for rate limiting on free users)
+    cursor.execute('''
+            CREATE TABLE IF NOT EXISTS ip_usage (
+                   ip TEXT NOT NULL,
+                   date TEXT NOT NULL,
+                   count INTEGER DEFAULT 0,
+                   PRIMARY KEY (ip, date)
+            )
+        ''')
         
     conn.commit()
     conn.close()
 
-def get_user_id():
-    """Generate a persistent session-based user ID"""
-    # Use Gradio's session state if available, otherwise create persistent ID
-    if hasattr(gr, 'current_user_id') and gr.current_user_id:
-        return gr.current_user_id
+def check_rate_limit(ip_address):
+    conn = get_db_connection()
+    cursor = conn.cursor()
     
-    # Create new user ID and store in session
+    today = datetime.date.today()
+    cursor.execute("""
+        SELECT count FROM ip_usage
+        WHERE ip=? AND date=?
+    """, (ip_address, today))
+    row = cursor.fetchone()
+
+    if row and row["count"] >= 3:
+        # limit reached
+        return False
+    else:
+        cursor.execute("""
+            INSERT INTO ip_usage (ip, date, count)
+            VALUES (?, ?, 1)
+            ON CONFLICT(ip, date) DO UPDATE SET count = count + 1
+        """, (ip_address, today))
+        conn.commit()
+        return True
+
+def get_or_create_user(email: str):
+    """Fetch user by email or create if missing"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+    row = cursor.fetchone()
+
+    if row:
+        return row["id"], row["credits"], row["subscription_status"]
+
+    # Create a new user
     user_id = str(uuid.uuid4())
-    gr.current_user_id = user_id
-    return user_id
+    cursor.execute(
+        "INSERT INTO users (id, email, credits, subscription_status) VALUES (?, ?, ?, ?)",
+        (user_id, email, 3, "free")
+    )
+    conn.commit()
+    conn.close()
+    return user_id, 3, "free"
+
+# replace with email / user_id
+# def get_user_id():
+#     """Generate a persistent session-based user ID"""
+#     # Use Gradio's session state if available, otherwise create persistent ID
+#     if hasattr(gr, 'current_user_id') and gr.current_user_id:
+#         return gr.current_user_id
+    
+#     # Create new user ID and store in session
+#     user_id = str(uuid.uuid4())
+#     gr.current_user_id = user_id
+#     return user_id
 
 def get_user_status():
     user_id = get_user_id()
@@ -312,7 +368,7 @@ def update_user_credits(user_id, credits, subscription_status='free'):
 
 def get_credits_display():
     """Return credits display based on user status"""
-    user_id = get_user_id()
+    user_id = get_or_create_user(email)
     is_premium = is_premium_user(user_id)
     
     if is_premium:
@@ -404,7 +460,7 @@ def create_checkout_session():
         # check to see our PRICE_ID exists
         if not PRICE_ID or not PRICE_ID.strip():
             return "⚠️ Payment system not fully configured. Please contact support."
-        user_id = get_user_id()
+        user_id = get_or_create_user(email)
         user_email = get_user_email_from_db(user_id)
         customer_id = get_stripe_customer_id_from_db(user_id)
         session = stripe.checkout.Session.create(
@@ -459,7 +515,7 @@ def check_payment_status(user_id):
 
 def get_sidebar_content():
     """Return sidebar content based on user subscription status"""
-    user_id = get_user_id()
+    user_id = get_or_create_user(email)
     is_premium = is_premium_user(user_id)
     
     if is_premium:
@@ -508,7 +564,7 @@ def create_billing_portal_session(user_id):
         return None
 
 def open_billing_portal():
-    user_id = get_user_id()
+    user_id = get_or_create_user(email)
     portal_url = create_billing_portal_session(user_id)
     return portal_url if portal_url else "No billing account found."
 
@@ -638,7 +694,7 @@ def run_resume_with_credits_with_scoring(resume_file, job_input):
         return ("⚠️ Please upload your resume and paste the job description.", "", "", "",
                 get_credits_display())
     
-    user_id = get_user_id()
+    user_id = get_or_create_user(email)
     is_premium = is_premium_user(user_id)
     
     if is_premium:
@@ -728,7 +784,7 @@ def show_premium_welcome():
 
 def refresh_user_interface():
     """ After payment, refresh interface based on current user status"""
-    user_id = get_user_id()
+    user_id = get_or_create_user(email)
     is_premium = is_premium_user(user_id)
     
     if is_premium:
@@ -970,7 +1026,7 @@ def create_score_comparison(original_score, optimized_score, original_feedback, 
 # Admin for granting access
 def admin_grant_access(user_email_or_id):
     """ Function to grant unlimited access for testing, marketing, etc. """
-    user_id = get_user_id()
+    user_id = get_or_create_user(email)
     grant_unlimited_access(user_id)
     return f"Granted unlimited access to user: {user_id}"
 
