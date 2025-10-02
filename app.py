@@ -41,6 +41,12 @@ custom_css = """
     font-weight: bold !important;
     color: #333 !important;
 
+#email-box label {
+    color: #ff5722 !important;   /* Orange CTA color */
+    font-size: 1.1em !important; /* Slightly larger */
+    font-weight: bold !important;
+}
+
 /* === IMPROVED COLOR VARIABLES === */
 :root {
     --primary-blue: #4f46e5;      /* Modern indigo - more professional than purple */
