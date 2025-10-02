@@ -31,7 +31,7 @@ from new_functions import (
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 
-# button styling
+# button styling - <style></style> not needed b/c gradio injects the style string for us
 custom_css = """
 #email-box input {
     border: 3px solid #ff5722 !important;
@@ -41,7 +41,6 @@ custom_css = """
     font-weight: bold !important;
     color: #333 !important;
 
-<style>
 /* === IMPROVED COLOR VARIABLES === */
 :root {
     --primary-blue: #4f46e5;      /* Modern indigo - more professional than purple */
@@ -211,7 +210,7 @@ body[data-user-status="premium"] .tab-nav button.selected {
     background: linear-gradient(135deg, #10b981, #059669);
     box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
 }
-</style>
+
 """
 # get new SQLite connection for each request
 def get_db_connection():
