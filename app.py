@@ -33,6 +33,14 @@ from fastapi.responses import JSONResponse
 
 # button styling
 custom_css = """
+#email-box input {
+    border: 3px solid #ff5722 !important;
+    background-color: #fff8f6;
+    font-size: 1.2em !important;
+    padding: 10px !important;
+    font-weight: bold !important;
+    color: #333 !important;
+
 <style>
 /* === IMPROVED COLOR VARIABLES === */
 :root {
@@ -1267,7 +1275,7 @@ and the next to begin:
             email_input = gr.Textbox(
                 label="📧 Please enter your email to get started. Don't worry: it never leaves our database.",
                 placeholder="you@example.com",
-                lines=1
+                elem_id = "email-box"
                 )
 
             # Credit counter
