@@ -484,15 +484,18 @@ def store_stripe_customer_id(user_id, customer_id):
 
 def create_checkout_session(email):
     try:
-        # check to see our PRICE_ID exists
+        # 🔑 Always log the user first
+        user_id, credits, status = get_or_create_user(email)
+
+        # then check if payment system is ready
         if not PRICE_ID or not PRICE_ID.strip():
             return "⚠️ Payment system not fully configured. Please contact support."
-        user_id, credits, status = get_or_create_user(email)
+
         customer_id = get_stripe_customer_id_from_db(user_id)
         session = stripe.checkout.Session.create(
             client_reference_id=user_id,
-            customer = customer_id if customer_id else None,
-            customer_email = email if not customer_id else None,
+            customer=customer_id if customer_id else None,
+            customer_email=email if not customer_id else None,
             payment_method_types=['card'],
             line_items=[{
                 'price': PRICE_ID,
@@ -503,9 +506,6 @@ def create_checkout_session(email):
             cancel_url="https://resumewhip.com/cancel"
         )
         return session.url
-    except Exception as e:
-        print(f"Error creating checkout session: {e}")
-        return f"⚠️ Unable to start checkout. Please try again later or contact support."
 
 def check_payment_status(user_id):
     """Function to check if the user has paid for the service using Stripe's API"""
@@ -1483,13 +1483,20 @@ and the next to begin:
     )
     
     validate_btn.click(
-        fn=validate_job_posting,
-        inputs=[job_input, company_input, jd_title],
+        fn=lambda job_desc, company, title, email: (
+            get_or_create_user(email),  # 🔑 log user before validation
+            validate_job_posting(job_desc, company, title)
+        )[1],
+        inputs=[job_input, company_input, jd_title, email_input],
         outputs=[summary_output, report_output]
     )
+
     
     run_resume.click(
-        fn=run_resume_with_credits_with_scoring,
+        fn = lambda resume, job, email: (
+            get_or_create_user(email), 
+            run_resume_with_credits_with_scoring(resume, job, email)
+        )[1],
         inputs=[resume_input, job_input, email_input],
         outputs=[resume_md, resume_edit, suggestions, score_comparison, resume_counter]
     )
@@ -1507,8 +1514,11 @@ and the next to begin:
     )
     
     run_cover.click(
-        fn=generate_cover_letter,
-        inputs=[resume_input, job_input],
+        fn=lambda resume, job, email: (
+            get_or_create_user(email),  # 🔑 force email logging
+            generate_cover_letter(resume, job)
+        )[1],
+        inputs=[resume_input, job_input, email_input],
         outputs=cover_output
     )
     
