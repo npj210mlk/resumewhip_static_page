@@ -292,26 +292,38 @@ def check_rate_limit(ip_address):
         return True
 
 def get_or_create_user(email: str):
-    """Fetch user by email or create if missing"""
+    """Fetch user by email or create a record if they don't have one"""
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    # look them up by email
     cursor.execute("SELECT user_id, credits_remaining, subscription_status FROM users WHERE email = ?", (email,))
     row = cursor.fetchone()
 
     if row:
-        conn.close()
-        return row["user_id"], row["credits_remaining"], row["subscription_status"]
-
-    # Create a new user
-    user_id = str(uuid.uuid4())
-    cursor.execute(
-        "INSERT INTO users (user_id, email, credits_remaining, subscription_status) VALUES (?, ?, ?, ?)",
-        (user_id, email, 3, "free")
-    )
-    conn.commit()
+        user_id, credits, status = row
+    else:
+        user_id = str(uuid.uuid4())
+        credits = 3
+        status = "free"
+        cursor.execute(
+            "INSERT INTO users (user_id, email, credits_remaining, subscription_status) VALUES (?, ?, ?, ?)",
+            (user_id, email, credits, status)
+        )
+        conn.commit()
+    
     conn.close()
-    return user_id, 3, "free"
+    return user_id, credits, status
+
+    # # Create a new user
+    # user_id = str(uuid.uuid4())
+    # cursor.execute(
+    #     "INSERT INTO users (user_id, email, credits_remaining, subscription_status) VALUES (?, ?, ?, ?)",
+    #     (user_id, email, 3, "free")
+    # )
+    # conn.commit()
+    # conn.close()
+    # return user_id, 3, "free"
 
 # replace with email / user_id
 # def get_user_id():
