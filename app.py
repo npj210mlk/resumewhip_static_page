@@ -311,6 +311,7 @@ def get_or_create_user(email: str):
             (user_id, email, credits, status)
         )
         conn.commit()
+        print(f"✅ Inserted new user into DB: {email}, id={user_id}")
     
     conn.close()
     return user_id, credits, status
