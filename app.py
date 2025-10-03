@@ -293,6 +293,7 @@ def check_rate_limit(ip_address):
 
 def get_or_create_user(email: str):
     """Fetch user by email or create a record if they don't have one"""
+    print(f"f"🔍 DEBUG: get_or_create_user called with email: {email}")
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -302,6 +303,7 @@ def get_or_create_user(email: str):
 
     if row:
         user_id, credits, status = row
+        print(f"✅ DEBUG: Found existing user: {user_id}")
     else:
         user_id = str(uuid.uuid4())
         credits = 3
@@ -311,32 +313,28 @@ def get_or_create_user(email: str):
             (user_id, email, credits, status)
         )
         conn.commit()
-        print(f"✅ Inserted new user into DB: {email}, id={user_id}")
+        print(f"✅ DEBUG: Created new user: {email}, id={user_id}")
     
     conn.close()
     return user_id, credits, status
 
-    # # Create a new user
-    # user_id = str(uuid.uuid4())
-    # cursor.execute(
-    #     "INSERT INTO users (user_id, email, credits_remaining, subscription_status) VALUES (?, ?, ?, ?)",
-    #     (user_id, email, 3, "free")
-    # )
-    # conn.commit()
-    # conn.close()
-    # return user_id, 3, "free"
+# email logging / email validation wrapper
+def ensure_user_logged(email):
+    """Make sure the user is logged before the app runs"""
+    if not email or not email.strip():
+        raise ValueError("Email required.")
+    return get_or_create_user(email)
 
-# replace with email / user_id
-# def get_user_id():
-#     """Generate a persistent session-based user ID"""
-#     # Use Gradio's session state if available, otherwise create persistent ID
-#     if hasattr(gr, 'current_user_id') and gr.current_user_id:
-#         return gr.current_user_id
-    
-#     # Create new user ID and store in session
-#     user_id = str(uuid.uuid4())
-#     gr.current_user_id = user_id
-#     return user_id
+# ================= TEST DATABASE WRITING - TEMP FUNCTION ==================
+   def test_db_write():
+       conn = get_db_connection()
+       cursor = conn.cursor()
+       cursor.execute("INSERT INTO users (user_id, email) VALUES (?, ?)", 
+                      ("test-123", "test@test.com"))
+       conn.commit()
+       conn.close()
+       return "Test write complete"
+# ================= TEST DATABASE WRITING - TEMP FUNCTION ==================
 
 def get_user_status(email):
     user_id, credits, status = get_or_create_user(email)
@@ -1366,7 +1364,7 @@ and the next to begin:
                             label="💼 Job Title", 
                             placeholder="e.g., Data Scientist, Welder"
                         )
-                    validate_btn = gr.Button("🤖 Whip Up the Job Validator!", variant="primary")
+                    validate_btn = gr.Button("🤖 Whip Up the Job Validator! (Takes About 30 Seconds.)", variant="primary")
                     summary_output = gr.HTML()
                     report_output = gr.Markdown()
                     # validation_output = gr.Markdown()
@@ -1387,7 +1385,7 @@ and the next to begin:
                     score_comparison = gr.HTML(label = "📊 Resume Match Score")
                     resume_counter = gr.Markdown(label = "🫘 Resume Counter")
                     with gr.Row():
-                        export_resume_btn = gr.Button("Download Your Resume As PDF ➡️")
+                        export_resume_btn = gr.Button("📍 Click Here To Download Your Resume As PDF")
                         export_resume_result = gr.File()
 
                 with gr.TabItem("📝 COVER LETTER WRITER"):
@@ -1397,7 +1395,7 @@ and the next to begin:
                             lines=15
                         )
                     with gr.Row():
-                            export_cover_btn = gr.Button("Download Your Cover Letter As PDF ➡️")
+                            export_cover_btn = gr.Button("📍 Click Here To Download Your Cover Letter As PDF")
                             export_cover_result = gr.File()
 
             gr.HTML("""
@@ -1481,17 +1479,21 @@ and the next to begin:
     
     # Event handlers
 
-    email_input.change(
-        fn = lambda email: (get_user_status(email), get_credits_display(email), get_sidebar_content(email)),
-        inputs = [email_input],
-        outputs = [user_status, resume_counter, sidebar_content]
+    email_input.submit(
+        fn=lambda email: (
+            get_user_status(email),
+            get_credits_display(email),
+            get_sidebar_content(email)
+        ),
+        inputs=[email_input],
+        outputs=[user_status, resume_counter, sidebar_content]
     )
     
     validate_btn.click(
         fn=lambda job_desc, company, title, email: (
-            get_or_create_user(email),  # 🔑 log user before validation
+            ensure_user_logged(email) if email else None,
             validate_job_posting(job_desc, company, title)
-        )[1],
+        )[1] if email else ("🚨 Please enter your email first", "),
         inputs=[job_input, company_input, jd_title, email_input],
         outputs=[summary_output, report_output]
     )
