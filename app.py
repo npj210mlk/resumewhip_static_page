@@ -1493,7 +1493,7 @@ and the next to begin:
         fn=lambda job_desc, company, title, email: (
             ensure_user_logged(email) if email else None,
             validate_job_posting(job_desc, company, title)
-        )[1] if email else ("🚨 Please enter your email first", "),
+        )[1] if email else ("🚨 Please enter your email first", ""),
         inputs=[job_input, company_input, jd_title, email_input],
         outputs=[summary_output, report_output]
     )
