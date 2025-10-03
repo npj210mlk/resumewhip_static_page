@@ -506,6 +506,10 @@ def create_checkout_session(email):
             cancel_url="https://resumewhip.com/cancel"
         )
         return session.url
+    
+    except Exception as e:
+        print(f"Error creating checkout session: {e}")
+        return f"⚠️ Unable to start checkout. Please try again later or contact support."
 
 def check_payment_status(user_id):
     """Function to check if the user has paid for the service using Stripe's API"""
