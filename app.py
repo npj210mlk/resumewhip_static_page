@@ -326,14 +326,14 @@ def ensure_user_logged(email):
     return get_or_create_user(email)
 
 # ================= TEST DATABASE WRITING - TEMP FUNCTION ==================
-   def test_db_write():
-       conn = get_db_connection()
-       cursor = conn.cursor()
-       cursor.execute("INSERT INTO users (user_id, email) VALUES (?, ?)", 
+def test_db_write():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO users (user_id, email) VALUES (?, ?)", 
                       ("test-123", "test@test.com"))
-       conn.commit()
-       conn.close()
-       return "Test write complete"
+    conn.commit()
+    conn.close()
+    return "Test write complete"
 # ================= TEST DATABASE WRITING - TEMP FUNCTION ==================
 
 def get_user_status(email):
