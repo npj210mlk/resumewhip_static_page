@@ -293,7 +293,7 @@ def check_rate_limit(ip_address):
 
 def get_or_create_user(email: str):
     """Fetch user by email or create a record if they don't have one"""
-    print(f"f"🔍 DEBUG: get_or_create_user called with email: {email}")
+    print(f"🔍 DEBUG: get_or_create_user called with email: {email}")
     conn = get_db_connection()
     cursor = conn.cursor()
 
