@@ -383,7 +383,8 @@ def update_user_credits(user_id, credits, subscription_status='free'):
 def get_credits_display(email):
     """Return credits display based on user status"""
     user_id, credits, status = get_or_create_user(email)
-    is_premium = (status in ['paid', 'premium'])
+    credits_display = "∞" if status in ["paid", "premium"] else str(credits)
+    return f"### 🫘 Free Resumes Left: {credits_display}"
     
     if is_premium:
         return gr.Markdown("""
@@ -469,18 +470,17 @@ def store_stripe_customer_id(user_id, customer_id):
     conn.commit()
     conn.close()
 
-def create_checkout_session():
+def create_checkout_session(email):
     try:
         # check to see our PRICE_ID exists
         if not PRICE_ID or not PRICE_ID.strip():
             return "⚠️ Payment system not fully configured. Please contact support."
-        user_id = get_or_create_user(email)
-        user_email = get_user_email_from_db(user_id)
+        user_id, credits, status = get_or_create_user(email)
         customer_id = get_stripe_customer_id_from_db(user_id)
         session = stripe.checkout.Session.create(
             client_reference_id=user_id,
             customer = customer_id if customer_id else None,
-            customer_email = user_email if not customer_id else None,
+            customer_email = email if not customer_id else None,
             payment_method_types=['card'],
             line_items=[{
                 'price': PRICE_ID,
@@ -753,7 +753,7 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
         credits, status = get_user_credits(user_id)
 
         if credits <= 0:
-            checkout_url = create_checkout_session()
+            checkout_url = create_checkout_session(email)
             return(
                 f"⏰ Unlock Unlimited Power! [Upgrade here]({checkout_url}) for unlimited optimization.",
                 "", "", "", get_credits_display(email)
