@@ -1330,7 +1330,7 @@ and the next to begin:
             # Credit counter
             # resume_counter = gr.Markdown("### Free Resumes Left: --")
             # just a visual check here. if I don't like it, go back to the resume_counter above
-            resume_counter = get_credits_display(email)
+            # resume_counter = get_credits_display(email)
 
             # Access granter
             with gr.Accordion("My Admin Access", open=False, visible=False):
