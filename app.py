@@ -218,10 +218,13 @@ body[data-user-status="premium"] .tab-nav button.selected {
 }
 
 """
+# environment variable
+DATABASE_PATH = os.getenv("DATABASE_PATH", "resumewhip.db")
+
 # get new SQLite connection for each request
 def get_db_connection():
     """ Function to let FastAPI handle multiple requests to prevent db lockup"""
-    conn = sqlite3.connect("resumewhip.db", check_same_thread=False)
+    conn = sqlite3.connect(DATABASE_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -239,7 +242,9 @@ FREE_CREDITS = 3
 
 def init_database():
     """Initialize SQLite database with required tables"""
-    conn = sqlite3.connect('resumewhip.db')
+    # temp print verification
+    print(f"🔍 Connecting to database at: {DATABASE_PATH}")
+    conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
     # email TEXT UNIQUE to tie users to email
     cursor.execute('''
@@ -1305,9 +1310,9 @@ and the next to begin:
             #     )
 
             # Credit counter
-            resume_counter = gr.Markdown("### Free Resumes Left: --")
+            # resume_counter = gr.Markdown("### Free Resumes Left: --")
             # just a visual check here. if I don't like it, go back to the resume_counter above
-            # resume_counter = get_credits_display(email)
+            resume_counter = get_credits_display(email)
 
             # Access granter
             with gr.Accordion("My Admin Access", open=False, visible=False):
@@ -1364,14 +1369,14 @@ and the next to begin:
                             label="💼 Job Title", 
                             placeholder="e.g., Data Scientist, Welder"
                         )
-                    validate_btn = gr.Button("🤖 Whip Up the Job Validator! (Takes About 30 Seconds.)", variant="primary")
+                    validate_btn = gr.Button("🤖 Whip Up the Job Validator!", variant="primary")
                     summary_output = gr.HTML()
                     report_output = gr.Markdown()
                     # validation_output = gr.Markdown()
             #======================================================
 
                 with gr.TabItem("🎯 RESUME OPTIMIZER"):
-                    run_resume = gr.Button("🪄 Whip Up the Resume Optimizer!", variant="primary")
+                    run_resume = gr.Button("🪄 Whip Up the Resume Optimizer! (Takes About 30 Seconds.)", variant="primary")
                     
                     # process_resume outputs
                     # resume_md = gr.Markdown(label="Here's A Preview of Your Optimized Resume")
