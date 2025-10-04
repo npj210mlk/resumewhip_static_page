@@ -240,11 +240,33 @@ body[data-user-status="premium"] .tab-nav button.selected {
 DATABASE_PATH = os.getenv("DATABASE_PATH", "resumewhip.db")
 
 # get new SQLite connection for each request
+
+# def get_db_connection():
+#     """ Function to let FastAPI handle multiple requests to prevent db lockup"""
+#     db_path
+#     conn = sqlite3.connect(DATABASE_PATH, check_same_thread=False)
+#     conn.row_factory = sqlite3.Row
+#     return conn
+
 def get_db_connection():
-    """ Function to let FastAPI handle multiple requests to prevent db lockup"""
-    conn = sqlite3.connect(DATABASE_PATH, check_same_thread=False)
+    """
+    Connect to SQLite database.
+    Uses persistent disk on Render (/var/data) if available,
+    otherwise defaults to local resumewhip.db.
+    """
+    # Check if persistent Render disk exists
+    render_path = "/var/data/resumewhip.db"
+    local_path = "resumewhip.db"
+
+    # Prefer /var/data if Render has a mounted disk
+    db_path = render_path if os.path.exists("/var/data") else local_path
+
+    print(f"🔍 Connecting to database at: {os.path.abspath(db_path)}")  # debug info
+
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 # Stripe setup
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
