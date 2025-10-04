@@ -262,7 +262,7 @@ def init_database():
     """Initialize SQLite database with required tables"""
     # temp print verification
     print(f"🔍 Connecting to database at: {DATABASE_PATH}")
-    conn = sqlite3.connect(DATABASE_PATH)
+    conn = get_db_connection()
     cursor = conn.cursor()
     # email TEXT UNIQUE to tie users to email
     cursor.execute('''
@@ -405,7 +405,7 @@ def get_user_credits(user_id):
 
 def update_user_credits(user_id, credits, subscription_status='free'):
     """ update user credits """
-    conn = get_db_connection()
+    conn = get_db_connection()               
     cursor = conn.cursor()
     cursor.execute(
         "UPDATE users SET credits_remaining = ?, subscription_status = ? WHERE user_id = ?", 
@@ -414,33 +414,54 @@ def update_user_credits(user_id, credits, subscription_status='free'):
     conn.commit()
     conn.close()
 
+# def get_credits_display(email):
+#     """Return credits display based on user status"""
+#     user_id, credits, status = get_or_create_user(email)
+#     credits_display = "∞" if status in ["paid", "premium"] else str(credits)
+#     return f"### 🫘 Free Resumes Left: {credits_display}"
+    
+#     if is_premium:
+#         return gr.Markdown("""
+#         <div style="text-align: center; padding: 15px; 
+#                     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+#                     color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
+#             <strong>✨ Premium: Unlimited Resumes</strong>
+#         </div>
+#         """)
+#     else:
+#         # credits, _ = get_user_credits(user_id)
+#         return gr.Markdown(f"""
+#         <div style="text-align: center; padding: 15px; 
+#                     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+#                     color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
+#             <strong>Free Resumes Left: {credits}</strong>
+#         </div>
+#         """)
+
 def get_credits_display(email):
     """Return credits display based on user status"""
     user_id, credits, status = get_or_create_user(email)
-    credits_display = "∞" if status in ["paid", "premium"] else str(credits)
-    return f"### 🫘 Free Resumes Left: {credits_display}"
     
-    if is_premium:
-        return gr.Markdown("""
+    if status in ["paid", "premium"]:
+        return """
         <div style="text-align: center; padding: 15px; 
                     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
                     color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
             <strong>✨ Premium: Unlimited Resumes</strong>
         </div>
-        """)
+        """
     else:
-        # credits, _ = get_user_credits(user_id)
-        return gr.Markdown(f"""
+        return f"""
         <div style="text-align: center; padding: 15px; 
                     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
                     color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
-            <strong>Free Resumes Left: {credits}</strong>
+            <strong>🫘 Free Resumes Left: {credits}</strong>
         </div>
-        """)
+        """
 
 def get_user_id_by_customer_id(customer_id):
     """Get user_id from database using customer_id"""
-    conn = get_db_connection()
+    conn = get_db_connection() 
     cursor = conn.cursor()
     cursor.execute("SELECT user_id FROM users WHERE stripe_customer_id = ?", (customer_id,))
     row = cursor.fetchone()
@@ -449,7 +470,7 @@ def get_user_id_by_customer_id(customer_id):
 
 def get_stripe_customer_id_from_db(user_id):
     """Get the Stripe customer ID from SQLite db"""
-    conn = get_db_connection()
+    conn = get_db_connection() 
     cursor = conn.cursor()
     cursor.execute(
         "SELECT stripe_customer_id FROM users WHERE user_id = ?",
@@ -460,7 +481,7 @@ def get_stripe_customer_id_from_db(user_id):
     return row["stripe_customer_id"] if row else None
 
 def get_user_email_from_db(user_id):
-    conn = get_db_connection()
+    conn = get_db_connection() 
     cursor = conn.cursor()
     cursor.execute("SELECT email FROM users WHERE user_id = ?", (user_id,))
     row = cursor.fetchone()
@@ -469,7 +490,7 @@ def get_user_email_from_db(user_id):
 
 def log_request(user_id, ip_address):
     """ prevent endless account creation """
-    conn = get_db_connection()
+    conn = get_db_connection() 
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS requests_log (
@@ -484,7 +505,7 @@ def log_request(user_id, ip_address):
     conn.close()
 
 def check_rate_limit(ip_address):
-    conn = get_db_connection()
+    conn = get_db_connection() 
     cursor = conn.cursor()
     cursor.execute("""
         SELECT COUNT(*) as count FROM requests_log
@@ -496,7 +517,7 @@ def check_rate_limit(ip_address):
 
 def store_stripe_customer_id(user_id, customer_id):
     """Store Stripe customer ID in SQLite when they first subscribe"""
-    conn = get_db_connection()
+    conn = get_db_connection() 
     cursor = conn.cursor()
     cursor.execute(
         "UPDATE users SET stripe_customer_id = ? WHERE user_id = ?",
@@ -622,7 +643,7 @@ def open_billing_portal(email):
 
 def grant_unlimited_access(user_id):
     """If they've paid, they get full access"""
-    conn = get_db_connection()
+    conn = get_db_connection() 
     cursor = conn.cursor()
 
     # make sure they exist
@@ -644,7 +665,7 @@ def grant_unlimited_access(user_id):
 
 def revoke_unlimited_access(user_id):
     """Revoke unlimited access and set user to free; create if missing"""
-    conn = get_db_connection()
+    conn = get_db_connection() 
     cursor = conn.cursor()
 
     # see if they exist
