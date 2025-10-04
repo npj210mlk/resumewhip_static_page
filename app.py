@@ -217,6 +217,24 @@ body[data-user-status="premium"] .tab-nav button.selected {
     box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
 }
 
+.download-btn {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+    font-weight: 700 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 14px 28px !important;
+    font-size: 1.1em !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2) !important;
+}
+
+.download-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3) !important;
+    background: linear-gradient(135deg, #059669, #047857) !important;
+}
+
 """
 # environment variable
 DATABASE_PATH = os.getenv("DATABASE_PATH", "resumewhip.db")
@@ -1390,7 +1408,10 @@ and the next to begin:
                     score_comparison = gr.HTML(label = "📊 Resume Match Score")
                     resume_counter = gr.Markdown(label = "🫘 Resume Counter")
                     with gr.Row():
-                        export_resume_btn = gr.Button("📍 Click Here To Download Your Resume As PDF")
+                        export_resume_btn = gr.Button(
+                            "📍 Click Here To Download Your Resume As PDF",
+                            elem_classes = "download-btn"
+                            )
                         export_resume_result = gr.File()
 
                 with gr.TabItem("📝 COVER LETTER WRITER"):
@@ -1400,7 +1421,10 @@ and the next to begin:
                             lines=15
                         )
                     with gr.Row():
-                            export_cover_btn = gr.Button("📍 Click Here To Download Your Cover Letter As PDF")
+                            export_cover_btn = gr.Button(
+                                "📍 Click Here To Download Your Cover Letter As PDF",
+                                elem_classes = "download-btn"
+                                )
                             export_cover_result = gr.File()
 
             gr.HTML("""
