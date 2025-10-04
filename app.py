@@ -1560,6 +1560,8 @@ def run_fastapi():
 fastapi_app = gr.mount_gradio_app(fastapi_app, app, path="/")
 
 if __name__ == "__main__":
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Database will be at: {os.path.abspath('resumewhip.db')}")
     # Initialize the database
     init_database()
     uvicorn.run(
