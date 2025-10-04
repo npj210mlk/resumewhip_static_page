@@ -1531,10 +1531,11 @@ and the next to begin:
 
     email_input.submit(
         fn=lambda email: (
+            print(f"Email submitted: '{email}"),
             get_user_status(email),
             get_credits_display(email),
             get_sidebar_content(email)
-        ),
+        )[1:],
         inputs=[email_input],
         outputs=[user_status, resume_counter, sidebar_content]
     )
