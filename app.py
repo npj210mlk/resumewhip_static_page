@@ -785,7 +785,7 @@ async def stripe_webhook(request: Request):
 @fastapi_app.get("/admin/users")
 async def admin_view_users(auth: str = Header(None)):
     """View all users in production database - protected by secret key"""
-    if auth != ADMIN_SECRET:
+    if auth != ADMIN_INCOGNITO:
         raise HTTPException(status_code=403, detail="Unauthorized")
     
     conn = get_db_connection()
