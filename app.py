@@ -28,7 +28,7 @@ from new_functions import (
 )
 
 # for handling the api stuff
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Header
 from fastapi.responses import JSONResponse
 
 # button styling - <style></style> not needed b/c gradio injects the style string for us
@@ -236,8 +236,9 @@ body[data-user-status="premium"] .tab-nav button.selected {
 }
 
 """
-# environment variable
+# environment variables
 DATABASE_PATH = os.getenv("DATABASE_PATH", "resumewhip.db")
+ADMIN_INCOGNITO = os.getenv("ADMIN_INCOGNITO", "change_this_secret_key")
 
 # get new SQLite connection for each request
 
@@ -282,8 +283,6 @@ FREE_CREDITS = 3
 
 def init_database():
     """Initialize SQLite database with required tables"""
-    # temp print verification
-    print(f"🔍 Connecting to database at: {DATABASE_PATH}")
     conn = get_db_connection()
     cursor = conn.cursor()
     # email TEXT UNIQUE to tie users to email
@@ -782,6 +781,26 @@ async def stripe_webhook(request: Request):
     except Exception as e:
         print(f"🚨 Webhook error: {e}")
         return JSONResponse(content={"status": "error", "message": str(e)}, status_code=400)
+
+@fastapi_app.get("/admin/users")
+async def admin_view_users(auth: str = Header(None)):
+    """View all users in production database - protected by secret key"""
+    if auth != ADMIN_SECRET:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users ORDER BY created_at DESC")
+    users = cursor.fetchall()
+    conn.close()
+    
+    # Convert to list of dicts for JSON response
+    user_list = [dict(user) for user in users]
+    
+    return {
+        "total_users": len(user_list),
+        "users": user_list
+    }
 
 def run_resume_with_credits_with_scoring(resume_file, job_input, email):
     """Handle resume processing with premium and free user experience"""
@@ -1553,11 +1572,11 @@ and the next to begin:
 
     email_input.submit(
         fn=lambda email: (
-            print(f"Email submitted: '{email}"),
+            print(f"Email submitted: '{email}'"),
             get_user_status(email),
             get_credits_display(email),
             get_sidebar_content(email)
-        )[1:],
+        ),
         inputs=[email_input],
         outputs=[user_status, resume_counter, sidebar_content]
     )
