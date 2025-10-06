@@ -88,6 +88,9 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
     - Incorporate at LEAST 60% of these keywords naturally throughout the resume.
     - Use the EXACT terminology from the job posting (e.g., if they say "machine learning," don't say "ML").
     - Keywords must appear in context, not just listed.
+    - If a required keyword cannot be supported by past experience, reference it in the Skills or Summary sections **without implying prior mastery or false experience.** 
+    (Example: "Familiar with cloud deployment tools" instead of "Expert in cloud deployment.")
+
 
     **2. Quantifiable Achievements (MANDATORY)**
     - KEEP ALL existing numbers, percentages, dollar amounts, and metrics from the original resume.
@@ -114,10 +117,11 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
     - Reframe existing experience to emphasize skills mentioned in the job posting.
 
     **5. Summary Section**
-    - Write a 2-3 sentence summary that:
-      * Mirrors the job title and key requirements
-      * Includes 5-7 critical keywords from the job description
-      * Highlights the most impressive quantifiable achievement
+    - Write a 2–3 sentence professional summary that:
+    * Mirrors the job title and core skills from the job description.
+    * Accurately reflects the candidate’s actual background — do NOT add years of experience, certifications, or skills that are not verifiable in the original resume.
+    * Focus on tone, clarity, and relevance rather than exaggeration.
+    * Use factual phrasing like “experienced in,” “familiar with,” or “skilled at” when the level of expertise is uncertain.
 
     **6. Skills Section**
     - Create a dedicated "Technical Skills" or "Core Competencies" section
@@ -149,11 +153,12 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
 
     ---
 
-    ### Remember:
-    - More keywords = higher ATS score
-    - More numbers = more credible
-    - Strong action verbs = more impactful
-    - DO NOT remove metrics to save space - they're what gets interviews
+    ### Remember: Your rewritten resume will be evaluated based on: 
+        1. Keyword match accuracy (50 points),
+        2. Use of strong action verbs (20 points),
+        3. Quantifiable results (20 points),
+        4. Optimal length and clarity (10 points).
+        Your goal is to maximize the score in all categories."s
     """
 
 def get_resume_response(prompt: str, model: str = "gpt-4o-mini", temperature: float = 0.7) -> str:
