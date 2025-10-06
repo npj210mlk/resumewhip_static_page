@@ -799,7 +799,7 @@ async def admin_view_users(auth: str = Header(None)):
     
     return {
         "total_users": len(user_list),
-        "users": user_list
+        "users": user_list  
     }
 
 def run_resume_with_credits_with_scoring(resume_file, job_input, email):
@@ -933,26 +933,26 @@ def generate_cover_letter(resume_file, job_input):
     except Exception as e:
         return f"🚩 Unexpected error in generating cover letter: {e}"
     
-def quick_job_summary(score):
-    if score >= 80:
-        return "✅ Job post looks legit! It scored 80% or higher on our validation run."
-    elif score >= 50:
-        return "⚠️ Only scored between a 50 and 79% on the validation run. Proceed with caution."
-    else:
-        return "❌ Waste of time. Couldn't even score a 49% on our validation run. Just an attempt to harvest your data."
+# def quick_job_summary(score):
+#     if score >= 80:
+#         return "✅ Job post looks legit! It scored 80% or higher on our validation run."
+#     elif score >= 50:
+#         return "⚠️ Only scored between a 50 and 79% on the validation run. Proceed with caution."
+#     else:
+#         return "❌ Waste of time. Couldn't even score a 49% on our validation run. Just an attempt to harvest your data."
 
 # Score box
 
 def quick_job_summary(score):
     if score >= 80:
         color = "#10b981"  # Green
-        text = "✅ Go for it! A real person from a real company has real needs."
+        text = "✅ Go for it! Job post looks legit, scoring 80% or higher on our validation run.."
     elif score >= 50:
         color = "#f59e0b"  # Orange
-        text = "⚠️ Some concerns detected - templated lingo, ghost-post maybe? Proceed with caution."
+        text = "⚠️ Only scored between a 50 and 79% on the validation run  - templated lingo, ghost-post maybe?"
     else:
         color = "#ef4444"  # Red
-        text = "❌ High risk! We don't like it. Don't waste your time on this one."
+        text = "❌ High risk! We don't like it. Couldn't even score a 49% on our validation run. Likely data harvesting - Don't waste your time."
     
     return f"""
     <div style="background:{color}; color:white; padding:10px; 
