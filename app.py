@@ -27,6 +27,9 @@ from new_functions import (
     detect_urgency_language
 )
 
+# for ip address grabbing security
+from flask import request
+
 # for handling the api stuff
 from fastapi import FastAPI, Request, HTTPException, Header
 from fastapi.responses import JSONResponse
@@ -335,6 +338,35 @@ def check_rate_limit(ip_address):
         conn.commit()
         return True
 
+def get_user_ip():
+    """ Get the user's IP address, accounting for proxies. """
+    if request.headers.get("X-Forwarded-For"):
+        ip = request.headers["X-Forwarded-For"].split(",")[0]
+    else:
+        ip = request.remote_addr or "unknown"
+    return ip
+
+def track_ip_usage(ip):
+    """ Log / update daily ip usage. """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # today's date for unique daily count
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    cursor.execute(
+        """
+        INSERT INTO ip_usage (ip, date, count)
+        VALUES (?, ?, 1)
+        ON CONFLICT(ip, date)
+        DO UPDATE SET count = count + 1;
+        """,
+        (ip, today)
+    )
+
+    conn.commit()
+    conn.close()
+
 def get_or_create_user(email: str):
     """Fetch user by email or create a record if they don't have one"""
     print(f"🔍 DEBUG: get_or_create_user called with email: {email}")
@@ -369,16 +401,16 @@ def ensure_user_logged(email):
         raise ValueError("Email required.")
     return get_or_create_user(email)
 
-# ================= TEST DATABASE WRITING - TEMP FUNCTION ==================
-def test_db_write():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO users (user_id, email) VALUES (?, ?)", 
-                      ("test-123", "test@test.com"))
-    conn.commit()
-    conn.close()
-    return "Test write complete"
-# ================= TEST DATABASE WRITING - TEMP FUNCTION ==================
+# # ================= TEST DATABASE WRITING - TEMP FUNCTION ==================
+# def test_db_write():
+#     conn = get_db_connection()
+#     cursor = conn.cursor()
+#     cursor.execute("INSERT INTO users (user_id, email) VALUES (?, ?)", 
+#                       ("test-123", "test@test.com"))
+#     conn.commit()
+#     conn.close()
+#     return "Test write complete"
+# # ================= TEST DATABASE WRITING - TEMP FUNCTION ==================
 
 def get_user_status(email):
     user_id, credits, status = get_or_create_user(email)
@@ -1147,6 +1179,24 @@ def admin_grant_access(email):
     grant_unlimited_access(user_id)
     return f"Granted unlimited access to user: {user_id}"
 
+def handle_resume_optimize(email, resume_text, job_desc):
+    """Main handler for the Resume Optimizer button."""
+    try:
+        # ✅ log the user and IP
+        get_or_create_user(email)
+        track_ip_usage(get_user_ip())
+
+        # ✅ run existing optimizer
+        optimized_md, editable_text, tips, score_html = process_resume(
+            resume_text, job_desc
+        )
+
+        return optimized_md, editable_text, tips, score_html
+
+    except Exception as e:
+        print(f"Error in handle_resume_optimize: {e}")
+        return "⚠️ Error optimizing resume.", "", "", ""
+
 # for paid unlimited access
 
 # Create Gradio interface
@@ -1572,7 +1622,7 @@ and the next to begin:
 
     email_input.submit(
         fn=lambda email: (
-            print(f"Email submitted: '{email}'"),
+            get_or_create_user(email),
             get_user_status(email),
             get_credits_display(email),
             get_sidebar_content(email)
@@ -1590,15 +1640,20 @@ and the next to begin:
         outputs=[summary_output, report_output]
     )
 
+    # run_resume.click(
+    #     fn = lambda resume, job, email: (
+    #         get_or_create_user(email), 
+    #         run_resume_with_credits_with_scoring(resume, job, email)
+    #     )[1],
+    #     inputs=[resume_input, job_input, email_input],
+    #     outputs=[resume_md, resume_edit, suggestions, score_comparison, resume_counter]
+    # )
     
     run_resume.click(
-        fn = lambda resume, job, email: (
-            get_or_create_user(email), 
-            run_resume_with_credits_with_scoring(resume, job, email)
-        )[1],
-        inputs=[resume_input, job_input, email_input],
-        outputs=[resume_md, resume_edit, suggestions, score_comparison, resume_counter]
-    )
+    fn=handle_resume_optimize,
+    inputs=[email_input, resume_input, job_input],
+    outputs=[resume_md, resume_edit, suggestions, score_comparison]
+)
 
     manage_billing_btn.click(
         fn=open_billing_portal,
