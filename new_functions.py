@@ -200,9 +200,13 @@ def process_resume(resume_file_path, job_desc_string):
         # quick output build - we need the og optimized resume, suggestions, the score, and an editable optimized
         match_info = f"### 📊 Resume Match Score\n- Before: {before_score * 100:.1f}%\n- After: {after_score * 100:.1f}%"
         return [optimized, suggestions, match_info, optimized]
+    # except Exception as e:
+    #     logging.error(f"process_resume failed: {e}")
+    #     return [f"Error: {e}", "", "", ""]
     except Exception as e:
+        print(f"DEBUG: Optimization Error: {e}") # This prints to your server logs
         logging.error(f"process_resume failed: {e}")
-        return [f"Error: {e}", "", "", ""]
+        return [f"⚠️ Error optimizing resume. Details: {e}", "", "", ""] 
 
 def export_resume(new_resume, company_name):
     company_slug = re.sub(r"[^a-zA-Z0-9_-]", "", company_name.lower())
