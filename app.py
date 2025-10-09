@@ -350,24 +350,34 @@ def get_user_ip():
 
 def track_ip_usage(ip):
     """ Log / update daily ip usage. """
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    # today's date for unique daily count
-    today = datetime.now().strftime("%Y-%m-%d")
+        # today's date for unique daily count
+        today = datetime.now().strftime("%Y-%m-%d")
 
-    cursor.execute(
-        """
-        INSERT INTO ip_usage (ip, date, count)
-        VALUES (?, ?, 1)
-        ON CONFLICT(ip, date)
-        DO UPDATE SET count = count + 1;
-        """,
-        (ip, today)
-    )
+        cursor.execute(
+            """
+            INSERT INTO ip_usage (ip, date, count)
+            VALUES (?, ?, 1)
+            ON CONFLICT(ip, date)
+            DO UPDATE SET count = count + 1;
+            """,
+            (ip, today)
+        )
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+    
+    except sqlite3.Error as db_error:
+        print(f"🚨 Database error in track_ip_usage: {db_error}")
+        if conn:
+            conn.rollback()
+
+    finally:
+        if conn:
+            conn.close()
 
 def get_or_create_user(email: str):
     """Fetch user by email or create a record if they don't have one"""
@@ -880,8 +890,8 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
         ip = "unknown"
         # pass this from FASTAPI context
         track_ip_usage(ip)
-    except:
-        print(f"⚠️ Could not log user's IP: {e}")
+    except Exception as ip_error: 
+        print(f"⚠️ Could not log user's IP: {ip_error}"))
     
     if is_premium:
         # Premium user - unlimited access
@@ -918,9 +928,9 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
 
             return (optimized_preview, optimized_text, suggestions, score_comparison, premium_display)
         
-        except Exception as e:
-            print(f"🚨 Premium processing error: {e}")
-            return (f"Error processing resume: {e}", "", "", "", get_credits_display(email))
+        except Exception as premium_error:
+            print(f"🚨 Premium processing error: {premium_error}")
+            return (f"Error processing resume: {premium_error}", "", "", "", get_credits_display(email))
     else:
         # Free user - existing credit logic
         # credits, status = get_user_credits(user_id)
@@ -957,9 +967,9 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
             # return (*result, get_credits_display(email))
             return (optimized_preview, optimized_text, suggestions, score_comparison, get_credits_display(email))
         
-        except Exception as e:
-            print(f"🚨 Free user processing error: {e}")
-            return (f"😩 Apologies, but there was an error in  processing your resume: {e}", "", "", "", get_credits_display(email))
+        except Exception as free_error:
+            print(f"🚨 Free user processing error: {free_error}")
+            return (f"😩 Apologies, but there was an error in  processing your resume: {free_error}", "", "", "", get_credits_display(email))
 
 def show_premium_welcome():
     """Show welcome message for new premium users"""
