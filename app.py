@@ -1006,7 +1006,7 @@ def generate_cover_letter(resume_file, job_input):
         prompt = cover_letter_prompt_creator(resume_txt, job_input)
         return get_cover_response(prompt)
     except Exception as e:
-        return f"🚩 Unexpected error in generating cover letter: {e}"
+        return (f"🚩 Unexpected error in generating cover letter: {e}")
     
 # def quick_job_summary(score):
 #     if score >= 80:
@@ -1240,9 +1240,9 @@ def admin_grant_access(email):
     #     print(f"Error in handle_resume_optimize: {e}")
     #     return "⚠️ Error optimizing resume.", "", "", ""
 
-    except Exception as e:
-        print(f"DEBUG: Optimization Error: {e}") # This prints to your server logs
-        return f"⚠️ Error optimizing resume. Details: {e}" # This shows the error to the user
+    # except Exception as e:
+    #     print(f"DEBUG: Optimization Error: {e}") # This prints to your server logs
+    #     return f"⚠️ Error optimizing resume. Details: {e}" # This shows the error to the user
 # for paid unlimited access
 
 # Create Gradio interface
