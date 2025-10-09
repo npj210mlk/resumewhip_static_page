@@ -27,9 +27,6 @@ from new_functions import (
     detect_urgency_language
 )
 
-# for ip address grabbing security
-from flask import request
-
 # for handling the api stuff
 from fastapi import FastAPI, Request, HTTPException, Header
 from fastapi.responses import JSONResponse
@@ -252,24 +249,29 @@ ADMIN_INCOGNITO = os.getenv("ADMIN_INCOGNITO", "change_this_secret_key")
 #     conn.row_factory = sqlite3.Row
 #     return conn
 
+# isolate the variables / store data specific to each thread in its own database connection
+thread_local = threading.local()
+
 def get_db_connection():
-    """
-    Connect to SQLite database.
-    Uses persistent disk on Render (/var/data) if available,
-    otherwise defaults to local resumewhip.db.
-    """
+    """ Get a thread-safe database connection using thread_local """
+    if not hasattr(thread_local, "connection"):
     # Check if persistent Render disk exists
-    render_path = "/var/data/resumewhip.db"
-    local_path = "resumewhip.db"
+        render_path = "/var/data/resumewhip.db"
+        local_path = "resumewhip.db"
+        db_path = render_path if os.path.exists("/var/data") else local_path
 
-    # Prefer /var/data if Render has a mounted disk
-    db_path = render_path if os.path.exists("/var/data") else local_path
+        print(f"🔍 New DB connection for thread: {os.path.abspath(db_path)}")
 
-    print(f"🔍 Connecting to database at: {os.path.abspath(db_path)}")  # debug info
+        thread_local.connection = sqlite3.connect(db_path, timeout = 10)
+        thread_local.connection.row_factory = sqlite3.Row
 
-    conn = sqlite3.connect(db_path, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    return conn
+    # original connection was just "conn"
+    # conn = sqlite3.connect(db_path, check_same_thread=False)
+    # conn.row_factory = sqlite3.Row
+    # return conn
+
+    # threading connection
+    return thread_local.connection
 
 
 # Stripe setup
@@ -373,26 +375,37 @@ def get_or_create_user(email: str):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # look them up by email
-    cursor.execute("SELECT user_id, credits_remaining, subscription_status FROM users WHERE email = ?", (email,))
-    row = cursor.fetchone()
-
-    if row:
-        user_id, credits, status = row
-        print(f"✅ DEBUG: Found existing user: {user_id}")
-    else:
-        user_id = str(uuid.uuid4())
-        credits = 3
-        status = "free"
+    try:
         cursor.execute(
-            "INSERT INTO users (user_id, email, credits_remaining, subscription_status) VALUES (?, ?, ?, ?)",
-            (user_id, email, credits, status)
-        )
-        conn.commit()
-        print(f"✅ DEBUG: Created new user: {email}, id={user_id}")
+            "SELECT user_id, credits_remaining, subscription_status FROM users WHERE email = ?",
+            (email,)
+            )
+        row = cursor.fetchone()
+
+        if row:
+            user_id, credits, status = row
+            print(f"✅ Found existing user: {user_id}")
+
+        else:
+            user_id = str(uuid.uuid4())
+            credits = 3
+            status = "free"
+            cursor.execute(
+                "INSERT INTO users (user_id, email, credits_remaining, subscription_status) VALUES (?, ?, ?, ?)",
+                (user_id, email, credits, status)
+            )
+            conn.commit()
+            print(f"✅ Created new user: {email}, id={user_id}")
+        
+        return user_id, credits, status
     
-    conn.close()
-    return user_id, credits, status
+    except sqlite3.Error as e:
+        print(f"🚨 Database error: {e}")
+        conn.rollback()
+        raise
+    
+    finally:
+        conn.close()
 
 # email logging / email validation wrapper
 def ensure_user_logged(email):
@@ -814,6 +827,14 @@ async def stripe_webhook(request: Request):
         print(f"🚨 Webhook error: {e}")
         return JSONResponse(content={"status": "error", "message": str(e)}, status_code=400)
 
+@fastapi_app.middleware("http")
+async def track_user_requests(request: Request, call_next):
+    # get the ip addys from headers
+    ip = request.headers.get("x-forwarded-for", request.client.host).split(",")[0]
+    # store for gradio to access
+    response = await call_next(request)
+    return response
+
 @fastapi_app.get("/admin/users")
 async def admin_view_users(auth: str = Header(None)):
     """View all users in production database - protected by secret key"""
@@ -836,15 +857,31 @@ async def admin_view_users(auth: str = Header(None)):
 
 def run_resume_with_credits_with_scoring(resume_file, job_input, email):
     """Handle resume processing with premium and free user experience"""
+
+    # Validate the user's email input
+    if not email or not email.strip():
+        return ("🚨 Please enter your email address to continue.", "", "", "", gr.Markdown(""))
+    
+    # Validate the user's job_input
     if not resume_file or not job_input.strip():
         return ("⚠️ Please upload your resume and paste the job description.", "", "", "",
                 get_credits_display(email))
     
-    if not email or not email.strip():
-        return ("🚨 Please enter your email address to continue.", "", "", "", gr.Markdown(""))
+    # if not email or not email.strip():
+    #     return ("🚨 Please enter your email address to continue.", "", "", "", gr.Markdown(""))
     
+    # Get or create the user - db insertion
     user_id, credits, status = get_or_create_user(email)
     is_premium = (status in ["paid", "premium"])
+
+    # Log IP used
+    try:
+        # default fallback
+        ip = "unknown"
+        # pass this from FASTAPI context
+        track_ip_usage(ip)
+    except:
+        print(f"⚠️ Could not log user's IP: {e}")
     
     if is_premium:
         # Premium user - unlimited access
@@ -869,20 +906,24 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
                 original_feedback, optimized_feedback
             )
 
-            premium_display = gr.Markdown("""
-            <div style="text-align: center; padding: 15px; 
-                        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                        color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
-                <strong>✨ You're Premium! Thanks for Choosing Us!</strong>
-            </div>
-            """)
+            # premium_display = gr.Markdown("""
+            # <div style="text-align: center; padding: 15px; 
+            #             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            #             color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
+            #     <strong>✨ You're Premium! Thanks for Choosing Us!</strong>
+            # </div>
+            # """)
+
+            premium_display = get_credits_display(email) 
+
             return (optimized_preview, optimized_text, suggestions, score_comparison, premium_display)
         
         except Exception as e:
+            print(f"🚨 Premium processing error: {e}")
             return (f"Error processing resume: {e}", "", "", "", get_credits_display(email))
     else:
         # Free user - existing credit logic
-        credits, status = get_user_credits(user_id)
+        # credits, status = get_user_credits(user_id)
 
         if credits <= 0:
             checkout_url = create_checkout_session(email)
@@ -910,12 +951,14 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
                 original_score, optimized_score,
                 original_feedback, optimized_feedback
             )
-            
-            update_user_credits(user_id, credits -1)
+            # deduct credits AFTER successfull processing
+            update_user_credits(user_id, credits - 1)
+
             # return (*result, get_credits_display(email))
             return (optimized_preview, optimized_text, suggestions, score_comparison, get_credits_display(email))
         
         except Exception as e:
+            print(f"🚨 Free user processing error: {e}")
             return (f"😩 Apologies, but there was an error in  processing your resume: {e}", "", "", "", get_credits_display(email))
 
 def show_premium_welcome():
@@ -1179,24 +1222,27 @@ def admin_grant_access(email):
     grant_unlimited_access(user_id)
     return f"Granted unlimited access to user: {user_id}"
 
-def handle_resume_optimize(email, resume_text, job_desc):
-    """Main handler for the Resume Optimizer button."""
-    try:
-        # ✅ log the user and IP
-        get_or_create_user(email)
-        track_ip_usage(get_user_ip())
+# def handle_resume_optimize(email, resume_text, job_desc):
+#     """Main handler for the Resume Optimizer button."""
+#     try:
+#         # ✅ log the user and IP
+#         get_or_create_user(email)
+#         track_ip_usage(get_user_ip())
 
-        # ✅ run existing optimizer
-        optimized_md, editable_text, tips, score_html = process_resume(
-            resume_text, job_desc
-        )
+#         # ✅ run existing optimizer
+#         optimized_md, editable_text, tips, score_html = process_resume(
+#             resume_text, job_desc
+#         )
 
-        return optimized_md, editable_text, tips, score_html
+#         return optimized_md, editable_text, tips, score_html
+
+    # except Exception as e:
+    #     print(f"Error in handle_resume_optimize: {e}")
+    #     return "⚠️ Error optimizing resume.", "", "", ""
 
     except Exception as e:
-        print(f"Error in handle_resume_optimize: {e}")
-        return "⚠️ Error optimizing resume.", "", "", ""
-
+        print(f"DEBUG: Optimization Error: {e}") # This prints to your server logs
+        return f"⚠️ Error optimizing resume. Details: {e}" # This shows the error to the user
 # for paid unlimited access
 
 # Create Gradio interface
@@ -1650,10 +1696,10 @@ and the next to begin:
     # )
     
     run_resume.click(
-    fn=handle_resume_optimize,
-    inputs=[email_input, resume_input, job_input],
-    outputs=[resume_md, resume_edit, suggestions, score_comparison]
-)
+        fn=run_resume_with_credits_with_scoring,
+        inputs=[resume_input, job_input, email_input],
+        outputs=[resume_md, resume_edit, suggestions, score_comparison, resume_counter]
+    )
 
     manage_billing_btn.click(
         fn=open_billing_portal,
