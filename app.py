@@ -253,26 +253,14 @@ ADMIN_INCOGNITO = os.getenv("ADMIN_INCOGNITO", "change_this_secret_key")
 thread_local = threading.local()
 
 def get_db_connection():
-    """ Get a thread-safe database connection using thread_local """
-    if not hasattr(thread_local, "connection"):
-    # Check if persistent Render disk exists
-        render_path = "/var/data/resumewhip.db"
-        local_path = "resumewhip.db"
-        db_path = render_path if os.path.exists("/var/data") else local_path
-
-        print(f"🔍 New DB connection for thread: {os.path.abspath(db_path)}")
-
-        thread_local.connection = sqlite3.connect(db_path, timeout = 10)
-        thread_local.connection.row_factory = sqlite3.Row
-
-    # original connection was just "conn"
-    # conn = sqlite3.connect(db_path, check_same_thread=False)
-    # conn.row_factory = sqlite3.Row
-    # return conn
-
-    # threading connection
-    return thread_local.connection
-
+    """ Get a new database connection each time.Each connection has to manage its own lifecycle."""
+    render_path = "/var/data/resumewhip.db"
+    local_path = "resumewhip.db"
+    db_path = render_path if os.path.exists("/var/data") else local_path
+    
+    conn = sqlite3.connect(db_path, timeout=10)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 # Stripe setup
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
@@ -383,9 +371,10 @@ def get_or_create_user(email: str):
     """Fetch user by email or create a record if they don't have one"""
     print(f"🔍 DEBUG: get_or_create_user called with email: {email}")
     conn = get_db_connection()
-    cursor = conn.cursor()
 
     try:
+        cursor = conn.cursor()
+        # look them up by email
         cursor.execute(
             "SELECT user_id, credits_remaining, subscription_status FROM users WHERE email = ?",
             (email,)
@@ -409,13 +398,16 @@ def get_or_create_user(email: str):
         
         return user_id, credits, status
     
-    except sqlite3.Error as e:
-        print(f"🚨 Database error: {e}")
-        conn.rollback()
-        raise
+    except sqlite3.Error as db_error:
+        print(f"🚨 Database erro in get_or_create_user: {db_error}")
+        if conn:
+            conn.rollback()
+        # go back to safe defaults if db fails
+        return str(uuid.uuid4()), 0, "free"
     
     finally:
-        conn.close()
+        if conn:
+            conn.close()
 
 # email logging / email validation wrapper
 def ensure_user_logged(email):
@@ -436,21 +428,37 @@ def ensure_user_logged(email):
 # # ================= TEST DATABASE WRITING - TEMP FUNCTION ==================
 
 def get_user_status(email):
-    user_id, credits, status = get_or_create_user(email)
+    """Check the user's status"""
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT subscription_status, credits_remaining FROM users WHERE user_id = ?", (user_id,))
-    row = cursor.fetchone()
-    conn.close()
+    try:
+        cursor = conn.cursor()
 
-    if not row:
-        return "As A Free User, You've Got 3 Free Resumes Remaining"
+        # check status and credits
+        cursor.execute(
+                       "SELECT user_id, subscription_status, credits_remaining FROM users WHERE email = ?", 
+                       (email,)
+                       )
+        row = cursor.fetchone()
+
+        if not row:
+            return "As A Free User, You've Got 3 Free Resumes Remaining"
     
-    status, credits = row["subscription_status"], row["credits_remaining"]
-    if status in ["paid", "premium"] or credits == -1:
-        return "🌟 Unlimited Resumes Granted! You're A Premium User - Thanks So Much for Choosing Us!"
-    else:
-        return f"You currently have {credits if credits is not None else 3} Free Resumes Remaining"
+        user_id, status, credits = row["user_id"], row["subscription_status"], row["credits_remaining"]
+
+        if status in ["paid", "premium"] or credits == -1:
+            return "🌟 Unlimited Resumes Granted! You're A Premium User - Thanks So Much for Choosing Us!"
+        else:
+            return f"You currently have {credits if credits is not None else 3} Free Resumes Remaining"
+            
+    except sqlite3.Error as db_error:
+        print(f"🚨 Database error in get_user_status: {db_error}")
+        if conn:
+            conn.rollback()
+        return "⚠️ Unable to load user status. Please try again."
+    
+    finally:
+        if conn:
+            conn.close()
 
 def is_premium_user(user_id):
     """Check if user has active premium subscription"""
@@ -460,35 +468,59 @@ def is_premium_user(user_id):
             check_payment_status(user_id))
 
 def get_user_credits(user_id):
-    """ Retrieve user credits from database"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    """Retrieve user credits from database"""
+    conn = get_db_connection()  # ✅ Get OWN connection
+    try:
+        cursor = conn.cursor()
 
-    cursor.execute("""
-                   INSERT INTO users (user_id, credits_remaining, subscription_status)
-                   VALUES (?, 3, 'free')
-                   ON CONFLICT(user_id) DO NOTHING
-                   """, (user_id,))
+        # Ensure user exists
+        cursor.execute("""
+            INSERT INTO users (user_id, credits_remaining, subscription_status)
+            VALUES (?, 3, 'free')
+            ON CONFLICT(user_id) DO NOTHING
+        """, (user_id,))
 
-    # get current values
-    cursor.execute("SELECT credits_remaining, subscription_status FROM users WHERE user_id = ?", (user_id,))
-    row = cursor.fetchone()
-    conn.commit()
+        # Get current values
+        cursor.execute(
+            "SELECT credits_remaining, subscription_status FROM users WHERE user_id = ?", 
+            (user_id,)
+        )
+        row = cursor.fetchone()
+        conn.commit()
 
-    # since they alreay exist, return their current credits  
-    conn.close()
-    return row["credits_remaining"], row["subscription_status"]
+        if row:
+            return row["credits_remaining"], row["subscription_status"]
+        else:
+            return 3, "free"  # Safe default
+    
+    except sqlite3.Error as db_error:
+        print(f"🚨 Database error in get_user_credits: {db_error}")
+        return 3, "free"  # Safe default
+    
+    finally:
+        if conn:
+            conn.close()  # ✅ Always close OWN connection
 
 def update_user_credits(user_id, credits, subscription_status='free'):
     """ update user credits """
     conn = get_db_connection()               
     cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE users SET credits_remaining = ?, subscription_status = ? WHERE user_id = ?", 
-        (credits, subscription_status, user_id)
-        )
-    conn.commit()
-    conn.close()
+    try:
+        cursor.execute(
+            "UPDATE users SET credits_remaining = ?, subscription_status = ? WHERE user_id = ?", 
+            (credits, subscription_status, user_id)
+            )
+        conn.commit()
+        print(f"✅ Updated credits for user {user_id}: {credits} remaining")
+    
+    except sqlite3.Error as db_error:
+        print(f"🚨 Database error in update_user_credits: {db_error}")
+        if conn:
+            conn.rollback()
+    
+    finally:
+        if conn:
+            conn.close()
 
 # def get_credits_display(email):
 #     """Return credits display based on user status"""
@@ -516,53 +548,135 @@ def update_user_credits(user_id, credits, subscription_status='free'):
 
 def get_credits_display(email):
     """Return credits display based on user status"""
-    user_id, credits, status = get_or_create_user(email)
+    conn = get_db_connection()  # ✅ Get OWN connection
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT user_id, credits_remaining, subscription_status FROM users WHERE email = ?",
+            (email,)
+        )
+        row = cursor.fetchone()
+        
+        if not row:
+            # User doesn't exist yet - show default
+            return """
+            <div style="text-align: center; padding: 15px; 
+                        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                        color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
+                <strong>🫘 Free Resumes Left: 3</strong>
+            </div>
+            """
+        
+        user_id, credits, status = row
+        
+        if status in ["paid", "premium"]:
+            return """
+            <div style="text-align: center; padding: 15px; 
+                        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                        color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
+                <strong>✨ Premium: Unlimited Resumes</strong>
+            </div>
+            """
+        else:
+            return f"""
+            <div style="text-align: center; padding: 15px; 
+                        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                        color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
+                <strong>🫘 Free Resumes Left: {credits}</strong>
+            </div>
+            """
     
-    if status in ["paid", "premium"]:
+    except sqlite3.Error as db_error:
+        print(f"🚨 Database error in get_credits_display: {db_error}")
         return """
         <div style="text-align: center; padding: 15px; 
-                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
                     color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
-            <strong>✨ Premium: Unlimited Resumes</strong>
+            <strong>⚠️ Unable to load credits</strong>
         </div>
         """
-    else:
-        return f"""
-        <div style="text-align: center; padding: 15px; 
-                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-                    color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
-            <strong>🫘 Free Resumes Left: {credits}</strong>
-        </div>
-        """
+    
+    finally:
+        if conn:
+            conn.close()  # ✅ Always close OWN connection
 
 def get_user_id_by_customer_id(customer_id):
-    """Get user_id from database using customer_id"""
-    conn = get_db_connection() 
-    cursor = conn.cursor()
-    cursor.execute("SELECT user_id FROM users WHERE stripe_customer_id = ?", (customer_id,))
-    row = cursor.fetchone()
-    conn.close()
-    return row["user_id"] if row else None
+    """Get user_id from database using Stripe customer_id"""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT user_id FROM users WHERE stripe_customer_id = ?", 
+            (customer_id,)
+        )
+        row = cursor.fetchone()
+        
+        if row:
+            print(f"✅ Found user_id for customer {customer_id}")
+            return row["user_id"]
+        else:
+            print(f"⚠️ No user found for customer_id: {customer_id}")
+            return None
+    
+    except sqlite3.Error as db_error:
+        print(f"🚨 Database error in get_user_id_by_customer_id: {db_error}")
+        return None
+    
+    finally:
+        if conn:
+            conn.close()
 
 def get_stripe_customer_id_from_db(user_id):
     """Get the Stripe customer ID from SQLite db"""
-    conn = get_db_connection() 
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT stripe_customer_id FROM users WHERE user_id = ?",
-        (user_id,)
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT stripe_customer_id FROM users WHERE user_id = ?",
+            (user_id,)
         )
-    row = cursor.fetchone()
-    conn.close()
-    return row["stripe_customer_id"] if row else None
+        row = cursor.fetchone()
+        
+        if row:
+            print(f"✅ Found Stripe customer_id for user {user_id}")
+            return row["stripe_customer_id"]
+        else:
+            print(f"⚠️ No Stripe customer_id found for user: {user_id}")
+            return None
+    
+    except sqlite3.Error as db_error:
+        print(f"🚨 Database error in get_stripe_customer_id_from_db: {db_error}")
+        return None
+    
+    finally:
+        if conn:
+            conn.close()
 
 def get_user_email_from_db(user_id):
-    conn = get_db_connection() 
-    cursor = conn.cursor()
-    cursor.execute("SELECT email FROM users WHERE user_id = ?", (user_id,))
-    row = cursor.fetchone()
-    conn.close()
-    return row["email"] if row else None
+    """Get user's email from database using user_id"""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT email FROM users WHERE user_id = ?", 
+            (user_id,)
+        )
+        row = cursor.fetchone()
+        
+        if row:
+            print(f"✅ Found email for user {user_id}")
+            return row["email"]
+        else:
+            print(f"⚠️ No email found for user: {user_id}")
+            return None
+    
+    except sqlite3.Error as db_error:
+        print(f"🚨 Database error in get_user_email_from_db: {db_error}")
+        return None
+    
+    finally:
+        if conn:
+            conn.close()
 
 def log_request(user_id, ip_address):
     """ prevent endless account creation """
@@ -593,13 +707,24 @@ def check_rate_limit(ip_address):
 
 def store_stripe_customer_id(user_id, customer_id):
     """Store Stripe customer ID in SQLite when they first subscribe"""
-    conn = get_db_connection() 
-    cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE users SET stripe_customer_id = ? WHERE user_id = ?",
-        (customer_id, user_id))
-    conn.commit()
-    conn.close()
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE users SET stripe_customer_id = ? WHERE user_id = ?",
+            (customer_id, user_id)
+        )
+        conn.commit()
+        print(f"✅ Stored Stripe customer_id {customer_id} for user {user_id}")
+    
+    except sqlite3.Error as db_error:
+        print(f"🚨 Database error in store_stripe_customer_id: {db_error}")
+        if conn:
+            conn.rollback()
+    
+    finally:
+        if conn:
+            conn.close()
 
 def create_checkout_session(email):
     try:
@@ -633,33 +758,36 @@ def create_checkout_session(email):
 def check_payment_status(user_id):
     """Function to check if the user has paid for the service using Stripe's API"""
     try:
-        # check db for stored id
+        # Check db for stored customer_id
         customer_id = get_stripe_customer_id_from_db(user_id)
         if not customer_id:
+            print(f"⚠️ No Stripe customer_id found for user {user_id}")
             return False
         
-        # verify subscription with Stripe
+        # Verify subscription with Stripe
         subscriptions = stripe.Subscription.list(
             customer=customer_id,
             status='active', 
             limit=1
         )
 
-        # see if they already have a subscription
+        # See if they have an active subscription
         if subscriptions.data:
             subscription = subscriptions.data[0]
-            # make sure that subscription is for my product
+            # Make sure that subscription is for your product
             if subscription.items.data[0].price.id == PRICE_ID:
+                print(f"✅ Active subscription found for user {user_id}")
                 return True
         
+        print(f"⚠️ No active subscription found for user {user_id}")
         return False
     
-    except stripe.error.StripeError as e:
-        print(f"Stripe error in checking subscription: {e}")
+    except stripe.error.StripeError as stripe_error:
+        print(f"🚨 Stripe error in checking subscription: {stripe_error}")
         return False
     
-    except Exception as e:
-        print(f"Error in checking your payment status: {e}")
+    except Exception as general_error:
+        print(f"🚨 Error in checking payment status: {general_error}")
         return False
 
 def get_sidebar_content(email):
@@ -719,45 +847,75 @@ def open_billing_portal(email):
 
 def grant_unlimited_access(user_id):
     """If they've paid, they get full access"""
-    conn = get_db_connection() 
-    cursor = conn.cursor()
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
 
-    # make sure they exist
-    cursor.execute("SELECT 1 FROM users WHERE user_id = ?", (user_id,))
-    if cursor.fetchone() is None:
-        cursor.execute(
-            "INSERT INTO users (user_id, credits_remaining, subscription_status) VALUES (?, ?, ?)",
-            (user_id, -1, 'premium')
-        )
+        # Check if user exists
+        cursor.execute("SELECT 1 FROM users WHERE user_id = ?", (user_id,))
+        user_exists = cursor.fetchone()
+        
+        if user_exists is None:
+            # User doesn't exist - create them with premium status
+            cursor.execute(
+                "INSERT INTO users (user_id, credits_remaining, subscription_status) VALUES (?, ?, ?)",
+                (user_id, -1, 'premium')
+            )
+            print(f"✅ Created new premium user: {user_id}")
+        else:
+            # User exists - upgrade to premium
+            cursor.execute(
+                "UPDATE users SET credits_remaining = -1, subscription_status = 'premium' WHERE user_id = ?",
+                (user_id,)
+            )
+            print(f"✅ Granted unlimited access to user: {user_id}")
 
-    else:
-        cursor.execute(
-            "UPDATE users SET credits_remaining = -1, subscription_status = 'premium' WHERE user_id = ?",
-            (user_id,)
-        )
-
-    conn.commit()
-    conn.close()
+        conn.commit()
+    
+    except sqlite3.Error as db_error:
+        print(f"🚨 Database error in grant_unlimited_access: {db_error}")
+        if conn:
+            conn.rollback()
+    
+    finally:
+        if conn:
+            conn.close()
 
 def revoke_unlimited_access(user_id):
     """Revoke unlimited access and set user to free; create if missing"""
-    conn = get_db_connection() 
-    cursor = conn.cursor()
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
 
-    # see if they exist
-    cursor.execute("SELECT 1 FROM users WHERE user_id = ?", (user_id,))
-    if cursor.fetchone() is None:
-        cursor.execute(
-            "INSERT INTO users (user_id, credits_remaining, subscription_status) VALUES (?, ?, ?)",
-            (user_id, 1, 'free') # 1 more courtesy resume
-        )
-    else:
-        cursor.execute(
-        "UPDATE users SET credits_remaining = 1, subscription_status = 'free' WHERE user_id = ?",
-        (user_id,) 
-    )
-    conn.commit()
-    conn.close()
+        # Check if user exists
+        cursor.execute("SELECT 1 FROM users WHERE user_id = ?", (user_id,))
+        user_exists = cursor.fetchone()
+        
+        if user_exists is None:
+            # User doesn't exist - create them with free status and 1 courtesy resume
+            cursor.execute(
+                "INSERT INTO users (user_id, credits_remaining, subscription_status) VALUES (?, ?, ?)",
+                (user_id, 1, 'free')
+            )
+            print(f"✅ Created new free user with 1 courtesy resume: {user_id}")
+        else:
+            # User exists - downgrade to free with 1 courtesy resume
+            cursor.execute(
+                "UPDATE users SET credits_remaining = 1, subscription_status = 'free' WHERE user_id = ?",
+                (user_id,)
+            )
+            print(f"✅ Revoked unlimited access for user: {user_id}")
+        
+        conn.commit()
+    
+    except sqlite3.Error as db_error:
+        print(f"🚨 Database error in revoke_unlimited_access: {db_error}")
+        if conn:
+            conn.rollback()
+    
+    finally:
+        if conn:
+            conn.close()
 
 @fastapi_app.post("/webhook")
 async def stripe_webhook(request: Request):
