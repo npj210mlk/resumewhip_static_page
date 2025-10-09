@@ -891,7 +891,7 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
         # pass this from FASTAPI context
         track_ip_usage(ip)
     except Exception as ip_error: 
-        print(f"⚠️ Could not log user's IP: {ip_error}"))
+        print(f"⚠️ Could not log user's IP: {ip_error}")
     
     if is_premium:
         # Premium user - unlimited access
