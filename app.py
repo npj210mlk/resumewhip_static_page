@@ -1189,7 +1189,7 @@ def generate_cover_letter(resume_file, job_input):
 def quick_job_summary(score):
     if score >= 80:
         color = "#10b981"  # Green
-        text = "✅ Go for it! Job post looks legit, scoring 80% or higher on our validation run.."
+        text = "✅ Go for it! Job post looks legit, scoring 80% or higher on our validation run."
     elif score >= 50:
         color = "#f59e0b"  # Orange
         text = "⚠️ Only scored between a 50 and 79% on the validation run  - templated lingo, ghost-post maybe?"
@@ -1246,7 +1246,7 @@ def validate_job_posting(job_description, company_name=None, job_title=None):
     if warnings:
         report_lines.append("\n".join(warnings))
     else:
-        report_lines.append("✅ No major red flags found.")
+        report_lines.append("✅ You're good to go!")
 
     full_report = "\n".join(report_lines)
 
