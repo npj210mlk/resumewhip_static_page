@@ -1917,17 +1917,19 @@ def run_fastapi():
         log_level="info"
     )
 
-# Mounting Gradio Inside FastAPI
-fastapi_app = gr.mount_gradio_app(fastapi_app, app, path="/")
-
 if __name__ == "__main__":
     import os
     print(f"Current working directory: {os.getcwd()}")
     print(f"Database will be at: {os.path.abspath('resumewhip.db')}")
-    # Initialize the database
+    
+    # initialize the database
     init_database()
+
+    # mount gradio
+    app_with_gradio = gr.mount_gradio_app(fastapi_app, app, path = "/")
+
     uvicorn.run(
-        fastapi_app, 
+        app_with_gradio, 
         host = "0.0.0.0",
         port = int(os.environ.get("PORT", 8000))
         )
