@@ -752,14 +752,22 @@ def store_stripe_customer_id(user_id, customer_id):
 
 def create_checkout_session(email):
     try:
-        # 🔑 Always log the user first
+        # 🔒 Always log the user first
         user_id, credits, status = get_or_create_user(email)
 
-        # then check if payment system is ready
+        # Check if payment system is ready
         if not PRICE_ID or not PRICE_ID.strip():
-            return "⚠️ Payment system not fully configured. Please contact support."
+            print("🚨 CRITICAL: PRICE_ID environment variable not set!")
+            return "⚠️ Payment system not configured. Please contact support@resumewhip.com"
+
+        # Check if Stripe API key is set
+        if not stripe.api_key or stripe.api_key == "":
+            print("🚨 CRITICAL: Stripe API key not set!")
+            return "⚠️ Payment system not configured. Please contact support@resumewhip.com"
 
         customer_id = get_stripe_customer_id_from_db(user_id)
+        
+        # Create Stripe checkout session
         session = stripe.checkout.Session.create(
             client_reference_id=user_id,
             customer=customer_id if customer_id else None,
@@ -771,13 +779,23 @@ def create_checkout_session(email):
             }],
             mode='subscription',
             success_url="https://www.resumewhip.com?payment=success",
-            cancel_url="https://resumewhip.com/cancel"
+            cancel_url="https://www.resumewhip.com?canceled=true"
         )
+        
+        print(f"✅ Created checkout session for user {user_id}: {session.url}")
         return session.url
     
+    except stripe.error.InvalidRequestError as stripe_error:
+        print(f"🚨 Stripe Invalid Request: {stripe_error}")
+        return f"⚠️ Payment configuration error. Please contact support@resumewhip.com (Error: Invalid Price ID)"
+    
+    except stripe.error.StripeError as stripe_error:
+        print(f"🚨 Stripe error in checkout: {stripe_error}")
+        return f"⚠️ Unable to start checkout. Please try again or contact support@resumewhip.com"
+    
     except Exception as e:
-        print(f"Error creating checkout session: {e}")
-        return f"⚠️ Unable to start checkout. Please try again later or contact support."
+        print(f"🚨 Unexpected error creating checkout session: {e}")
+        return f"⚠️ Unable to start checkout. Please contact support@resumewhip.com"
 
 def check_payment_status(user_id):
     """Function to check if the user has paid for the service using Stripe's API"""
@@ -1119,10 +1137,17 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
 
         if credits <= 0:
             checkout_url = create_checkout_session(email)
-            return(
-                f"⏰ Unlock Unlimited Power! [Upgrade here]({checkout_url}) for unlimited optimization.",
-                "", "", "", get_credits_display(email)
-            )
+            if checkout_url.startswith("http"):
+                return(
+                    f"⏰ Sorry, but you've used all your free resumes. [Upgrade here]({checkout_url}) for unlimited resume optimization power!",
+                    "", "", "", get_credits_display(email)
+                )
+            else:
+                # It's an error message, not a URL
+                return(
+                    checkout_url,  # Return the error message directly
+                    "", "", "", get_credits_display(email)
+                )
         
         try:
             # get the  original resume text
@@ -1479,6 +1504,8 @@ with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Bui
             #placeholder text
             user_status = gr.Markdown("""<h5 style='text-align:center; color:#ff621e;'>Please enter your email to get started</h5>""", elem_id="user-status")
 
+            refresh_btn = gr.Button("🥤 Refresh Status", variant="secondary", size="sm")
+
             with gr.Accordion("🦮 How To Use", open=False):
                 gr.Markdown("""
                          1.) Crank Your Existing Resume Up To 11 - list every single skill and experience you have
@@ -1676,7 +1703,6 @@ and the next to begin:
                     placeholder="you@example.com",
                     elem_id = "email-box"
                     )
-                refresh_btn = gr.Button("🥤Refresh Status", variant = "secondary", scale = 0)
                 
                 resume_input = gr.File(
                     label="📄 Upload Resume Here", 
