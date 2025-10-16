@@ -10,6 +10,8 @@ import threading
 # ...and because fastapi is asynchronous, we need a server:
 import uvicorn
 
+# for env
+from dotenv import load_dotenv
 from datetime import datetime
 from new_functions import (
     extract_resume_text,
@@ -30,6 +32,9 @@ from new_functions import (
 # for handling the api stuff
 from fastapi import FastAPI, Request, HTTPException, Header
 from fastapi.responses import JSONResponse
+
+# grab .env files
+load_dotenv()
 
 # button styling - <style></style> not needed b/c gradio injects the style string for us
 custom_css = """
