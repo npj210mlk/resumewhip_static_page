@@ -600,6 +600,30 @@ def get_credits_display(email):
         if conn:
             conn.close()  # ✅ Always close OWN connection
 
+def refresh_user_display(email):
+    """Force refresh of user status from database once payment returns"""
+    if not email or not email.strip():
+        return (
+            """<h5 style='text-align:center; color:#ff621e;'>Please enter your email to get started</h5>""",
+            """
+            <div style="text-align: center; padding: 15px; 
+                        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                        color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
+                <strong>🫘 Free Resumes Left: 3</strong>
+            </div>
+            """,
+            gr.HTML("")
+        )
+    
+    # Force a fresh lookup from the database
+    user_id, credits, status = get_or_create_user(email)
+    
+    return (
+        get_user_status(email),
+        get_credits_display(email),
+        get_sidebar_content(email)
+    )
+
 def get_user_id_by_customer_id(customer_id):
     """Get user_id from database using Stripe customer_id"""
     conn = get_db_connection()
@@ -746,7 +770,7 @@ def create_checkout_session(email):
                 'quantity': 1,
             }],
             mode='subscription',
-            success_url="https://www.resumewhip.com/success",
+            success_url="https://www.resumewhip.com?payment=success",
             cancel_url="https://resumewhip.com/cancel"
         )
         return session.url
@@ -1417,6 +1441,27 @@ def admin_grant_access(email):
 with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Builder", 
                theme=gr.themes.Soft(), css=custom_css) as app:
     
+    gr.HTML("""
+           <script>
+    // Check to see if user just returned from Stripe payment
+    window.addEventListener('load', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('payment') === 'success') {
+            // Payment successful - trigger a reload after 2 seconds
+            setTimeout(function() {
+                // Clear the URL parameter
+                window.history.replaceState({}, document.title, window.location.pathname);
+                // Force UI refresh by dispatching event
+                const emailInput = document.querySelector('input[type="text"]');
+                if (emailInput && emailInput.value) {
+                    emailInput.dispatchEvent(new Event('submit', { bubbles: true }));
+                }
+            }, 2000);
+        }
+    });
+    </script>
+    """)
+    
     gr.HTML("<head><link rel='icon' href='favicon.png' type='image/png'></head>")
     
     # Header
@@ -1631,6 +1676,7 @@ and the next to begin:
                     placeholder="you@example.com",
                     elem_id = "email-box"
                     )
+                refresh_btn = gr.Button("🥤Refresh Status", variant = "secondary", scale = 0)
                 
                 resume_input = gr.File(
                     label="📄 Upload Resume Here", 
@@ -1835,12 +1881,13 @@ and the next to begin:
     # Event handlers
 
     email_input.submit(
-        fn=lambda email: (
-            get_or_create_user(email),
-            get_user_status(email),
-            get_credits_display(email),
-            get_sidebar_content(email)
-        ),
+        # fn=lambda email: (
+        #     get_or_create_user(email),
+        #     get_user_status(email),
+        #     get_credits_display(email),
+        #     get_sidebar_content(email)
+        # ),
+        fn = refresh_user_display,
         inputs=[email_input],
         outputs=[user_status, resume_counter, sidebar_content]
     )
@@ -1852,6 +1899,12 @@ and the next to begin:
         )[1] if email else ("🚨 Please enter your email first", ""),
         inputs=[job_input, company_input, jd_title, email_input],
         outputs=[summary_output, report_output]
+    )
+
+    refresh_btn.click(
+        fn = refresh_user_display,
+        inputs = [email_input],
+        outputs = [user_status, resume_counter, sidebar_content]
     )
 
     # run_resume.click(
