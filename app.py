@@ -1082,23 +1082,45 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
         return ("⚠️ Please upload your resume and paste the job description.", "", "", "",
                 get_credits_display(email))
     
-    # if not email or not email.strip():
-    #     return ("🚨 Please enter your email address to continue.", "", "", "", gr.Markdown(""))
+    # ✅ CRITICAL FIX: Force a fresh database lookup EVERY TIME
+    # Don't trust any cached data - go straight to the database
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT user_id, credits_remaining, subscription_status FROM users WHERE email = ?",
+            (email,)
+        )
+        row = cursor.fetchone()
+        
+        if not row:
+            # User doesn't exist - create them
+            user_id, credits, status = get_or_create_user(email)
+        else:
+            user_id = row["user_id"]
+            credits = row["credits_remaining"]
+            status = row["subscription_status"]
+            
+        print(f"🔍 Fresh DB lookup for {email}: status={status}, credits={credits}")  # Debug
+        
+    finally:
+        if conn:
+            conn.close()
     
-    # Get or create the user - db insertion
-    user_id, credits, status = get_or_create_user(email)
+    # NOW check if they're premium with the FRESH data
     is_premium = (status in ["paid", "premium"])
+    
+    print(f"🎫 Is Premium: {is_premium}")  # Debug
 
     # Log IP used
     try:
-        # default fallback
         ip = "unknown"
-        # pass this from FASTAPI context
         track_ip_usage(ip)
     except Exception as ip_error: 
         print(f"⚠️ Could not log user's IP: {ip_error}")
     
     if is_premium:
+        print("✅ Running as PREMIUM user")  # Debug
         # Premium user - unlimited access
         try:
             # extract the original resume's text
@@ -1109,8 +1131,6 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
 
             # process the existing resume
             optimized_preview, suggestions, match_info, optimized_text = process_resume(resume_file, job_input)
-            # editable text output:
-            # optimized_text = result[1]
 
             # calculate the optimized score
             optimized_score, optimized_feedback = calculate_resume_score(optimized_text, job_input)
@@ -1121,14 +1141,6 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
                 original_feedback, optimized_feedback
             )
 
-            # premium_display = gr.Markdown("""
-            # <div style="text-align: center; padding: 15px; 
-            #             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            #             color: white; border-radius: 10px; font-weight: 600; font-size: 1.2em;">
-            #     <strong>✨ You're Premium! Thanks for Choosing Us!</strong>
-            # </div>
-            # """)
-
             premium_display = get_credits_display(email) 
 
             return (optimized_preview, optimized_text, suggestions, score_comparison, premium_display)
@@ -1137,25 +1149,24 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
             print(f"🚨 Premium processing error: {premium_error}")
             return (f"Error processing resume: {premium_error}", "", "", "", get_credits_display(email))
     else:
+        print(f"⚠️ Running as FREE user with {credits} credits")  # Debug
         # Free user - existing credit logic
-        # credits, status = get_user_credits(user_id)
-
         if credits <= 0:
             checkout_url = create_checkout_session(email)
+            
             if checkout_url.startswith("http"):
                 return(
-                    f"⏰ Sorry, but you've used all your free resumes. [Upgrade here]({checkout_url}) for unlimited resume optimization power!",
+                    f"⏰ You've used all your free resumes! [Upgrade here]({checkout_url}) for unlimited optimization.",
                     "", "", "", get_credits_display(email)
                 )
             else:
-                # It's an error message, not a URL
                 return(
-                    checkout_url,  # Return the error message directly
+                    checkout_url,
                     "", "", "", get_credits_display(email)
                 )
         
         try:
-            # get the  original resume text
+            # get the original resume text
             original_text = extract_resume_text(resume_file)
 
             # score that o.g.
@@ -1163,7 +1174,6 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
 
             # process the resume
             optimized_preview, suggestions, match_info, optimized_text = process_resume(resume_file, job_input)
-            # optimized_text = result[1]
 
             # calculate optimized resume score
             optimized_score, optimized_feedback = calculate_resume_score(optimized_text, job_input)
@@ -1173,15 +1183,14 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
                 original_score, optimized_score,
                 original_feedback, optimized_feedback
             )
-            # deduct credits AFTER successfull processing
+            # deduct credits AFTER successful processing
             update_user_credits(user_id, credits - 1)
 
-            # return (*result, get_credits_display(email))
             return (optimized_preview, optimized_text, suggestions, score_comparison, get_credits_display(email))
         
         except Exception as free_error:
             print(f"🚨 Free user processing error: {free_error}")
-            return (f"😩 Apologies, but there was an error in  processing your resume: {free_error}", "", "", "", get_credits_display(email))
+            return (f"😩 Apologies, but there was an error in processing your resume: {free_error}", "", "", "", get_credits_display(email))
 
 def show_premium_welcome():
     """Show welcome message for new premium users"""
@@ -1442,7 +1451,23 @@ def admin_grant_access(email):
     """ Function to grant unlimited access for testing, marketing, etc. """
     user_id, credits, status = get_or_create_user(email)
     grant_unlimited_access(user_id)
-    return f"Granted unlimited access to user: {user_id}"
+    
+    # ✅ Verify it worked
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT subscription_status, credits_remaining FROM users WHERE user_id = ?",
+            (user_id,)
+        )
+        row = cursor.fetchone()
+        if row:
+            return f"✅ Granted unlimited access to {email}\n\nVerified in DB:\n- Status: {row['subscription_status']}\n- Credits: {row['credits_remaining']}"
+        else:
+            return f"❌ Error: Could not verify update for {email}"
+    finally:
+        if conn:
+            conn.close()
 
 # def handle_resume_optimize(email, resume_text, job_desc):
 #     """Main handler for the Resume Optimizer button."""
