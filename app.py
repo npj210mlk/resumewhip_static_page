@@ -1798,7 +1798,7 @@ and the next to begin:
             # resume_counter = get_credits_display(email)
 
             # Access granter
-            with gr.Accordion("My Admin Access", open=False, visible=True):
+            with gr.Accordion("My Admin Access", open=False, visible=False):
                 grant_access_btn = gr.Button("🟢 Grant Unlimited Access", variant="secondary")
                 manage_billing_btn = gr.Button("Manage Billing", variant="secondary")
                 debug_btn = gr.Button("🔍 Debug User Status", variant="secondary")
