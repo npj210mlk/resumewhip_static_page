@@ -1498,34 +1498,34 @@ def admin_grant_access(email):
 # TEMP FUNCTION TO CHECK TO SEE WHAT'S HAPPENING IN DATABASE
 # ==========================================================
 
-# def debug_check_user_status(email):
-#     """Debug function to see exact database status"""
-#     conn = get_db_connection()
-#     try:
-#         cursor = conn.cursor()
-#         cursor.execute(
-#             "SELECT user_id, email, subscription_status, credits_remaining, stripe_customer_id FROM users WHERE email = ?",
-#             (email,)
-#         )
-#         row = cursor.fetchone()
+def debug_check_user_status(email):
+    """Debug function to see exact database status"""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT user_id, email, subscription_status, credits_remaining, stripe_customer_id FROM users WHERE email = ?",
+            (email,)
+        )
+        row = cursor.fetchone()
         
-#         if row:
-#             return f"""
-#             **Debug Info for {email}:**
-#             - User ID: {row['user_id']}
-#             - Status: {row['subscription_status']}
-#             - Credits: {row['credits_remaining']}
-#             - Stripe Customer ID: {row['stripe_customer_id'] or 'Not set'}
-#             """
-#         else:
-#             return f"❌ No user found for {email}"
+        if row:
+            return f"""
+            **Debug Info for {email}:**
+            - User ID: {row['user_id']}
+            - Status: {row['subscription_status']}
+            - Credits: {row['credits_remaining']}
+            - Stripe Customer ID: {row['stripe_customer_id'] or 'Not set'}
+            """
+        else:
+            return f"❌ No user found for {email}"
     
-#     except Exception as e:
-#         return f"Error: {e}"
+    except Exception as e:
+        return f"Error: {e}"
     
-#     finally:
-#         if conn:
-#             conn.close()
+    finally:
+        if conn:
+            conn.close()
 # =================
 # END TEMP FUNCTION
 # =================
@@ -1801,10 +1801,10 @@ and the next to begin:
             with gr.Accordion("My Admin Access", open=False, visible=True):
                 grant_access_btn = gr.Button("🟢 Grant Unlimited Access", variant="secondary")
                 manage_billing_btn = gr.Button("Manage Billing", variant="secondary")
-                # debug_btn = gr.Button("🔍 Debug User Status", variant="secondary")
+                debug_btn = gr.Button("🔍 Debug User Status", variant="secondary")
                 access_status = gr.Markdown()
                 billing_url_output = gr.Markdown()
-                # debug_output = gr.Markdown()
+                debug_output = gr.Markdown()
 
             # Tools Available
             # gr.Markdown("<h2 style='text-align:center; color:#ff7f50;'>🧰 Tools In the Toolkit</h2>")
@@ -2042,14 +2042,14 @@ and the next to begin:
         outputs=export_cover_result
     )
 
-    # debug_btn.click(
-    # fn=debug_check_user_status,
-    # inputs=[email_input],
-    # outputs=debug_output
-    # )
+    debug_btn.click(
+    fn=debug_check_user_status,
+    inputs=[email_input],
+    outputs=debug_output
+    )
 
-    # # Admin event handler (for testing)
-    # admin_input = gr.Textbox(label="User Email or ID")
+    # Admin event handler (for testing)
+    admin_input = gr.Textbox(label="User Email or ID")
 
 # =========================================================================
 # Add the code below for free access to users for testing (like Mia, etc.)
