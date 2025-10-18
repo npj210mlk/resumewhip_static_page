@@ -275,6 +275,96 @@ PRICE_ID = os.getenv("PRICE_ID")
 # initialize Fastapi for the webhooks
 fastapi_app = FastAPI()
 
+# Adding test routes before the webhook
+@fastapi_app.get("/")
+async def root():
+    return {"message" : "ResumeWhip API is running",
+            "webhook_url" : "/webhook",
+            "admin" : "/admin/users"}
+
+@fastapi_app.get("/health")
+async def health():
+    return {"status" : "healthy",
+            "timestamp" : datetime.now().isoformat()}
+
+@fastapi_app.post("/webhook")
+async def stripe_webhook(request: Request):
+    """Stripe webhook endpoint for subscription and payment events."""
+    try:
+        # Get raw body and Stripe signature
+        payload = await request.body()
+        sig_header = request.headers.get("stripe-signature")
+
+        if not sig_header or not WEBHOOK_SECRET:
+            print("🚨 Missing Stripe signature or webhook secret.")
+            raise HTTPException(status_code=400, detail="Missing signature or webhook secret")
+
+        # Verify Stripe signature
+        event = stripe.Webhook.construct_event(payload, sig_header, WEBHOOK_SECRET)
+
+        # ✅ Handle successful payment
+        if event["type"] == "checkout.session.completed":
+            session = event["data"]["object"]
+            user_id = session.get("client_reference_id")
+            customer_id = session.get("customer")
+            # email = session.get("customer_details", {}).get("email")
+            
+            if user_id and customer_id:
+                # if using email 
+                # store_stripe_customer_id(user_id, customer_id, email)
+                # without email (what Claude's recommending)
+                store_stripe_customer_id(user_id, customer_id)
+                # grant unlimisted access
+                grant_unlimited_access(user_id)
+                print(f"✅ Granted unlimited access to user: {user_id}")
+        
+        # 🔄 Handle successful subscription RENEWALS
+        elif event["type"] == "invoice.payment_succeeded":
+            invoice = event["data"]["object"]
+            customer_id = invoice["customer"]
+            
+            # Find user and ensure they have premium access
+            user_id = get_user_id_by_customer_id(customer_id)
+            if user_id:
+                grant_unlimited_access(user_id)
+                print(f"✅ Renewed premium access for user: {user_id}")
+
+        # ⚠️ Handle PAYMENT FAILURES
+        elif event["type"] == "invoice.payment_failed":
+            invoice = event["data"]["object"]
+            customer_id = invoice["customer"]
+            user_id = get_user_id_by_customer_id(customer_id)
+            
+            if user_id:
+                # Don't immediately revoke - give grace period
+                print(f"⚠️ Payment failed for user: {user_id} - grace period active")
+
+        # ❌ Handle subscription CANCELLATIONS
+        elif event["type"] == "customer.subscription.deleted":
+            subscription = event["data"]["object"]
+            customer_id = subscription["customer"]
+            user_id = get_user_id_by_customer_id(customer_id)
+
+            if user_id:
+                revoke_unlimited_access(user_id)
+                print(f"❌ Revoked access for user: {user_id}")
+
+        # commented out per claude
+        # else:
+        #     print(f"ℹ️ Unhandled event type: {event['type']}")
+
+        # Return success so Stripe stops retrying
+        return JSONResponse(content={"status": "success"}, status_code=200)
+
+    # comment out per claude
+    # except stripe.error.SignatureVerificationError as e:
+    #     print(f"🚨 Invalid signature: {e}")
+    #     raise HTTPException(status_code=400, detail="Invalid signature")
+
+    except Exception as e:
+        print(f"🚨 Webhook error: {e}")
+        return JSONResponse(content={"status": "error", "message": str(e)}, status_code=400)
+
 # Simple in-memory storage - but sync with database
 user_sessions = {}  # Maps session IDs to user data
 FREE_CREDITS = 3
@@ -964,83 +1054,83 @@ def revoke_unlimited_access(user_id):
         if conn:
             conn.close()
 
-@fastapi_app.post("/webhook")
-async def stripe_webhook(request: Request):
-    """Stripe webhook endpoint for subscription and payment events."""
-    try:
-        # Get raw body and Stripe signature
-        payload = await request.body()
-        sig_header = request.headers.get("stripe-signature")
+# @fastapi_app.post("/webhook")
+# async def stripe_webhook(request: Request):
+#     """Stripe webhook endpoint for subscription and payment events."""
+#     try:
+#         # Get raw body and Stripe signature
+#         payload = await request.body()
+#         sig_header = request.headers.get("stripe-signature")
 
-        if not sig_header or not WEBHOOK_SECRET:
-            print("🚨 Missing Stripe signature or webhook secret.")
-            raise HTTPException(status_code=400, detail="Missing signature or webhook secret")
+#         if not sig_header or not WEBHOOK_SECRET:
+#             print("🚨 Missing Stripe signature or webhook secret.")
+#             raise HTTPException(status_code=400, detail="Missing signature or webhook secret")
 
-        # Verify Stripe signature
-        event = stripe.Webhook.construct_event(payload, sig_header, WEBHOOK_SECRET)
+#         # Verify Stripe signature
+#         event = stripe.Webhook.construct_event(payload, sig_header, WEBHOOK_SECRET)
 
-        # ✅ Handle successful payment
-        if event["type"] == "checkout.session.completed":
-            session = event["data"]["object"]
-            user_id = session.get("client_reference_id")
-            customer_id = session.get("customer")
-            # email = session.get("customer_details", {}).get("email")
+#         # ✅ Handle successful payment
+#         if event["type"] == "checkout.session.completed":
+#             session = event["data"]["object"]
+#             user_id = session.get("client_reference_id")
+#             customer_id = session.get("customer")
+#             # email = session.get("customer_details", {}).get("email")
             
-            if user_id and customer_id:
-                # if using email 
-                # store_stripe_customer_id(user_id, customer_id, email)
-                # without email (what Claude's recommending)
-                store_stripe_customer_id(user_id, customer_id)
-                # grant unlimisted access
-                grant_unlimited_access(user_id)
-                print(f"✅ Granted unlimited access to user: {user_id}")
+#             if user_id and customer_id:
+#                 # if using email 
+#                 # store_stripe_customer_id(user_id, customer_id, email)
+#                 # without email (what Claude's recommending)
+#                 store_stripe_customer_id(user_id, customer_id)
+#                 # grant unlimisted access
+#                 grant_unlimited_access(user_id)
+#                 print(f"✅ Granted unlimited access to user: {user_id}")
         
-        # 🔄 Handle successful subscription RENEWALS
-        elif event["type"] == "invoice.payment_succeeded":
-            invoice = event["data"]["object"]
-            customer_id = invoice["customer"]
+#         # 🔄 Handle successful subscription RENEWALS
+#         elif event["type"] == "invoice.payment_succeeded":
+#             invoice = event["data"]["object"]
+#             customer_id = invoice["customer"]
             
-            # Find user and ensure they have premium access
-            user_id = get_user_id_by_customer_id(customer_id)
-            if user_id:
-                grant_unlimited_access(user_id)
-                print(f"✅ Renewed premium access for user: {user_id}")
+#             # Find user and ensure they have premium access
+#             user_id = get_user_id_by_customer_id(customer_id)
+#             if user_id:
+#                 grant_unlimited_access(user_id)
+#                 print(f"✅ Renewed premium access for user: {user_id}")
 
-        # ⚠️ Handle PAYMENT FAILURES
-        elif event["type"] == "invoice.payment_failed":
-            invoice = event["data"]["object"]
-            customer_id = invoice["customer"]
-            user_id = get_user_id_by_customer_id(customer_id)
+#         # ⚠️ Handle PAYMENT FAILURES
+#         elif event["type"] == "invoice.payment_failed":
+#             invoice = event["data"]["object"]
+#             customer_id = invoice["customer"]
+#             user_id = get_user_id_by_customer_id(customer_id)
             
-            if user_id:
-                # Don't immediately revoke - give grace period
-                print(f"⚠️ Payment failed for user: {user_id} - grace period active")
+#             if user_id:
+#                 # Don't immediately revoke - give grace period
+#                 print(f"⚠️ Payment failed for user: {user_id} - grace period active")
 
-        # ❌ Handle subscription CANCELLATIONS
-        elif event["type"] == "customer.subscription.deleted":
-            subscription = event["data"]["object"]
-            customer_id = subscription["customer"]
-            user_id = get_user_id_by_customer_id(customer_id)
+#         # ❌ Handle subscription CANCELLATIONS
+#         elif event["type"] == "customer.subscription.deleted":
+#             subscription = event["data"]["object"]
+#             customer_id = subscription["customer"]
+#             user_id = get_user_id_by_customer_id(customer_id)
 
-            if user_id:
-                revoke_unlimited_access(user_id)
-                print(f"❌ Revoked access for user: {user_id}")
+#             if user_id:
+#                 revoke_unlimited_access(user_id)
+#                 print(f"❌ Revoked access for user: {user_id}")
 
-        # commented out per claude
-        # else:
-        #     print(f"ℹ️ Unhandled event type: {event['type']}")
+#         # commented out per claude
+#         # else:
+#         #     print(f"ℹ️ Unhandled event type: {event['type']}")
 
-        # Return success so Stripe stops retrying
-        return JSONResponse(content={"status": "success"}, status_code=200)
+#         # Return success so Stripe stops retrying
+#         return JSONResponse(content={"status": "success"}, status_code=200)
 
-    # comment out per claude
-    # except stripe.error.SignatureVerificationError as e:
-    #     print(f"🚨 Invalid signature: {e}")
-    #     raise HTTPException(status_code=400, detail="Invalid signature")
+#     # comment out per claude
+#     # except stripe.error.SignatureVerificationError as e:
+#     #     print(f"🚨 Invalid signature: {e}")
+#     #     raise HTTPException(status_code=400, detail="Invalid signature")
 
-    except Exception as e:
-        print(f"🚨 Webhook error: {e}")
-        return JSONResponse(content={"status": "error", "message": str(e)}, status_code=400)
+#     except Exception as e:
+#         print(f"🚨 Webhook error: {e}")
+#         return JSONResponse(content={"status": "error", "message": str(e)}, status_code=400)
 
 @fastapi_app.middleware("http")
 async def track_user_requests(request: Request, call_next):
