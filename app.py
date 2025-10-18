@@ -2255,6 +2255,18 @@ if __name__ == "__main__":
     import os
     print(f"Current working directory: {os.getcwd()}")
     print(f"Database will be at: {os.path.abspath('resumewhip.db')}")
+
+    # ✅ ADD THESE DEBUG CHECKS:
+    print("\n🔍 Environment Variable Check:")
+    print(f"  STRIPE_SECRET_KEY: {'✅ Set' if os.getenv('STRIPE_SECRET_KEY') else '❌ NOT SET'}")
+    print(f"  PRICE_ID: {os.getenv('PRICE_ID') if os.getenv('PRICE_ID') else '❌ NOT SET'}")
+    print(f"  STRIPE_WEBHOOK_SECRET: {'✅ Set' if os.getenv('STRIPE_WEBHOOK_SECRET') else '❌ NOT SET'}")
+    
+    # ✅ Show first few characters of webhook secret (for debugging)
+    webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
+    if webhook_secret:
+        print(f"  Webhook secret starts with: {webhook_secret[:10]}...")
+    print()
     
     # initialize the database
     init_database()
