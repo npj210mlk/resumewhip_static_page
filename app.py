@@ -2066,6 +2066,18 @@ and the next to begin:
         outputs = [user_status, resume_counter, sidebar_content]
     )
 
+    check_db_btn.click(
+        fn=check_database_directly,
+        inputs=[email_input],
+        outputs=debug_output
+    )
+
+    force_fix_btn.click(
+        fn=force_premium_fix,
+        inputs=[email_input],
+        outputs=debug_output
+    )
+
     # run_resume.click(
     #     fn = lambda resume, job, email: (
     #         get_or_create_user(email), 
@@ -2102,32 +2114,34 @@ and the next to begin:
         outputs=cover_output
     )
     
+# this should be the last line of the code inside the gr.Block
+
     export_cover_btn.click(
         fn=save_cover_letter,
         inputs=[cover_output, company_input],
         outputs=export_cover_result
     )
 
-    debug_btn.click(
-    fn=debug_check_user_status,
-    inputs=[email_input],
-    outputs=debug_output
-    )
+    # debug_btn.click(
+    #     fn=debug_check_user_status,
+    #     inputs=[email_input],
+    #     outputs=debug_output
+    # )
 
-    check_db_btn.click(
-    fn=check_database_directly,
-    inputs=[email_input],
-    outputs=debug_output
-    )
+    # check_db_btn.click(
+    #     fn=check_database_directly,
+    #     inputs=[email_input],
+    #     outputs=debug_output
+    # )
 
-force_fix_btn.click(
-    fn=force_premium_fix,
-    inputs=[email_input],
-    outputs=debug_output
-    )
+    # force_fix_btn.click(
+    #     fn=force_premium_fix,
+    #     inputs=[email_input],
+    #     outputs=debug_output
+    # )
 
     # Admin event handler (for testing)
-admin_input = gr.Textbox(label="User Email or ID")
+# admin_input = gr.Textbox(label="User Email or ID")
 
 # =========================================================================
 # Add the code below for free access to users for testing (like Mia, etc.)
