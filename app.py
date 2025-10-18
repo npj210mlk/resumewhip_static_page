@@ -276,11 +276,11 @@ PRICE_ID = os.getenv("PRICE_ID")
 fastapi_app = FastAPI()
 
 # Adding test routes before the webhook
-@fastapi_app.get("/")
-async def root():
-    return {"message" : "ResumeWhip API is running",
-            "webhook_url" : "/webhook",
-            "admin" : "/admin/users"}
+# @fastapi_app.get("/")
+# async def root():
+#     return {"message" : "ResumeWhip API is running",
+#             "webhook_url" : "/webhook",
+#             "admin" : "/admin/users"}
 
 @fastapi_app.get("/health")
 async def health():
