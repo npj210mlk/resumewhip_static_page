@@ -1495,7 +1495,7 @@ def admin_grant_access(email):
 # Create Gradio interface
 
 # ==========================================================
-# TEMP FUNCTION TO CHECK TO SEE WHAT'S HAPPENING IN DATABASE
+# TEMP FUNCTIONS TO CHECK TO SEE WHAT'S HAPPENING IN DATABASE
 # ==========================================================
 
 def debug_check_user_status(email):
@@ -1526,8 +1526,72 @@ def debug_check_user_status(email):
     finally:
         if conn:
             conn.close()
+
+def check_database_directly(email):
+    """Bypass everything and look directly at the database"""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Get the user
+        cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+        row = cursor.fetchone()
+        
+        if row:
+            return f"""
+**Current Database State:**
+- Email: {row['email']}
+- User ID: {row['user_id']}
+- Status: {row['subscription_status']}
+- Credits: {row['credits_remaining']}
+- Stripe Customer: {row['stripe_customer_id'] or 'None'}
+- Created: {row['created_at']}
+"""
+        else:
+            return "❌ User not found in database"
+    
+    except Exception as e:
+        return f"Error: {e}"
+    
+    finally:
+        if conn:
+            conn.close()
+
+
+def force_premium_fix(email):
+    """Nuclear option - directly update the database"""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Update directly with SQL
+        cursor.execute(
+            """UPDATE users 
+               SET subscription_status = 'premium', 
+                   credits_remaining = -1 
+               WHERE email = ?""",
+            (email,)
+        )
+        conn.commit()
+        
+        # Verify it worked
+        cursor.execute("SELECT subscription_status, credits_remaining FROM users WHERE email = ?", (email,))
+        row = cursor.fetchone()
+        
+        if row:
+            return f"✅ FORCED UPDATE COMPLETE!\n\nNew status: {row['subscription_status']}\nNew credits: {row['credits_remaining']}"
+        else:
+            return "❌ Update failed"
+    
+    except Exception as e:
+        return f"Error: {e}"
+    
+    finally:
+        if conn:
+            conn.close()
+
 # =================
-# END TEMP FUNCTION
+# END TEMP FUNCTIONS
 # =================
 
 with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Builder", 
@@ -1800,6 +1864,8 @@ and the next to begin:
             # Access granter
             with gr.Accordion("My Admin Access", open=False, visible=False):
                 grant_access_btn = gr.Button("🟢 Grant Unlimited Access", variant="secondary")
+                check_db_btn = gr.Button("🔍 Check Database", variant="secondary")
+                force_fix_btn = gr.Button("💥 Force Premium (Nuclear)", variant="primary")
                 manage_billing_btn = gr.Button("Manage Billing", variant="secondary")
                 debug_btn = gr.Button("🔍 Debug User Status", variant="secondary")
                 access_status = gr.Markdown()
@@ -2048,8 +2114,20 @@ and the next to begin:
     outputs=debug_output
     )
 
+    check_db_btn.click(
+    fn=check_database_directly,
+    inputs=[email_input],
+    outputs=debug_output
+    )
+
+force_fix_btn.click(
+    fn=force_premium_fix,
+    inputs=[email_input],
+    outputs=debug_output
+    )
+
     # Admin event handler (for testing)
-    admin_input = gr.Textbox(label="User Email or ID")
+admin_input = gr.Textbox(label="User Email or ID")
 
 # =========================================================================
 # Add the code below for free access to users for testing (like Mia, etc.)
