@@ -1952,7 +1952,7 @@ and the next to begin:
             # resume_counter = get_credits_display(email)
 
             # Access granter
-            with gr.Accordion("My Admin Access", open=False, visible=True):
+            with gr.Accordion("My Admin Access", open=False, visible=False):
                 grant_access_btn = gr.Button("🟢 Grant Unlimited Access", variant="secondary")
                 check_db_btn = gr.Button("🔍 Check Database", variant="secondary")
                 force_fix_btn = gr.Button("💥 Force Premium (Nuclear)", variant="primary")
