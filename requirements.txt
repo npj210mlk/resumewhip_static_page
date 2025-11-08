@@ -1,4 +1,4 @@
-lsgradio>=4.29.0
+gradio>=4.29.0
 python-docx
 scikit-learn
 requests
