@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResumeWhip - AI Resume Optimizer | Beat ATS Systems</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                Resume<span>Whip</span>
+            </div>
+            <div class="user-status">
+                <span id="credits-display" class="status-badge">
+                    <i class="fas fa-bolt"></i>
+                    3 Free Resumes Left
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Beat ATS Systems With AI-Powered Resume Optimization</h1>
+            <p>Get your first 3 resumes optimized free. No credit card required.</p>
+            <div class="cta-group">
+                <button class="btn btn-primary" onclick="scrollToTools()">
+                    Start Free Trial
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+                <button class="btn btn-secondary" onclick="scrollToTools()">
+                    See How It Works
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Bar -->
+    <div class="trust-bar">
+        <div class="trust-content">
+            <div class="trust-item">
+                <i class="fas fa-shield-alt"></i>
+                <span>Your data never leaves our secure database</span>
+            </div>
+            <div class="trust-item">
+                <i class="fas fa-clock"></i>
+                <span>30-second optimization</span>
+            </div>
+            <div class="trust-item">
+                <i class="fas fa-chart-line"></i>
+                <span>40% higher ATS compatibility</span>
+            </div>
+            <div class="trust-item">
+                <i class="fas fa-briefcase"></i>
+                <span>Works with all job boards</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Email Section -->
+        <div class="email-section">
+            <h3>Get Started</h3>
+            <p>Enter your email to access your free resume optimizations</p>
+            <div class="email-input-group">
+                <input type="email" id="email" placeholder="you@example.com" required>
+                <button class="btn btn-primary" onclick="handleEmailSubmit()">
+                    Continue
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tools Section -->
+        <div class="tools-header">
+            <h2>Professional Job Search Tools</h2>
+            <p>Choose the tool that fits your needs</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('validator')">
+                <i class="fas fa-check-circle"></i>
+                Job Validator
+            </button>
+            <button class="tab" onclick="switchTab('optimizer')">
+                <i class="fas fa-magic"></i>
+                Resume Optimizer
+            </button>
+            <button class="tab" onclick="switchTab('cover')">
+                <i class="fas fa-file-alt"></i>
+                Cover Letter Writer
+            </button>
+        </div>
+
+        <!-- Job Validator -->
+        <div id="validator" class="tab-content active">
+            <div class="tool-card">
+                <h3>Job Posting Validator</h3>
+                <p>Verify job posting legitimacy before investing time in your application.</p>
+                
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-align-left"></i>
+                        Job Description
+                    </label>
+                    <textarea id="val-job-desc" rows="6" placeholder="Paste the complete job description here..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-building"></i>
+                        Company Name
+                    </label>
+                    <input type="text" id="val-company" placeholder="e.g., Amazon, Microsoft">
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-briefcase"></i>
+                        Job Title
+                    </label>
+                    <input type="text" id="val-title" placeholder="e.g., Senior Software Engineer">
+                </div>
+                
+                <button class="btn btn-primary" onclick="validateJob()">
+                    Validate Job Posting
+                    <i class="fas fa-search"></i>
+                </button>
+                
+                <div id="validation-results" class="results">
+                    <div class="result-header">
+                        <h3>Validation Results</h3>
+                    </div>
+                    <div id="validation-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resume Optimizer -->
+        <div id="optimizer" class="tab-content">
+            <div class="tool-card">
+                <h3>AI Resume Optimizer</h3>
+                <p>Upload your resume and we'll optimize it for ATS systems.</p>
+                
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-file-upload"></i>
+                        Upload Resume
+                    </label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="resume-file" accept=".pdf,.docx,.md,.txt">
+                        <label class="file-input-label">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Click to upload or drag and drop</span>
+                            <small style="margin-top: 0.5rem; color: var(--gray);">PDF, DOCX, MD, or TXT</small>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-align-left"></i>
+                        Job Description
+                    </label>
+                    <textarea id="opt-job-desc" rows="6" placeholder="Paste the complete job description here..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-building"></i>
+                        Company Name
+                    </label>
+                    <input type="text" id="opt-company" placeholder="e.g., Amazon, Microsoft">
+                </div>
+                
+                <button class="btn btn-primary" onclick="optimizeResume()">
+                    Optimize Resume
+                    <i class="fas fa-magic"></i>
+                </button>
+                
+                <div id="loading-optimizer" class="loading">
+                    <div class="spinner"></div>
+                    <p>Optimizing your resume with AI... This takes about 30 seconds.</p>
+                </div>
+
+                <div id="optimizer-results" class="results">
+                    <div class="result-header">
+                        <h3>Optimized Resume</h3>
+                        <button class="btn btn-primary" onclick="downloadResume()">
+                            <i class="fas fa-download"></i>
+                            Download PDF
+                        </button>
+                    </div>
+                    
+                    <div class="score-display">
+                        <div class="score-card">
+                            <h4>Original Score</h4>
+                            <div class="score-value" id="original-score">--</div>
+                            <div class="score-label">ATS Compatibility</div>
+                        </div>
+                        <div class="score-card">
+                            <h4>Optimized Score</h4>
+                            <div class="score-value" id="optimized-score">--</div>
+                            <div class="score-label">ATS Compatibility</div>
+                        </div>
+                    </div>
+                    
+                    <div id="optimizer-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cover Letter Writer -->
+        <div id="cover" class="tab-content">
+            <div class="tool-card">
+                <h3>AI Cover Letter Writer</h3>
+                <p>Generate a personalized, compelling cover letter.</p>
+                
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-file-upload"></i>
+                        Upload Resume
+                    </label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="cover-resume" accept=".pdf,.docx,.md,.txt">
+                        <label class="file-input-label">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Click to upload or drag and drop</span>
+                            <small style="margin-top: 0.5rem; color: var(--gray);">PDF, DOCX, MD, or TXT</small>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-align-left"></i>
+                        Job Description
+                    </label>
+                    <textarea id="cover-job-desc" rows="6" placeholder="Paste the complete job description here..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-building"></i>
+                        Company Name
+                    </label>
+                    <input type="text" id="cover-company" placeholder="e.g., Amazon, Microsoft">
+                </div>
+                
+                <button class="btn btn-primary" onclick="generateCoverLetter()">
+                    Generate Cover Letter
+                    <i class="fas fa-file-alt"></i>
+                </button>
+                
+                <div id="loading-cover" class="loading">
+                    <div class="spinner"></div>
+                    <p>Writing your personalized cover letter...</p>
+                </div>
+
+                <div id="cover-results" class="results">
+                    <div class="result-header">
+                        <h3>Your Cover Letter</h3>
+                        <button class="btn btn-primary" onclick="downloadCoverLetter()">
+                            <i class="fas fa-download"></i>
+                            Download PDF
+                        </button>
+                    </div>
+                    <div id="cover-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <i class="fas fa-lightbulb"></i>
+            <div>
+                <strong>Pro Tip:</strong> Use our Job Validator first to ensure you're not wasting time on fake postings.
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-top">
+                <div class="footer-section">
+                    <h4>ResumeWhip</h4>
+                    <p style="opacity: 0.8; line-height: 1.6;">
+                        Professional AI-powered resume optimization that consistently outperforms premium job platforms by over 40%.
+                    </p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Product</h4>
+                    <div class="footer-links">
+                        <a href="#"><i class="fas fa-chevron-right"></i> Features</a>
+                        <a href="#"><i class="fas fa-chevron-right"></i> Pricing</a>
+                        <a href="/gradio"><i class="fas fa-chevron-right"></i> Classic Version</a>
+                        <a href="mailto:support@resumewhip.com"><i class="fas fa-chevron-right"></i> Support</a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <div class="footer-links">
+                        <a href="#"><i class="fas fa-chevron-right"></i> Resume Tips</a>
+                        <a href="#"><i class="fas fa-chevron-right"></i> ATS Guide</a>
+                        <a href="#"><i class="fas fa-chevron-right"></i> Cover Letter Examples</a>
+                        <a href="#"><i class="fas fa-chevron-right"></i> Blog</a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <div class="footer-links">
+                        <a href="#"><i class="fas fa-chevron-right"></i> About Us</a>
+                        <a href="#"><i class="fas fa-chevron-right"></i> Privacy Policy</a>
+                        <a href="#"><i class="fas fa-chevron-right"></i> Terms of Service</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 ResumeWhip - AI-Powered Resume Optimization Tool</p>
+                <p style="margin-top: 0.5rem; font-size: 0.85rem;">
+                    AI resume optimizer | ATS resume checker | Resume builder | Cover letter generator
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

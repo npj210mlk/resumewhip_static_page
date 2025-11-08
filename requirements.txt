@@ -10,3 +10,8 @@ weasyprint
 beautifulsoup4
 stripe
 flask
+uuid
+threading 
+uvicorn 
+datetime
+fastapi

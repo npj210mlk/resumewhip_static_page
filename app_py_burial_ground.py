@@ -1,3 +1,33 @@
+# OLD PROMPT ENDING
+#     ### Remember:
+    # - More keywords = higher ATS score
+    # - More numbers = more credible
+    # - Strong action verbs = more impactful
+    # - DO NOT remove metrics to save space - they're what gets interviews 
+
+   # # Create a new user
+    # user_id = str(uuid.uuid4())
+    # cursor.execute(
+    #     "INSERT INTO users (user_id, email, credits_remaining, subscription_status) VALUES (?, ?, ?, ?)",
+    #     (user_id, email, 3, "free")
+    # )
+    # conn.commit()
+    # conn.close()
+    # return user_id, 3, "free"
+
+# replace with email / user_id
+# def get_user_id():
+#     """Generate a persistent session-based user ID"""
+#     # Use Gradio's session state if available, otherwise create persistent ID
+#     if hasattr(gr, 'current_user_id') and gr.current_user_id:
+#         return gr.current_user_id
+    
+#     # Create new user ID and store in session
+#     user_id = str(uuid.uuid4())
+#     gr.current_user_id = user_id
+#     return user_id
+
+
 #=========================================================================================
 
 # Original below - Worked, but trying Claude's. If not happy, uncomment 
