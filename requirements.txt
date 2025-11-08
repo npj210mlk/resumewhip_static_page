@@ -1,4 +1,4 @@
-gradio>=4.29.0
+lsgradio>=4.29.0
 python-docx
 scikit-learn
 requests
@@ -11,7 +11,6 @@ beautifulsoup4
 stripe
 flask
 uuid
-threading 
 uvicorn 
 datetime
 fastapi
