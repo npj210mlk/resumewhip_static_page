@@ -1719,8 +1719,12 @@ def force_premium_fix(email):
 # END TEMP FUNCTIONS
 # =================
 
-with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Builder", 
-               theme=gr.themes.Soft(), css=custom_css) as app:
+# old gr.Blocks:
+# with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Builder", 
+#               theme=gr.themes.Soft(), css=custom_css) as app:
+
+# latest gr.Blocks:
+with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Builder", css=custom_css) as app:
     
     gr.HTML("""
            <script>
