@@ -175,6 +175,139 @@ def get_resume_response(prompt: str, model: str = "gpt-4o-mini", temperature: fl
     except Exception as e:
         logging.error(f"OpenAI call failed: {e}")
         return f"Error: {e}"
+    
+def career_pivot_prompt_creator(resume_string: str, job_desc_string: str, 
+                                current_field: str, target_field: str) -> str:
+    """
+    Specialized prompt for career changers that emphasizes transferable skills
+    and reframes experience in terms relevant to the target industry.
+    
+    Args:
+        resume_string (str): Original resume text
+        job_desc_string (str): Target job description
+        current_field (str): Current/previous career field
+        target_field (str): Desired career field
+    
+    Returns:
+        str: Optimized prompt for career transition scenarios
+    """
+    # Protect from injections
+    resume_string = sanitize_input(resume_string)
+    job_desc_string = sanitize_input(job_desc_string)
+    current_field = sanitize_input(current_field)
+    target_field = sanitize_input(target_field)
+    
+    return f"""
+    ### Role: 
+    You are a career transition specialist and ATS optimization expert. Your task is to help someone 
+    successfully pivot from **{current_field}** to **{target_field}** by rewriting their resume to 
+    emphasize transferable skills and reframe their experience in terms the target industry understands.
+
+    ---
+
+    ### Critical Requirements (MUST FOLLOW):
+
+    **1. Transferable Skills Bridge (HIGHEST PRIORITY - 40 points)**
+    - Identify ALL skills from {current_field} that directly apply to {target_field}
+    - Reframe past accomplishments using {target_field} terminology and context
+    - Focus on universal competencies: leadership, problem-solving, communication, data analysis, project management
+    - Examples of reframing:
+      * "Managed classroom of 30 students" → "Led team of 30 individuals, tracking performance metrics"
+      * "Retail sales" → "Customer relationship management and revenue generation"
+      * "Restaurant management" → "Operations optimization and team leadership"
+    - Create a "bridge narrative" that shows logical progression from {current_field} to {target_field}
+
+    **2. Target Industry Keyword Integration (30 points)**
+    - Extract 20-30 key terms from the job description
+    - Incorporate at LEAST 60% of these keywords naturally
+    - Use EXACT terminology from {target_field} (if job says "stakeholder management," don't say "working with people")
+    - If candidate lacks direct experience with a required skill, reference it in Skills/Summary as "familiar with" or "learning"
+    - Never imply false expertise
+
+    **3. De-emphasize Outdated Industry Jargon (20 points)**
+    - Remove or minimize {current_field}-specific terms that don't translate
+    - Replace industry jargon with universal business language
+    - Example: Instead of "POS systems" use "point-of-sale technology and transaction processing"
+    - Keep the *concept* but make it accessible to {target_field} recruiters
+
+    **4. Lead with Most Relevant Experience (10 points)**
+    - Reorganize experience to highlight transferable roles/projects FIRST
+    - Even if not most recent, put relevant experience at the top
+    - Create a "Relevant Experience" section if needed
+    - Use reverse-chronological within each section
+
+    **5. Quantifiable Achievements (MANDATORY)**
+    - KEEP ALL existing numbers, percentages, and metrics from original resume
+    - ADD realistic metrics where missing based on typical role impact
+    - Every bullet point needs at least ONE measurable result
+    - Examples: "Led 5-person team," "Improved efficiency by 25%," "Managed $500K budget"
+
+    **6. Action Verbs (REQUIRED)**
+    - Start EVERY bullet point with strong action verbs:
+      * Achieved, Improved, Increased, Reduced, Optimized, Generated
+      * Led, Managed, Directed, Coordinated, Supervised
+      * Developed, Created, Designed, Implemented, Built, Engineered
+      * Analyzed, Evaluated, Assessed, Identified
+    - Never use "Responsible for" or "Helped with"
+
+    **7. Career Transition Summary (CRITICAL)**
+    - Write a 3-4 sentence professional summary that:
+      * Acknowledges the career transition positively
+      * Highlights transferable skills from {current_field}
+      * Emphasizes enthusiasm/readiness for {target_field}
+      * Mirrors core competencies from the job description
+    - Example: "Results-driven professional transitioning from {current_field} to {target_field}, 
+      bringing 5+ years of data analysis, team leadership, and process optimization. Proven track 
+      record of improving efficiency by 30% and managing cross-functional projects. Seeking to 
+      leverage analytical skills and business acumen in {target_field} role."
+
+    **8. Skills Section Strategy**
+    - Create TWO skill categories:
+      * **Transferable Skills**: Universal competencies applicable to any field
+      * **Technical Skills**: {target_field}-specific tools/technologies from job description
+    - List any {target_field} skills you're learning/acquiring
+    - Be honest about proficiency levels
+
+    ---
+
+    ### Input:
+    - **Current Resume**: `{resume_string}`
+    - **Target Job Description**: `{job_desc_string}`
+    - **Transitioning From**: {current_field}
+    - **Transitioning To**: {target_field}
+
+    ---
+
+    ### Output Format:
+
+    Return the optimized resume in clean Markdown with these sections:
+    1. **Contact Info** (if present in original)
+    2. **Professional Summary** (career transition narrative, keyword-rich)
+    3. **Transferable Skills** (universal competencies)
+    4. **Technical Skills** (target field specific)
+    5. **Relevant Experience** (reframed with transferable focus, 3-5 bullets per role)
+    6. **Additional Experience** (if needed, de-emphasized)
+    7. **Education** (if present)
+
+    Then add:
+    ### Career Transition Coaching
+    - Suggest which past experiences to emphasize most
+    - Identify any gaps to address (courses, certifications, projects)
+    - Recommend specific ways to strengthen the transition narrative
+    - List any {target_field} keywords still missing from the resume
+
+    ---
+
+    ### Scoring Criteria:
+    Your rewritten resume will be evaluated on:
+    1. **Transferable Skills Bridge** (40 points) - How well you connect {current_field} to {target_field}
+    2. **Keyword Match** (30 points) - Target industry terminology integration
+    3. **Quantifiable Results** (20 points) - Measurable achievements
+    4. **Action Verbs & Clarity** (10 points) - Strong language and readability
+
+    **Remember**: This candidate has real value to offer {target_field}. Your job is to make 
+    that value immediately obvious to recruiters who may not understand {current_field} terminology.
+    """
 
 def process_resume(resume_file_path, job_desc_string):
     try:

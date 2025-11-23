@@ -1160,8 +1160,10 @@ async def admin_view_users(auth: str = Header(None)):
         "users": user_list  
     }
 
-def run_resume_with_credits_with_scoring(resume_file, job_input, email):
-    """Handle resume processing with premium and free user experience"""
+def run_resume_with_credits_with_scoring(resume_file, job_input, email, 
+                                        is_career_change=False, 
+                                        current_field="", target_field=""):
+    """Handle resume processing with premium/free user experience AND career pivot support"""
 
     # Validate the user's email input
     if not email or not email.strip():
@@ -1172,8 +1174,12 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
         return ("⚠️ Please upload your resume and paste the job description.", "", "", "",
                 get_credits_display(email))
     
+    # Validate career change fields if toggled
+    if is_career_change and (not current_field.strip() or not target_field.strip()):
+        return ("⚠️ Please fill in both 'Current Field' and 'Target Field' for career change optimization.", 
+                "", "", "", get_credits_display(email))
+    
     # ✅ CRITICAL FIX: Force a fresh database lookup EVERY TIME
-    # Don't trust any cached data - go straight to the database
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -1184,23 +1190,21 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
         row = cursor.fetchone()
         
         if not row:
-            # User doesn't exist - create them
             user_id, credits, status = get_or_create_user(email)
         else:
             user_id = row["user_id"]
             credits = row["credits_remaining"]
             status = row["subscription_status"]
             
-        print(f"🔍 Fresh DB lookup for {email}: status={status}, credits={credits}")  # Debug
+        print(f"🔍 Fresh DB lookup for {email}: status={status}, credits={credits}")
         
     finally:
         if conn:
             conn.close()
     
-    # NOW check if they're premium with the FRESH data
+    # Check if premium
     is_premium = (status in ["paid", "premium"])
-    
-    print(f"🎫 Is Premium: {is_premium}")  # Debug
+    print(f"🎫 Is Premium: {is_premium}")
 
     # Log IP used
     try:
@@ -1210,37 +1214,53 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
         print(f"⚠️ Could not log user's IP: {ip_error}")
     
     if is_premium:
-        print("✅ Running as PREMIUM user")  # Debug
-        # Premium user - unlimited access
+        print("✅ Running as PREMIUM user")
         try:
-            # extract the original resume's text
+            # Extract the original resume's text
             original_text = extract_resume_text(resume_file)
 
-            # calculate original score
+            # Calculate original score
             original_score, original_feedback = calculate_resume_score(original_text, job_input)
 
-            # process the existing resume
-            optimized_preview, suggestions, match_info, optimized_text = process_resume(resume_file, job_input)
+            # 🔄 Route to appropriate prompt based on career change toggle
+            if is_career_change:
+                prompt = career_pivot_prompt_creator(
+                    original_text, job_input, current_field, target_field
+                )
+                print(f"🔄 Using CAREER PIVOT prompt: {current_field} → {target_field}")
+            else:
+                prompt = prompt_creator(original_text, job_input)
+                print("📝 Using STANDARD prompt")
 
-            # calculate the optimized score
+            # Get optimized resume from AI
+            response = get_resume_response(prompt)
+            
+            # Split out suggestions
+            parts = re.split(r"^#+ (Additional Suggestions|Career Transition Coaching)", 
+                           response, flags=re.IGNORECASE | re.MULTILINE)
+            optimized_text = parts[0].strip() if parts else response
+            suggestions = parts[-1].strip() if len(parts) > 1 else "No additional suggestions."
+
+            # Calculate the optimized score
             optimized_score, optimized_feedback = calculate_resume_score(optimized_text, job_input)
 
-            # now for the comparison visualization
+            # Create comparison visualization
             score_comparison = create_score_comparison(
                 original_score, optimized_score,
                 original_feedback, optimized_feedback
             )
 
-            premium_display = get_credits_display(email) 
+            premium_display = get_credits_display(email)
 
-            return (optimized_preview, optimized_text, suggestions, score_comparison, premium_display)
+            return (optimized_text, optimized_text, suggestions, score_comparison, premium_display)
         
         except Exception as premium_error:
             print(f"🚨 Premium processing error: {premium_error}")
             return (f"Error processing resume: {premium_error}", "", "", "", get_credits_display(email))
+    
     else:
-        print(f"⚠️ Running as FREE user with {credits} credits")  # Debug
-        # Free user - existing credit logic
+        print(f"⚠️ Running as FREE user with {credits} credits")
+        # Free user - check credits
         if credits <= 0:
             checkout_url = create_checkout_session(email)
             
@@ -1250,38 +1270,53 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email):
                     "", "", "", get_credits_display(email)
                 )
             else:
-                return(
-                    checkout_url,
-                    "", "", "", get_credits_display(email)
-                )
+                return(checkout_url, "", "", "", get_credits_display(email))
         
         try:
-            # get the original resume text
+            # Get the original resume text
             original_text = extract_resume_text(resume_file)
 
-            # score that o.g.
+            # Score that original
             original_score, original_feedback = calculate_resume_score(original_text, job_input)
 
-            # process the resume
-            optimized_preview, suggestions, match_info, optimized_text = process_resume(resume_file, job_input)
+            # 🔄 Route to appropriate prompt
+            if is_career_change:
+                prompt = career_pivot_prompt_creator(
+                    original_text, job_input, current_field, target_field
+                )
+                print(f"🔄 Using CAREER PIVOT prompt: {current_field} → {target_field}")
+            else:
+                prompt = prompt_creator(original_text, job_input)
+                print("📝 Using STANDARD prompt")
 
-            # calculate optimized resume score
+            # Get optimized resume
+            response = get_resume_response(prompt)
+            
+            # Split out suggestions
+            parts = re.split(r"^#+ (Additional Suggestions|Career Transition Coaching)", 
+                           response, flags=re.IGNORECASE | re.MULTILINE)
+            optimized_text = parts[0].strip() if parts else response
+            suggestions = parts[-1].strip() if len(parts) > 1 else "No additional suggestions."
+
+            # Calculate optimized resume score
             optimized_score, optimized_feedback = calculate_resume_score(optimized_text, job_input)
 
-            # create the comparison
+            # Create the comparison
             score_comparison = create_score_comparison(
                 original_score, optimized_score,
                 original_feedback, optimized_feedback
             )
-            # deduct credits AFTER successful processing
+            
+            # Deduct credits AFTER successful processing
             update_user_credits(user_id, credits - 1)
 
-            return (optimized_preview, optimized_text, suggestions, score_comparison, get_credits_display(email))
+            return (optimized_text, optimized_text, suggestions, score_comparison, get_credits_display(email))
         
         except Exception as free_error:
             print(f"🚨 Free user processing error: {free_error}")
-            return (f"😩 Apologies, but there was an error in processing your resume: {free_error}", "", "", "", get_credits_display(email))
-
+            return (f"😩 Apologies, but there was an error in processing your resume: {free_error}", 
+                   "", "", "", get_credits_display(email))
+        
 def show_premium_welcome():
     """Show welcome message for new premium users"""
     return gr.HTML("""
@@ -2015,7 +2050,32 @@ and the next to begin:
             #======================================================
 
                 with gr.TabItem("🎯 RESUME OPTIMIZER"):
-                    run_resume = gr.Button("🪄 Whip Up the Resume Optimizer! (Takes About 30 Seconds.)", variant="primary")
+                    # Career change toggle
+                    career_change_toggle = gr.Checkbox(
+                        label="🔄 I'm changing careers (switching industries/roles)",
+                        value=False,
+                        info="Check this if you're pivoting to a new field - we'll emphasize your transferable skills"
+                    )
+                    
+                    # Career change fields (hidden by default)
+                    with gr.Group(visible=False) as career_fields_group:
+                        gr.Markdown("### Tell us about your career transition:")
+                        with gr.Row():
+                            current_field_input = gr.Textbox(
+                                label="📋 Current/Previous Field",
+                                placeholder="e.g., Teaching, Retail Management, Healthcare, Military",
+                                info="What industry or role are you coming from?"
+                            )
+                            target_field_input = gr.Textbox(
+                                label="🎯 Target Field",
+                                placeholder="e.g., Data Analytics, Sales, Project Management, Tech",
+                                info="What industry or role are you moving into?"
+                            )
+                    
+                    run_resume = gr.Button(
+                        "🪄 Whip Up the Resume Optimizer! (Takes Around 30 Seconds.)", 
+                        variant="primary"
+                    )
                     
                     # process_resume outputs
                     # resume_md = gr.Markdown(label="Here's A Preview of Your Optimized Resume")
@@ -2024,7 +2084,7 @@ and the next to begin:
                     # resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
                     # resume_counter = gr.Markdown(label = "🫘 Resume Counter")
                     resume_md = gr.Markdown(label="Here's A Preview of Your Optimized Resume")
-                    resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here (optional)", lines=15)
+                    resume_edit = gr.Textbox(label="✏️ Edit Your Resume Here with the Suggestions Below", lines=15)
                     suggestions = gr.Markdown(label="Suggestions & Tips")
                     score_comparison = gr.HTML(label = "📊 Resume Match Score")
                     resume_counter = gr.Markdown(label = "🫘 Resume Counter")
@@ -2150,6 +2210,12 @@ and the next to begin:
         outputs=[summary_output, report_output]
     )
 
+    career_change_toggle.change(
+        fn=lambda checked: gr.update(visible=checked),
+        inputs=[career_change_toggle],
+        outputs=[career_fields_group]
+    )
+
     refresh_btn.click(
         fn = refresh_user_display,
         inputs = [email_input],
@@ -2179,7 +2245,14 @@ and the next to begin:
     
     run_resume.click(
         fn=run_resume_with_credits_with_scoring,
-        inputs=[resume_input, job_input, email_input],
+        inputs=[
+            resume_input, 
+            job_input, 
+            email_input,
+            career_change_toggle,      # Added 11/23: career change flag
+            current_field_input,       # Added 11/23: current field
+            target_field_input         # Added 11/23: target field
+        ],
         outputs=[resume_md, resume_edit, suggestions, score_comparison, resume_counter]
     )
 
