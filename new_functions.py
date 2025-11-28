@@ -307,7 +307,7 @@ def get_resume_response(prompt: str, model: str = "gpt-4o-mini", temperature: fl
         return response.choices[0].message.content
     except Exception as e:
         logging.error(f"OpenAI call failed: {e}")
-        return f"Error: {e}"
+        return f"Error: Unable to generate resume. Details: {str(e)}"
 
 def process_resume(resume_file_path, job_desc_string):
     try:
