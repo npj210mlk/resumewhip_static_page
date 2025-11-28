@@ -158,24 +158,9 @@ def prompt_creator(resume_string: str, job_desc_string: str) -> str:
         2. Use of strong action verbs (20 points),
         3. Quantifiable results (20 points),
         4. Optimal length and clarity (10 points).
-        Your goal is to maximize the score in all categories."s
+        Your goal is to maximize the score in all categories."
     """
 
-def get_resume_response(prompt: str, model: str = "gpt-4o-mini", temperature: float = 0.7) -> str:
-    try:
-        response = client.chat.completions.create(
-            model = model,
-            messages = [
-                {"role": "system", "content": "Expert Resume Writer"},
-                {"role": "user", "content": prompt}
-            ],
-            temperature = temperature
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        logging.error(f"OpenAI call failed: {e}")
-        return f"Error: {e}"
-    
 def career_pivot_prompt_creator(resume_string: str, job_desc_string: str, 
                                 current_field: str, target_field: str) -> str:
     """
@@ -308,6 +293,21 @@ def career_pivot_prompt_creator(resume_string: str, job_desc_string: str,
     **Remember**: This candidate has real value to offer {target_field}. Your job is to make 
     that value immediately obvious to recruiters who may not understand {current_field} terminology.
     """
+
+def get_resume_response(prompt: str, model: str = "gpt-4o-mini", temperature: float = 0.7) -> str:
+    try:
+        response = client.chat.completions.create(
+            model = model,
+            messages = [
+                {"role": "system", "content": "Expert Resume Writer"},
+                {"role": "user", "content": prompt}
+            ],
+            temperature = temperature
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        logging.error(f"OpenAI call failed: {e}")
+        return f"Error: {e}"
 
 def process_resume(resume_file_path, job_desc_string):
     try:
