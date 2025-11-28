@@ -295,6 +295,22 @@ def career_pivot_prompt_creator(resume_string: str, job_desc_string: str,
     """
 
 def get_resume_response(prompt: str, model: str = "gpt-4o-mini", temperature: float = 0.7) -> str:
+    """
+    Now that we've got the resume optimized, we send it to OpenAI's API, where it sends us back the
+    optimized resume response. 
+
+    Args:
+        prompt (str): The formatted prompt containing the resume and job description
+        model ("gpt-4o-mini"): The OpenAI engine to use.
+        temperature (float, optional): Controls randomness in the response. Hard-set to 0.7, 
+        a popular temperature setting.
+
+    Returns:
+        str: The AI-generated optimized resume
+
+    Raises:
+        OpenAIError: If there's an issue with the API call
+    """
     try:
         response = client.chat.completions.create(
             model = model,
@@ -304,10 +320,31 @@ def get_resume_response(prompt: str, model: str = "gpt-4o-mini", temperature: fl
             ],
             temperature = temperature
         )
-        return response.choices[0].message.content
+        
+        # Extract the content
+        content = response.choices[0].message.content
+        
+        # 🆕 Validate we got actual content back
+        if not content or content.strip() == "":
+            logging.error("OpenAI returned empty response")
+            return "⚠️ Error: OpenAI returned an empty response. Please try again."
+        
+        return content
+    
     except Exception as e:
-        logging.error(f"OpenAI call failed: {e}")
-        return f"Error: Unable to generate resume. Details: {str(e)}"
+        # 🆕 Log the FULL error details
+        logging.error(f"OpenAI API call failed with error: {type(e).__name__}: {str(e)}")
+        
+        # Return user-friendly error message
+        error_msg = str(e)
+        if "rate_limit" in error_msg.lower():
+            return "⚠️ Error: OpenAI rate limit reached. Please wait a moment and try again."
+        elif "invalid" in error_msg.lower() and "key" in error_msg.lower():
+            return "⚠️ Error: OpenAI API key issue. Please contact support@resumewhip.com"
+        elif "quota" in error_msg.lower():
+            return "⚠️ Error: OpenAI quota exceeded. Please contact support@resumewhip.com"
+        else:
+            return f"⚠️ Error: Unable to generate resume. Please try again. (Details: {error_msg[:100]})"
 
 def process_resume(resume_file_path, job_desc_string):
     try:

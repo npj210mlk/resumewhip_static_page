@@ -2334,6 +2334,13 @@ if __name__ == "__main__":
     print(f"Database will be at: {os.path.abspath('resumewhip.db')}")
 
     # ✅ ADD THESE DEBUG CHECKS:
+    print("\n🔑 API Key Check:")
+    openai_key = os.getenv("OPENAI_API_KEY")
+    if openai_key:
+        print(f"  ✅ OpenAI API key found (starts with: {openai_key[:10]}...)")
+    else:
+        print(f"  ❌ OpenAI API key NOT FOUND!")
+
     print("\n🔍 Environment Variable Check:")
     print(f"  STRIPE_SECRET_KEY: {'✅ Set' if os.getenv('STRIPE_SECRET_KEY') else '❌ NOT SET'}")
     print(f"  PRICE_ID: {os.getenv('PRICE_ID') if os.getenv('PRICE_ID') else '❌ NOT SET'}")
