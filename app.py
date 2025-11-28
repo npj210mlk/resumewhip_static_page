@@ -1751,10 +1751,16 @@ with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Bui
     
     # Header
     gr.Markdown("""
+<<<<<<< HEAD
     <h1 style='text-align:center; color:#1e90ff;'>🏎️💨 Welcome To ResumeWhip!</h1>
     <h2 style='text-align:center; color:#dd1eff;'>The AI-Powered Resume Optimizer Meant to Whip ATS Systems</h2>
     <h2 style='text-align:center; color:#dd1eff;'>Get Your First 3 Resumes Free!</h2> 
     <h3 style='text-align:center;'>Powerful. Simple. Just Validate → Upload → Optimize → Apply!</h3>          
+=======
+    <h1 style='text-align:center; color:#1e90ff;'>🥇 Welcome To ResumeWhip!!</h1>
+    <h2 style='text-align:center; color:#dd1eff;'>Your One-Stop Resume Optimizer Shop!</h2> 
+    <h3 style='text-align:center;'>Powerful Simplicity: Just Verify → Upload → Optimize → Apply!</h3>
+>>>>>>> 4e7c681 (test commit.)
     """)
 
     with gr.Row():
