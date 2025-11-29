@@ -39,18 +39,42 @@ os.makedirs("gpt_cover_letters", exist_ok = True)
 # Resume Functions
 # ========================
 
-def extract_resume_text(file_path: str) -> str:
-    if file_path.lower().endswith(".pdf"):
-        with pdfplumber.open(file_path) as pdf:
-            return "\n".join([page.extract_text() or "" for page in pdf.pages]).strip()
-    elif file_path.lower().endswith(".docx"):
-        doc = docx.Document(file_path)
-        return "\n".join([para.text for para in doc.paragraphs]).strip()
-    elif file_path.lower().endswith((".md", ".txt")):
-        with open(file_path, "r", encoding = "utf-8") as f:
-            return f.read().strip()
+def extract_resume_text(file_path) -> str:
+    """
+    Extracts text from PDF, DOCX, MD, or TXT resumes.
+    Handles both file paths (strings) and file objects from Gradio.
+    """
+    resume_txt = ""
+    
+    # Handling both file objects and string paths
+    if hasattr(file_path, 'name'):
+        # It's a file object from Gradio - get the actual path
+        actual_path = file_path.name
     else:
-        raise ValueError("Unsupported file type. Please upload .pdf, .docx, .md, or .txt.")
+        # It's already a string path
+        actual_path = file_path
+    
+    # Using actual_path for file type checking
+    if actual_path.lower().endswith(".pdf"):
+        with pdfplumber.open(actual_path) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    resume_txt += text + "\n"
+
+    elif actual_path.lower().endswith(".docx"):
+        doc = docx.Document(actual_path)
+        for para in doc.paragraphs:
+            resume_txt += para.text + "\n"
+
+    elif actual_path.lower().endswith((".md", ".txt")):
+        with open(actual_path, "r", encoding="utf-8") as f:
+            resume_txt = f.read()
+
+    else:
+        raise ValueError("Sorry - we don't support that type of file. Please upload a file with either the .pdf, .docx, .md, or .txt extensions.")
+
+    return resume_txt.strip()
 
 def get_embedding(text: str):
     response = client.embeddings.create(model = "text-embedding-3-small", input = text)
