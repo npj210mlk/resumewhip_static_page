@@ -928,13 +928,13 @@ def check_payment_status(user_id):
         return False
 
 def get_sidebar_content(email):
-    """Return sidebar content based on user subscription status"""
+    """Return sidebar content based on user subscription status - returns plain HTML string"""
     user_id, credits, status = get_or_create_user(email)
     is_premium = (status in ['paid', 'premium'])
     
     if is_premium:
         # Premium user sidebar - no upgrade prompts
-        return gr.HTML("""
+        return """
         <div style="text-align:center; margin:20px 0;">
             <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);
                         color: white; padding: 20px; border-radius: 12px;
@@ -945,10 +945,10 @@ def get_sidebar_content(email):
                 </p>
             </div>
         </div>
-        """)
+        """
     else:
         # Free user sidebar - show upgrade option
-        return gr.HTML("""
+        return """
         <div style="text-align:center; margin:20px 0;">
             <a href="https://buy.stripe.com/cNi9ASgWl6C614l3Ja1Jm00" 
                target="_blank" 
@@ -960,7 +960,7 @@ def get_sidebar_content(email):
                 ♾️ Get Unlimited AI-Powered Resume Optimization for Just $5.99/Month!
             </a>
         </div>
-        """)
+        """
     
 def create_billing_portal_session(user_id):
     try:
@@ -1754,16 +1754,13 @@ with gr.Blocks(title="ResumeWhip - AI Resume Optimizer | ATS-Friendly Resume Bui
     
     # Header
     gr.Markdown("""
-<<<<<<< HEAD
     <h1 style='text-align:center; color:#1e90ff;'>🏎️💨 Welcome To ResumeWhip!</h1>
     <h2 style='text-align:center; color:#dd1eff;'>The AI-Powered Resume Optimizer Meant to Whip ATS Systems</h2>
     <h2 style='text-align:center; color:#dd1eff;'>Get Your First 3 Resumes Free!</h2> 
     <h3 style='text-align:center;'>Powerful. Simple. Just Validate → Upload → Optimize → Apply!</h3>          
-=======
     <h1 style='text-align:center; color:#1e90ff;'>🥇 Welcome To ResumeWhip!!</h1>
     <h2 style='text-align:center; color:#dd1eff;'>Your One-Stop Resume Optimizer Shop!</h2> 
     <h3 style='text-align:center;'>Powerful Simplicity: Just Verify → Upload → Optimize → Apply!</h3>
->>>>>>> 4e7c681 (test commit.)
     """)
 
     with gr.Row():
