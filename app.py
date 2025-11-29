@@ -1161,13 +1161,12 @@ async def admin_view_users(auth: str = Header(None)):
     }
 
 def run_resume_with_credits_with_scoring(resume_file, job_input, email, 
-                                        is_career_change=False, 
-                                        current_field="", target_field=""):
+        is_career_change=False, current_field="", target_field=""):
     """Handle resume processing with premium/free user experience AND career pivot support"""
 
     # Validate the user's email input
     if not email or not email.strip():
-        return ("🚨 Please enter your email address to continue.", "", "", "", gr.Markdown(""))
+        return ("🚨 Please enter your email address to continue.", "", "", "", "")
     
     # Validate the user's job_input
     if not resume_file or not job_input.strip():
@@ -1234,6 +1233,10 @@ def run_resume_with_credits_with_scoring(resume_file, job_input, email,
 
             # Get optimized resume from AI
             response = get_resume_response(prompt)
+
+            # Adding error checks
+            if not response or response.startswith("⚠️ Error"):
+                return (response or "Error generating resume", "", "", "", get_credits_display(email))
             
             # Split out suggestions
             parts = re.split(r"^#+ (Additional Suggestions|Career Transition Coaching)", 
