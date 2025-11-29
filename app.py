@@ -1,6 +1,7 @@
 # Final
 import os
 import sqlite3
+import re # regex
 import gradio as gr
 import stripe
 import pdfplumber
