@@ -18,6 +18,7 @@ from new_functions import (
     extract_resume_text,
     sanitize_input,
     prompt_creator,
+    career_pivot_prompt_creator,
     get_resume_response,
     process_resume,
     export_resume,
