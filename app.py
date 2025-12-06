@@ -44,8 +44,9 @@ custom_css = """
     --primary: #6366f1;           /* Indigo - primary actions */
     --primary-hover: #4f46e5;
     --secondary: #8b5cf6;          /* Purple - secondary elements */
-    --accent: #10b981;             /* Emerald - success/premium */
-    --accent-hover: #059669;
+    --accent: #34d399;             /* Softer emerald - success/premium */
+    --accent-hover: #10b981;
+    --accent-light: #6ee7b7;       /* Light emerald for gradients */
     --warning: #f59e0b;            /* Amber - alerts */
     --danger: #ef4444;             /* Red - errors */
     --text-primary: #1f2937;       /* Dark gray */
@@ -183,7 +184,7 @@ button[variant="secondary"]:hover {
 
 /* Download/Export Buttons - Success Style */
 .download-btn {
-    background: linear-gradient(135deg, var(--accent), var(--accent-hover)) !important;
+    background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 50%, var(--accent-hover) 100%) !important;
     color: white !important;
     font-weight: 600 !important;
     border: none !important;
@@ -196,7 +197,8 @@ button[variant="secondary"]:hover {
 
 .download-btn:hover {
     transform: translateY(-2px) !important;
-    box-shadow: var(--shadow-lg) !important;
+    box-shadow: 0 8px 20px rgba(52, 211, 153, 0.4) !important;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 50%, #059669 100%) !important;
 }
 
 /* ============================================
@@ -223,7 +225,8 @@ button[variant="secondary"]:hover {
 }
 
 .status-badge.premium {
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+    background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 50%, var(--accent-hover) 100%);
+    box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);
 }
 
 .status-badge.free {
@@ -281,13 +284,13 @@ button[variant="secondary"]:hover {
    ============================================ */
 
 .premium-badge {
-    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    background: linear-gradient(135deg, var(--accent-light), var(--accent) 50%, var(--accent-hover));
     color: white;
     padding: 12px 20px;
     border-radius: 25px;
     font-weight: 600;
     text-align: center;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);
     display: inline-block;
 }
 
@@ -612,7 +615,8 @@ def get_credits_display(email):
         
         if status in ["paid", "premium"]:
             return """
-            <div class="status-badge premium">
+            <div class="status-badge premium" style="background: linear-gradient(135deg, #6ee7b7 0%, #34d399 50%, #10b981 100%);
+                                                      box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);">
                 <strong>Premium: Unlimited Access</strong>
             </div>
             """
@@ -658,7 +662,8 @@ def get_sidebar_content(email):
     if is_premium:
         return """
         <div style="text-align:center; margin:20px 0;">
-            <div class="premium-badge">
+            <div class="premium-badge" style="background: linear-gradient(135deg, #6ee7b7 0%, #34d399 50%, #10b981 100%);
+                                               box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);">
                 Premium Member - Unlimited Access Active
             </div>
         </div>
