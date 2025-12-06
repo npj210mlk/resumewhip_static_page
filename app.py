@@ -1243,12 +1243,14 @@ with gr.Blocks(title="ResumeWhip - Professional ATS Resume Optimizer", theme=gr.
 
             with gr.Accordion("How It Works", open=False):
                 gr.Markdown("""
-                **Simple 4-Step Process:**
+                1.) Crank Your Existing Resume Up To 11 - list every single skill and experience you have
+                    (this is how our AI writes your resume and scores your chances);  
+                2.) Follow the Prompts To Load the Requested Info;  
+                3.) Choose Your Tool (you don't have to use all 4);  
+                4.) Proofread / Edit the Results Using the 'Copy/Pastes' below;  
+                5.) Download Your File as PDF; and  
+                6.) Apply!
                 
-                1. Enter your email and upload your resume
-                2. Paste the job description you're targeting
-                3. Choose your optimization tool (standard, career change, cover letter, or job validator)
-                4. Download your optimized resume as PDF and apply
                 
                 Our AI analyzes job descriptions and tailors your resume to match ATS requirements while highlighting your relevant experience.
                 """)
