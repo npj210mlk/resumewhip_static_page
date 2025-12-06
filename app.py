@@ -37,7 +37,7 @@ load_dotenv()
 # Professional Modern CSS Theme
 custom_css = """
 /* ============================================
-   PROFESSIONAL MODERN TECH STARTUP THEME
+   GOING FOR MODERN / PROFESSIONAL TECH THEME
    ============================================ */
 
 :root {
@@ -199,6 +199,25 @@ button[variant="secondary"]:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(52, 211, 153, 0.4) !important;
     background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 50%, #059669 100%) !important;
+}
+
+/* Orange CTA Buttons for Main Actions */
+.cta-btn {
+    background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%) !important;
+    color: white !important;
+    font-weight: 700 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 16px 32px !important;
+    font-size: 1.1em !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(251, 146, 60, 0.4) !important;
+}
+
+.cta-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(251, 146, 60, 0.5) !important;
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%) !important;
 }
 
 /* ============================================
@@ -1308,11 +1327,13 @@ Page Break:
 
             # 4-Tab System
             gr.HTML("""
-            <div style="text-align: center; margin: 30px 0;">
-                <h2 style="font-size: 1.8em; color: var(--text-primary); font-weight: 700; margin-bottom: 10px;">
-                    Choose Your Tool
+            <div style="text-align: center; margin: 30px 0; 
+                        background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%);
+                        padding: 25px; border-radius: 12px; box-shadow: var(--shadow-md);">
+                <h2 style="font-size: 1.8em; color: white; font-weight: 700; margin-bottom: 10px;">
+                 Choose Your Tool
                 </h2>
-                <p style="font-size: 1.05em; color: var(--text-secondary);">
+                <p style="font-size: 1.05em; color: rgba(255, 255, 255, 0.95);">
                     Select the optimization tool that fits your needs
                 </p>
             </div>
@@ -1333,7 +1354,7 @@ Page Break:
                             placeholder="e.g., Software Engineer"
                         )
                     
-                    validate_btn = gr.Button("Validate Job Posting", variant="primary")
+                    validate_btn = gr.Button("Validate Job Posting", elem_classes="cta-btn") 
                     summary_output = gr.HTML()
                     report_output = gr.Markdown()
 
@@ -1341,10 +1362,7 @@ Page Break:
                     gr.Markdown("### Standard ATS Optimization")
                     gr.Markdown("Perfect for optimizing your resume for a specific job posting in your current field.")
                     
-                    run_resume = gr.Button(
-                        "Optimize Resume (Takes ~30 Seconds)", 
-                        variant="primary"
-                    )
+                    run_resume = gr.Button("Optimize Resume (Takes ~30 Seconds)", elem_classes="cta-btn")
                     
                     resume_md = gr.Markdown(label="Optimized Resume Preview")
                     resume_edit = gr.Textbox(label="Edit Your Resume (Optional)", lines=15)
@@ -1373,10 +1391,7 @@ Page Break:
                             info="What industry are you moving into?"
                         )
                     
-                    run_career_resume = gr.Button(
-                        "Optimize for Career Transition (~30 Seconds)", 
-                        variant="primary"
-                    )
+                    run_career_resume = gr.Button("Optimize for Career Transition (~30 Seconds)", elem_classes="cta-btn")
                     
                     career_md = gr.Markdown(label="Optimized Resume Preview")
                     career_edit = gr.Textbox(label="Edit Your Resume (Optional)", lines=15)
@@ -1393,7 +1408,7 @@ Page Break:
                     gr.Markdown("### Professional Cover Letter Generator")
                     gr.Markdown("Generate a tailored, ATS-friendly cover letter based on your resume and the job description.")
                     
-                    run_cover = gr.Button("Generate Cover Letter", variant="primary")
+                    run_cover = gr.Button("Generate Cover Letter", elem_classes="cta-btn")
                     cover_output = gr.Textbox(
                         label="Your Cover Letter (Edit as Needed)", 
                         lines=15
