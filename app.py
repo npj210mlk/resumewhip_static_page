@@ -979,10 +979,35 @@ def run_career_change_resume(resume_file, job_input, email, current_field, targe
 
             if not response or response.startswith("⚠️ Error"):
                 return (response or "Error generating resume", "", "", "", get_credits_display(email))
-            
-            parts = re.split(r"^#+ (Career Transition Coaching)", response, flags=re.IGNORECASE | re.MULTILINE)
-            optimized_text = parts[0].strip() if parts else response
-            suggestions = parts[-1].strip() if len(parts) > 1 else "No additional coaching provided."
+
+            # Extract only STAGE 3 (the actual resume)
+            # Extract only STAGE 3 (the actual resume)
+            stage_3_match = re.search(
+                r'# STAGE 3.*?(?=# STAGE 4|$)', 
+                response, 
+                re.DOTALL | re.IGNORECASE
+            )
+
+            if stage_3_match:
+                stage_3_content = stage_3_match.group(0)
+                # Remove the STAGE 3 header itself
+                optimized_text = re.sub(r'^# STAGE 3.*?\n+', '', stage_3_content, flags=re.MULTILINE).strip()
+            else:
+                # Fallback: try to extract everything before STAGE 4
+                parts = re.split(r"^#+ STAGE 4", response, flags=re.IGNORECASE | re.MULTILINE)
+                optimized_text = parts[0].strip() if parts else response
+
+            # Extract STAGE 4 for coaching suggestions
+            stage_4_match = re.search(
+                r'# STAGE 4.*?(?=# STAGE 5|$)', 
+                response, 
+                re.DOTALL | re.IGNORECASE
+            )
+
+            if stage_4_match:
+                suggestions = stage_4_match.group(0).strip()
+            else:
+                suggestions = "No additional coaching provided."
 
             optimized_score, optimized_feedback = calculate_resume_score(optimized_text, job_input)
 
