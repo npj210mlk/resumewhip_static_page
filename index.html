@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResumeWhip — Case Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0F1729;
+    --bg-elevated: #161F36;
+    --card: #F7F4ED;
+    --accent: #E8804C;
+    --accent-soft: #E8804C33;
+    --text-primary: #F7F4ED;
+    --text-secondary: #8B96A8;
+    --text-dark: #1A2236;
+    --success: #7FB069;
+    --border: #2A3554;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    padding: 80px 0 64px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+
+  .subhead {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    max-width: 540px;
+    margin-bottom: 48px;
+  }
+
+  /* ===== SIGNATURE: BEFORE/AFTER DIFF ===== */
+  .diff-card {
+    background: var(--card);
+    color: var(--text-dark);
+    border-radius: 12px;
+    padding: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    line-height: 1.9;
+    box-shadow: 0 24px 60px -20px rgba(0,0,0,0.5);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .diff-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .diff-old {
+    color: #B0473D;
+    text-decoration: line-through;
+    text-decoration-color: #B0473D88;
+    opacity: 0;
+    animation: fadeIn 0.6s ease forwards;
+    animation-delay: 0.2s;
+  }
+
+  .diff-new {
+    color: var(--success);
+    font-weight: 500;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    display: block;
+    animation: revealNew 0.6s ease forwards;
+    animation-delay: 1.1s;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  @keyframes revealNew {
+    to { opacity: 1; max-height: 100px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .diff-old, .diff-new { animation: none; opacity: 1; max-height: none; }
+  }
+
+  /* ===== SECTIONS ===== */
+  section {
+    padding: 64px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  section:last-of-type { border-bottom: none; }
+
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    margin-bottom: 24px;
+    letter-spacing: -0.01em;
+  }
+
+  p { color: var(--text-secondary); max-width: 620px; }
+  p + p { margin-top: 16px; }
+
+  /* ===== HOW IT WORKS ===== */
+  .steps {
+    display: grid;
+    gap: 28px;
+    margin-top: 32px;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .step-num {
+    font-family: 'Fraunces', serif;
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .step-content h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+  }
+
+  .step-content p { font-size: 0.95rem; max-width: none; }
+
+  /* ===== FEATURE GRID ===== */
+  .feature-group-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-top: 28px;
+    margin-bottom: 12px;
+  }
+
+  .feature-group-label:first-of-type {
+    margin-top: 32px;
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+
+  .feature-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+  }
+
+  .feature-card h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+
+  .feature-card p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    max-width: none;
+    margin: 0;
+  }
+
+  /* ===== SCREENSHOT PLACEHOLDERS ===== */
+  .screenshot-frame {
+    margin: 32px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+  }
+
+  .screenshot-frame img {
+    width: 100%;
+    display: block;
+  }
+
+  .screenshot-placeholder-label {
+    display: none;
+    padding: 40px 20px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  /* Shown only if the image fails to load (placeholder not yet replaced) */
+  .screenshot-missing img {
+    display: none;
+  }
+
+  .screenshot-missing .screenshot-placeholder-label {
+    display: block;
+  }
+
+  /* ===== BULLETS ===== */
+  .styled-list {
+  margin-left: 24px; /* Adjust this value for the desired indentation */
+  margin-top: 16px;
+  color: var(--text-secondary);
+}
+
+.styled-list li {
+  margin-bottom: 12px;
+}
+
+  /* ===== STACK ===== */
+  .stack-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  .stack-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    color: var(--text-secondary);
+    background: var(--bg-elevated);
+  }
+
+  /* ===== VIDEO ===== */
+  .video-frame {
+    margin-top: 24px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    aspect-ratio: 16 / 9;
+    position: relative;
+  }
+
+  .video-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  .video-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    text-align: center;
+    padding: 20px;
+  }
+
+  /* ===== CTA ===== */
+  .cta-section {
+    text-align: left;
+  }
+
+  .cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 14px 28px;
+    border-radius: 8px;
+    text-decoration: none;
+    margin-top: 20px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px -8px var(--accent-soft);
+  }
+
+  .cta-button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .cta-note {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 12px;
+    max-width: 480px;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    padding: 40px 0 60px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  footer a {
+    color: var(--text-secondary);
+    text-decoration: underline;
+    text-decoration-color: var(--border);
+  }
+
+  footer a:hover { color: var(--accent); }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 600px) {
+    .hero { padding: 56px 0 48px; }
+    section { padding: 48px 0; }
+    .diff-card { padding: 24px 20px; font-size: 0.85rem; }
+    .step { grid-template-columns: 40px 1fr; gap: 14px; }
+    .step-num { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HERO -->
+  <header class="hero">
+    <!-- <div class="eyebrow">Case Study — AI Product, Solo Build</div> -->
+    <div class="eyebrow">ResumeWhip helps job seekers turn scattered experience into targeted applications.</div>
+    <h1>Full-Lifecylce <br>Career Intelligence Platform.</h1>
+    <h2>The complete AI job search suite—from scam defense to interview prep.</h2>
+    <p class="subhead">
+      Most job tools just churn out generic resume buzzwords. ResumeWhip acts as an intelligent
+      career advocate: verifying listings to protect job seekers from scam posts and recruiter 
+      phishing, mapping non-linear experience to new industries, and transforming bullet points 
+      into high-impact, ATS-optimized metric stories—without hallucinating numbers.
+    </p>
+
+    <div class="diff-card">
+      <span class="diff-label">Before → After</span>
+      <span class="diff-old">Responsible for managing data projects and improving systems for clients.</span>
+      <span class="diff-new">Reduced data pipeline latency 98.9% (24hrs → 15min), enabling real-time analytics for enterprise clients.</span>
+    </div>
+  </header>
+
+  <!--
+    SCREENSHOT PLACEHOLDER — hero product shot.
+    Recommended: Resume Optimizer results view (optimized resume + score
+    comparison), since it's the clearest single "this really works" proof.
+    Replace src below once you've captured it. Suggested size: 1200x750 or similar.
+  -->
+  <div class="screenshot-frame">
+    <img src="new_rw4.png" alt="ResumeWhip Resume Optimizer showing an optimized resume and ATS score comparison" onerror="this.parentElement.classList.add('screenshot-missing')">
+    <div class="screenshot-placeholder-label">Screenshot: Resume Optimizer results view</div>
+  </div>
+
+  <!-- CORE Features -->
+  <section> 
+    <h2>Core Features</h2> 
+    <p> 
+     Six tools covering the full job-search workflow -  from deciding whether a posting is 
+     worth applying to, through optimizing materials, to actual interview prep. 
+    </p> 
+
+    <span class="feature-group-label">Defend and Verify (Free Tier)</span>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>Job Posting Validator</h3>
+        <p>Analyzes job descriptions for data-harvesting red flags, ghost postings, and high-risk boilerplate 
+        indicators before candidates waste hours applying.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Recruiter Outreach Shield</h3>
+        <p>Evaluates unsolicited recruiter messages and LinkedIn outreach against known phishing patterns 
+        and spoofing attacks.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Tailored Cover Letter Engine</h3>
+        <p>Generates high-converting, context-aware cover letters matching candidate experience directly 
+        to posting requirements.</p>
+      </div>
+    </div>
+
+    <span class="feature-group-label">Optimize and Transition (Paid Tier)</span>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>Near Zero-Hallucination Resume Optimizer</h3>
+        <p>Re-engineers resume bullets around quantifiable impact and ATS heuristics—using strict prompt 
+        constraints to prevent invented metrics.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Career Transition Coach</h3>
+        <p>Performs cross-domain skill mapping, identifies domain gaps, and crafts pivot strategies for 
+        non-linear career changes.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Dynamic Interview Prep</h3>
+        <p>Generates an 8-question mock interview with adaptive difficulty levels, tailored directly to 
+        the target posting and the candidate’s specific resume gaps.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section>
+    <h2>How It Works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Upload resume + paste job description</h3>
+          <p>The tool takes a resume file alongside the full text of a target job posting
+             — no manual tagging or formatting required.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Prompt-engineered rewrite pass</h3>
+          <p>Each bullet is run through a structured prompt against OpenAI's GPT-5.6 model,
+             explicitly instructed to never invent or exaggerate metrics — if the original
+             resume has no number for a bullet, the rewrite uses strong qualitative language
+             instead of fabricating one, while tightening language and mirroring keywords
+             from the posting.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Optimized output, ready to use</h3>
+          <p>Results return in seconds — optimized resume bullets, positioning guidance, 
+            and application materials the candidate can review, adjust, and use immediately.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!--
+    SCREENSHOT PLACEHOLDER #2 — a second tool, for variety.
+    Recommended: Interview Prep's question cards (color-graded difficulty
+    badges) or Career Transition Coach's coaching output — either shows
+    range beyond "just a resume tool." Replace src once captured.
+  -->
+  <div class="screenshot-frame">
+    <img src="new_rw3.png" alt="A second ResumeWhip tool in action" onerror="this.parentElement.classList.add('screenshot-missing')">
+    <div class="screenshot-placeholder-label">Screenshot: Interview Prep or Career Transition Coach</div>
+  </div>
+
+  <!-- PRODUCT VALIDATION -->
+  <section id="validation-benchmarking">
+    <h2>Validation and Benchmarking</h2>
+    <p>
+      To ensure ResumeWhip delivers measurable value, I developed an internal evaluation 
+      pipeline that scores outputs against ATS-oriented resume heuristics, 
+      keyword alignment, impact language, and readability</p>
+    
+    <ul class = "styled-list">
+      <li><strong>Heuristic Scoring:</strong> I developed an internal evaluation pipeline 
+        that benchmarks ResumeWhip outputs against ATS-oriented resume heuristics.</li>
+      <li><strong>Continuous Improvement:</strong> The evaluation pipeline compares 
+        generated outputs against baseline resumes and tracks changes in keyword alignment,
+        impact language, and ATS readability across multiple job descriptions.</li>
+      <li><strong>Transparency:</strong> Unlike 'black-box' tools, ResumeWhip provides 
+        users with a transparent score breakdown, offering actionable insights into resume 
+        performance.</li>
+    </ul>
+  </section>
+
+  <!-- STACK -->
+  <section>
+    <h2>Tech Stack</h2>
+    <div class="stack-row">
+      <span class="stack-tag">Python</span>
+      <span class="stack-tag">FastAPI</span>
+      <span class="stack-tag">OpenAI API</span>
+      <span class="stack-tag">Prompt Engineering</span>
+      <span class="stack-tag">Stripe</span>
+      <span class="stack-tag">SQLite</span>
+      <span class="stack-tag">PDF / Text Parsing</span>
+      <span class="stack-tag">Job Description Analysis</span>
+      <span class="stack-tag">ATS Optimization</span>
+      <span class="stack-tag">Product Evaluation</span>
+    </div>
+
+    <p>As a solo build, I managed the entire product lifecycle from conceptualization to 
+      deployment — including a full rebuild of the frontend partway through, once the 
+      product outgrew what a demo-focused UI framework could support.</p>
+
+    <ul class = "styled-list">
+      <li><strong>Core Logic:</strong> Python, FastAPI, OpenAI API (GPT-5.6), Prompt Engineering, SQLite.</li>
+      <li><strong>Infrastructure and UI:</strong> Originally built on Gradio for speed of iteration; 
+        migrated to a custom FastAPI backend with a hand-built HTML/CSS/JS frontend for full design 
+        control as the product grew from one tool to six.</li>
+      <li><strong>Payments:</strong> Stripe, for the freemium subscription model.</li>
+      <li><strong>Domain Expertise:</strong> ATS Optimization, NLP, Data Engineering</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Watch It Work</h2>
+    <p>A walkthrough of the tool taking a real resume and a real job description,
+      and producing both a cover letter and an optimized resume.</p>
+    <div class="video-frame">
+      <iframe
+        src = "https://www.loom.com/embed/7e0e27c6a9404da49010bbe0cd6e7225"
+        frameborder = "0"
+        webkitallowfullscreen
+        mozallowfullscreen
+        allowfullscreen>
+      </iframe>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2>Give It A Spin</h2>
+    <p>
+      Three tools (Cover Letter Writer, Job Validator, Recruiter Message Checker) are free 
+      and unlimited, no account required. The other three (Resume Optimizer, Career 
+      Transition Coach, Interview Prep) include 3 free uses before a paid subscription. 
+      Email collection is used only to manage usage limits and prevent abuse.
+    </p>
+    <p><strong>Current Status:</strong> ResumeWhip is live and actively improving 
+      based on user feedback, running on a custom FastAPI backend and frontend I built 
+      to replace the original Gradio-based version as the product grew.</p>
+    <a class="cta-button" href="https://www.resumewhip.com" target="_blank" rel="noopener">
+      Open ResumeWhip →
+    </a>
+  </section>
+
+  <footer>
+    <p>Built by Nick Joseph — <a href="https://www.linkedin.com/in/nickjosephsanantonio" target="_blank" rel="noopener">LinkedIn</a> · <a href="https://github.com/npj210mlk" target="_blank" rel="noopener">GitHub</a></p>
+  </footer>
+
+</div>
+
+</body>
+</html>
